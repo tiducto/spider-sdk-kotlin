@@ -1,0 +1,137 @@
+name: contract-sync
+
+# Pulls the published contract openapi.json from the private spider-contract repo.
+# When info.version bumps, opens (or re-opens) a contract/vX PR that swaps the spec in —
+# :contract regenerates from it at build time. Cheap on no-op days: exits before touching
+# Gradle when the version is unchanged.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'   # daily 06:00 UTC
+  workflow_dispatch: {}    # run manually to recreate a PR you closed/deleted
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: contract-sync
+  cancel-in-progress: false
+
+env:
+  CONTRACT_REPO: tiducto/spider-contract
+  SPEC_PATH: contract/openapi.json
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch + validate upstream spec
+        env:
+          GH_TOKEN: ${{ secrets.CONTRACT_REPO_TOKEN }}
+        run: |
+          gh api "repos/${CONTRACT_REPO}/contents/openapi.json" \
+            -H "Accept: application/vnd.github.raw" > /tmp/new-openapi.json
+          # Fail loudly on an empty / garbage / unauthorized response instead of silently no-opping.
+          jq -e '.info.version' /tmp/new-openapi.json >/dev/null \
+            || { echo "::error::fetched openapi.json is invalid or missing info.version (token? repo access?)"; exit 1; }
+          echo "Fetched $(wc -c < /tmp/new-openapi.json) bytes, version $(jq -r '.info.version' /tmp/new-openapi.json)"
+
+      - name: Compare versions
+        id: ver
+        run: |
+          old="$(jq -r '.info.version' "$SPEC_PATH")"
+          new="$(jq -r '.info.version' /tmp/new-openapi.json)"
+          echo "old=$old  new=$new"
+          {
+            echo "old=$old"
+            echo "new=$new"
+            echo "branch=contract/v$new"
+          } >> "$GITHUB_OUTPUT"
+          if [ "$old" = "$new" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            om="${old%%.*}"; nm="${new%%.*}"
+            if [ "$nm" -gt "$om" ]; then
+              echo "bump=major" >> "$GITHUB_OUTPUT"
+            else
+              echo "bump=minor" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Up to date
+        if: steps.ver.outputs.changed == 'false'
+        run: echo "Contract already at ${{ steps.ver.outputs.new }} on this branch — nothing to do."
+
+      # Recreate only when NO PR exists for this version (i.e. it was DELETED). A CLOSED PR is the
+      # admin deliberately rejecting this contract update, so we respect it and don't nag; an OPEN
+      # one is already in flight. A new version bump gets its own branch/PR regardless.
+      - name: PR for this version?
+        id: pr
+        if: steps.ver.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          count="$(gh pr list --head '${{ steps.ver.outputs.branch }}' --state all --json number --jq 'length')"
+          echo "prCount=$count" >> "$GITHUB_OUTPUT"
+          [ "$count" = "0" ] && echo "No PR on record — will create one." || echo "A PR already exists (open or closed) — leaving it."
+
+      - name: Set up JDK
+        if: steps.ver.outputs.changed == 'true' && steps.pr.outputs.prCount == '0'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        if: steps.ver.outputs.changed == 'true' && steps.pr.outputs.prCount == '0'
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Swap spec + verify codegen
+        id: verify
+        if: steps.ver.outputs.changed == 'true' && steps.pr.outputs.prCount == '0'
+        continue-on-error: true
+        run: |
+          cp /tmp/new-openapi.json "$SPEC_PATH"
+          if ./gradlew :contract:compileKotlinJvm --console=plain; then
+            echo "build=✅ passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=❌ FAILED — review before merge" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create / recreate PR
+        if: steps.ver.outputs.changed == 'true' && steps.pr.outputs.prCount == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          b="${{ steps.ver.outputs.branch }}"
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$b"
+          git add "$SPEC_PATH"
+          git commit -m "contract: sync to v${{ steps.ver.outputs.new }}"
+          # force: the branch may linger from a closed/deleted PR (we already confirmed none is open).
+          git push --force origin "$b"
+
+          gh label create contract-update --color 0e8a16 --description "Automated contract spec update" 2>/dev/null || true
+          gh label create "${{ steps.ver.outputs.bump }}" --color ededed 2>/dev/null || true
+
+          cat > /tmp/pr-body.md <<EOF
+          Automated sync of the Spider contract.
+
+          - **Version:** \`${{ steps.ver.outputs.old }}\` → \`${{ steps.ver.outputs.new }}\` (**${{ steps.ver.outputs.bump }}**)
+          - **Source:** \`${CONTRACT_REPO}\` · \`openapi.json\`
+          - **Local codegen check:** ${{ steps.verify.outputs.build }}
+
+          \`:contract\` regenerates from this spec at build time, so the diff below is the spec itself. Review it, confirm the generated API is acceptable, and merge.
+          EOF
+
+          gh pr create \
+            --base main --head "$b" \
+            --title "contract: v${{ steps.ver.outputs.old }} → v${{ steps.ver.outputs.new }}" \
+            --label contract-update --label "${{ steps.ver.outputs.bump }}" \
+            --body-file /tmp/pr-body.md
