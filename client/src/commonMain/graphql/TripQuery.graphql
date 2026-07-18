@@ -1,0 +1,33 @@
+query Trip($id: String!, $serviceDate: String) {
+    trip(id: $id) {
+        gtfsId
+        directionId
+        tripHeadsign
+        bikesAllowed
+        route {
+            shortName
+            longName
+            mode
+        }
+        stoptimesForDate(serviceDate: $serviceDate) {
+            serviceDay
+            scheduledArrival
+            scheduledDeparture
+            realtimeArrival
+            realtimeDeparture
+            realtime
+            realtimeState
+            stop {
+                gtfsId
+                name
+                lat
+                lon
+                wheelchairBoarding
+            }
+        }
+        tripGeometry {
+            points
+            length
+        }
+    }
+}

@@ -1,0 +1,41 @@
+query StopDepartures(
+    $id: String!,
+    $numberOfDepartures: Int,
+    $startTime: Long,
+    $timeRange: Int,
+) {
+    asStop: stop(id: $id) {
+        ...DeparturesFields
+    }
+    asStation: station(id: $id) {
+        ...DeparturesFields
+    }
+}
+
+fragment DeparturesFields on Stop {
+    gtfsId
+    name
+    wheelchairBoarding
+    stoptimesWithoutPatterns(
+        numberOfDepartures: $numberOfDepartures,
+        startTime: $startTime,
+        timeRange: $timeRange,
+        omitNonPickups: true,
+    ) {
+        serviceDay
+        scheduledDeparture
+        realtimeDeparture
+        realtime
+        realtimeState
+        headsign
+        trip {
+            gtfsId
+            bikesAllowed
+            route {
+                shortName
+                longName
+                mode
+            }
+        }
+    }
+}

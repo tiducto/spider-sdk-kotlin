@@ -1,0 +1,20 @@
+.gradle/
+**/build/
+local.properties
+.kotlin/
+
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+### Xcode / Kotlin-Native ###
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.konan/
+
+### Mac OS ###
+.DS_Store
