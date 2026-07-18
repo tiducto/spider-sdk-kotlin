@@ -1,9 +1,9 @@
 name: build
 
 # Builds the whole KMP library. Runs on macOS because the repo declares Apple
-# targets (iosArm64/macos*), which can't compile on a Linux runner. For :contract
-# this also runs openApiGenerate + generatePersistedQueries (wired as compile deps),
-# so it verifies the generated code compiles, not just the hand-written code.
+# targets (iosArm64/macos*), which can't compile on a Linux runner. :contract's
+# models are committed Kotlin (generated out-of-band by scripts/generate-contract.sh),
+# so this just compiles them like any other source — no codegen step in the build.
 
 on:
   pull_request:

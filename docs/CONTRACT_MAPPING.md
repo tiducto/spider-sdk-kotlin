@@ -67,15 +67,21 @@ documents have diverged; the current contract queries are simpler/older. Adopt t
 The OTP client (`OtpClient.kt`) is a plain **Ktor** `HttpClient` + **kotlinx.serialization**. For each
 operation it:
 
-1. builds the typed request variables (`Plan/Departures/Trip*Var` @Serializable classes),
+1. builds the typed request variables (`*Variables`/`*Input` classes from the generated `:contract`
+   module),
 2. POSTs `{"id":"<persisted-id>","variables":{…}}` to `$baseUrl/otp/<plan|departures|trip>` with the
-   `apikey` header — the id + route come from the `PersistedQueries` registry,
-3. parses the standard GraphQL `{data, errors}` envelope into hand-written `@Serializable` response
-   DTOs, then maps them to the domain types (`Route`, `Departure`, `TripDetails`).
+   `apikey` header — the id + route come from the `PersistedQueries` registry (the SDK owns the ids;
+   they are the sha256 of its `.graphql` docs),
+3. parses the standard GraphQL `{data, errors}` envelope into the generated `:contract` payload models
+   (`PlanConnectionData`, `StopDeparturesData`, `TripData`, …), then maps them to the domain types
+   (`Route`, `Departure`, `TripDetails`).
 
-The `.graphql` files under `src/commonMain/graphql/` are **no longer compiled** — they're kept as the
-canonical query documents the persisted ids are hashed from (the contract registers the same text).
-Future typed-model codegen can regenerate from them without reintroducing Apollo at runtime.
+The wire models are generated from `tiducto/spider-contract`'s `openapi.json` into the `:contract`
+module (`scripts/generate-contract.sh` / the **Generate contract module** workflow) and committed. Their
+enums tolerate unrecognized upstream values (`enumUnknownDefaultCase`) so a mode/state OTP adds later
+maps to `UNKNOWN_DEFAULT_OPEN_API` instead of failing the parse. The `.graphql` files under
+`src/commonMain/graphql/` are **not compiled** — they're kept as the canonical query documents the
+persisted ids are hashed from (the contract registers the same text).
 
 Stops go through `MeiliClient` → `$baseUrl/stops/search` + `apikey` (Kong rewrites to the env's Meili
 index and injects the Meili key). project/env are folded into the customer's `baseUrl` (e.g.

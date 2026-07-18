@@ -157,8 +157,6 @@ private fun AlertDto.toDomain(): ServiceAlert = ServiceAlert(
     }.toImmutableList(),
 )
 
-// --- wire shapes (subset of the JSON actually mapped to domain types) ---
-
 @Serializable
 private data class VehiclesResponseDto(
     val vehicles: List<VehicleDto> = emptyList(),
