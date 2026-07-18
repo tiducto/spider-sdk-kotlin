@@ -10,6 +10,7 @@ kotlinxSerialization = "1.11.0"
 kotlinxDatetime = "0.8.0"
 kotlinxCollectionsImmutable = "0.5.0"
 konsist = "0.17.3"
+openapiGenerator = "7.19.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -35,3 +36,4 @@ konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradle" }
+openapi-generator = { id = "org.openapi.generator", version.ref = "openapiGenerator" }
