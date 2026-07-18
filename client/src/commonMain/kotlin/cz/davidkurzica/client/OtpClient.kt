@@ -1,6 +1,21 @@
 package cz.davidkurzica.client
 
 import cz.davidkurzica.client.util.decodePolyline
+import cz.davidkurzica.contract.models.GraphQLError
+import cz.davidkurzica.contract.models.PlanConnectionData
+import cz.davidkurzica.contract.models.PlanConnectionVariables
+import cz.davidkurzica.contract.models.PlanCoordinateInput
+import cz.davidkurzica.contract.models.PlanDateTimeInput
+import cz.davidkurzica.contract.models.PlanLabeledLocationInput
+import cz.davidkurzica.contract.models.PlanLocationInput
+import cz.davidkurzica.contract.models.PlanPassThroughViaLocationInput
+import cz.davidkurzica.contract.models.PlanStopLocationInput
+import cz.davidkurzica.contract.models.PlanViaLocationInput
+import cz.davidkurzica.contract.models.PlanVisitViaLocationInput
+import cz.davidkurzica.contract.models.StopDeparturesData
+import cz.davidkurzica.contract.models.StopDeparturesVariables
+import cz.davidkurzica.contract.models.TripData
+import cz.davidkurzica.contract.models.TripVariables
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -23,20 +38,14 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
-// gtfsIds are opaque, canonical, feed-prefixed ids ("1:U…") used identically by Meili and OTP, so the
-// SDK passes them through unchanged — a stop id from search feeds straight back into route()/
-// departures()/trip() with no add/strip step (which is what previously double-prefixed and 404'd).
-//
-// The transport is a plain persisted-query POST: the gateway allow-lists query ids, so the client never
-// sends GraphQL — it sends {"id": "<sha256 of the query doc>", "variables": {…}} to a per-operation route
-// and gets back the standard GraphQL {data, errors} envelope. The query documents live under
-// src/commonMain/graphql/ purely as the canonical text the ids are hashed from (see PersistedQueries).
+// gtfsIds are opaque and feed-prefixed ("1:U…"); the SDK never re-prefixes them — a stop id from search
+// feeds straight into route()/departures()/trip() (re-prefixing is what once 404'd).
 internal class OtpClient(
     private val baseUrl: String,
     private val apiKey: String,
 ) {
-    // explicitNulls=false drops absent optionals from the request variables (the "field omitted" that OTP
-    // reads as unset); ignoreUnknownKeys lets the response carry fields we don't model without failing.
+    // explicitNulls=false so an omitted optional reads as "unset" at OTP. Unknown enum values decode to
+    // UNKNOWN_DEFAULT_OPEN_API via the generated enums' serializers (coercion doesn't — it throws).
     private val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false
@@ -60,37 +69,37 @@ internal class OtpClient(
         after: String? = null,
     ): Route {
         val dateTime = when (val time = request.time) {
-            is RouteTime.DepartAt -> PlanDateTimeVar(earliestDeparture = time.time.toString())
-            is RouteTime.ArriveBy -> PlanDateTimeVar(latestArrival = time.time.toString())
+            is RouteTime.DepartAt -> PlanDateTimeInput(earliestDeparture = time.time.toString())
+            is RouteTime.ArriveBy -> PlanDateTimeInput(latestArrival = time.time.toString())
         }
-        val variables = PlanVariables(
+        val variables = PlanConnectionVariables(
             dateTime = dateTime,
-            origin = request.from.toVar(),
-            destination = request.to.toVar(),
-            via = request.via.takeIf { it.isNotEmpty() }?.map { it.toVar() },
+            origin = request.from.toInput(),
+            destination = request.to.toInput(),
+            via = request.via.takeIf { it.isNotEmpty() }?.map { it.toInput() },
             first = first,
             before = before,
             after = after,
         )
-        val data = execute(PersistedQueries.PLAN, PlanVariables.serializer(), variables, PlanData.serializer())
+        val data = execute(PersistedQueries.PLAN, PlanConnectionVariables.serializer(), variables, PlanConnectionData.serializer())
         val plan = data.planConnection ?: throw SpiderTransportException.NoData("OTP returned no planConnection")
 
         return Route(
             request = request,
-            edges = plan.edges.orEmpty().filterNotNull().map { edge ->
+            edges = plan.edges.orEmpty().map { edge ->
                 val node = edge.node
                 RouteEdge(
                     cursor = edge.cursor,
                     itinerary = Itinerary(
                         start = node.start,
                         end = node.end,
-                        durationSeconds = node.duration,
+                        durationSeconds = node.duration ?: 0L,
                         waitingTimeSeconds = node.waitingTime,
                         numberOfTransfers = node.numberOfTransfers,
                         accessibilityScore = node.accessibilityScore,
-                        legs = node.legs.filterNotNull().map { leg ->
+                        legs = node.legs.map { leg ->
                             Leg(
-                                mode = transitModeFromWire(leg.mode),
+                                mode = transitModeFromWire(leg.mode?.value),
                                 startScheduled = leg.start.scheduledTime,
                                 endScheduled = leg.end.scheduledTime,
                                 fromName = leg.from.name,
@@ -101,10 +110,10 @@ internal class OtpClient(
                                 distanceMeters = leg.distance,
                                 durationSeconds = leg.duration,
                                 tripGtfsId = leg.trip?.gtfsId,
-                                bikesAllowed = bikesAllowedFromWire(leg.trip?.bikesAllowed),
+                                bikesAllowed = bikesAllowedFromWire(leg.trip?.bikesAllowed?.value),
                                 accessibilityScore = leg.accessibilityScore,
-                                fromWheelchair = wheelchairFromWire(leg.from.stop?.wheelchairBoarding),
-                                toWheelchair = wheelchairFromWire(leg.to.stop?.wheelchairBoarding),
+                                fromWheelchair = wheelchairFromWire(leg.from.stop?.wheelchairBoarding?.value),
+                                toWheelchair = wheelchairFromWire(leg.to.stop?.wheelchairBoarding?.value),
                                 geometry = leg.legGeometry?.points?.let { decodePolyline(it).toImmutableList() }
                                     ?: persistentListOf(),
                             )
@@ -120,7 +129,7 @@ internal class OtpClient(
                 searchWindowUsed = plan.pageInfo.searchWindowUsed,
             ),
             routingErrors = plan.routingErrors.map {
-                RoutingError(code = it.code, description = it.description, inputField = it.inputField)
+                RoutingError(code = it.code.value, description = it.description, inputField = it.inputField?.value)
             }.toImmutableList(),
             searchDateTime = plan.searchDateTime,
         )
@@ -132,17 +141,17 @@ internal class OtpClient(
         startTime: Instant?,
         timeRange: Duration,
     ): ImmutableList<Departure> {
-        val variables = DeparturesVariables(
+        val variables = StopDeparturesVariables(
             id = id,
             numberOfDepartures = numberOfDepartures,
             startTime = startTime?.epochSeconds,
             timeRange = timeRange.inWholeSeconds.coerceIn(0L, Int.MAX_VALUE.toLong()).toInt(),
         )
-        val data = execute(PersistedQueries.DEPARTURES, DeparturesVariables.serializer(), variables, DeparturesData.serializer())
+        val data = execute(PersistedQueries.DEPARTURES, StopDeparturesVariables.serializer(), variables, StopDeparturesData.serializer())
         val stop = data.asStop ?: data.asStation
             ?: throw SpiderTransportException.NoData("OTP returned no stop or station for id=$id")
 
-        return stop.stoptimesWithoutPatterns.mapNotNull { st ->
+        return stop.stoptimesWithoutPatterns.orEmpty().mapNotNull { st ->
             val serviceDay = st.serviceDay ?: return@mapNotNull null
             val scheduledOffset = st.scheduledDeparture ?: return@mapNotNull null
             // Drop trips that terminate at a sibling stop sharing this station's name —
@@ -155,12 +164,12 @@ internal class OtpClient(
                 scheduledTime = Instant.fromEpochSeconds(serviceDay + scheduledOffset),
                 realtimeTime = st.realtimeDeparture?.let { Instant.fromEpochSeconds(serviceDay + it) },
                 isRealtime = st.realtime ?: false,
-                realtimeState = st.realtimeState,
+                realtimeState = st.realtimeState?.value,
                 headsign = st.headsign,
                 tripGtfsId = st.trip?.gtfsId,
                 routeShortName = route?.shortName,
                 routeLongName = route?.longName,
-                mode = transitModeFromWire(route?.mode),
+                mode = transitModeFromWire(route?.mode?.value),
             )
         }.toImmutableList()
     }
@@ -171,7 +180,7 @@ internal class OtpClient(
         val data = execute(PersistedQueries.TRIP, TripVariables.serializer(), variables, TripData.serializer())
         val trip = data.trip ?: throw SpiderTransportException.NoData("OTP returned no trip for id=$tripId")
 
-        val stops = trip.stoptimesForDate.orEmpty().filterNotNull().mapNotNull { st ->
+        val stops = trip.stoptimesForDate.orEmpty().mapNotNull { st ->
             val s = st.stop ?: return@mapNotNull null
             val day = st.serviceDay
             fun maybe(offset: Int?): Instant? =
@@ -186,7 +195,7 @@ internal class OtpClient(
                 realtimeArrival = maybe(st.realtimeArrival),
                 realtimeDeparture = maybe(st.realtimeDeparture),
                 isRealtime = st.realtime ?: false,
-                wheelchairBoarding = wheelchairFromWire(s.wheelchairBoarding),
+                wheelchairBoarding = wheelchairFromWire(s.wheelchairBoarding?.value),
             )
         }
 
@@ -194,10 +203,10 @@ internal class OtpClient(
             gtfsId = trip.gtfsId,
             routeShortName = trip.route.shortName,
             routeLongName = trip.route.longName,
-            mode = transitModeFromWire(trip.route.mode),
+            mode = transitModeFromWire(trip.route.mode?.value),
             headsign = trip.tripHeadsign,
             directionId = trip.directionId,
-            bikesAllowed = bikesAllowedFromWire(trip.bikesAllowed),
+            bikesAllowed = bikesAllowedFromWire(trip.bikesAllowed?.value),
             stops = stops.toImmutableList(),
             geometry = trip.tripGeometry?.points?.let { decodePolyline(it).toImmutableList() }
                 ?: persistentListOf(),
@@ -228,7 +237,7 @@ internal class OtpClient(
         }
         val envelope = json.decodeFromString(GraphQLResponse.serializer(dataSerializer), text)
         envelope.errors?.takeIf { it.isNotEmpty() }?.let { errors ->
-            throw SpiderTransportException.Upstream("OTP ${op.path} errors: ${errors.mapNotNull { it.message }}")
+            throw SpiderTransportException.Upstream("OTP ${op.path} errors: ${errors.map { it.message }}")
         }
         return envelope.data ?: throw SpiderTransportException.NoData("OTP ${op.path} returned no data")
     }
@@ -236,9 +245,9 @@ internal class OtpClient(
 
 /**
  * Each OTP operation's persisted-query id and its gateway route suffix. The id is the lowercase hex
- * sha256 of the canonical query document the Spider contract registers — the contract MUST register
- * these exact `.graphql` documents so the ids match; a mismatch is a 403 at the gateway. See
- * `docs/CONTRACT_MAPPING.md`.
+ * sha256 of the canonical query document under src/commonMain/graphql/ — the SDK owns these documents
+ * (direction is contract ← SDK), and the Spider contract registers the same text so the ids match; a
+ * mismatch is a 403 at the gateway. See `docs/CONTRACT_MAPPING.md`.
  */
 internal object PersistedQueries {
     data class Op(val id: String, val path: String)
@@ -247,8 +256,6 @@ internal object PersistedQueries {
     val DEPARTURES = Op("70a644fe3c6b2cbf5b2d70cef8230c1428bea6357ae1766772162d86469563d0", "departures")
     val TRIP = Op("e8959a8d47a8e8437ee3ec740cd9c3e28bd401efdd236dde0502559daea53920", "trip")
 }
-
-// --- transit-mode / accessibility mapping (wire enum strings → domain) ---
 
 private fun transitModeFromWire(raw: String?): TransitMode? = when (raw) {
     null -> null
@@ -281,27 +288,25 @@ private fun bikesAllowedFromWire(raw: String?): BikesAllowed? = when (raw) {
     else -> null
 }
 
-// --- request variable shapes (mirror the query's variable definitions) ---
-
-private fun RouteLocation.toVar(): PlanLabeledLocationVar = PlanLabeledLocationVar(
+private fun RouteLocation.toInput(): PlanLabeledLocationInput = PlanLabeledLocationInput(
     location = when (this) {
-        is RouteLocation.StopId -> PlanLocationVar(stopLocation = PlanStopLocationVar(stopLocationId = id))
-        is RouteLocation.Coordinates -> PlanLocationVar(coordinate = PlanCoordinateVar(latitude = lat, longitude = lon))
+        is RouteLocation.StopId -> PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = id))
+        is RouteLocation.Coordinates -> PlanLocationInput(coordinate = PlanCoordinateInput(latitude = lat, longitude = lon))
     },
 )
 
-private fun ViaLocation.toVar(): PlanViaLocationVar = when (this) {
-    is ViaLocation.PassThrough -> PlanViaLocationVar(passThrough = PlanPassThroughVar(stopLocationIds = stopIds))
+private fun ViaLocation.toInput(): PlanViaLocationInput = when (this) {
+    is ViaLocation.PassThrough -> PlanViaLocationInput(passThrough = PlanPassThroughViaLocationInput(stopLocationIds = stopIds))
     is ViaLocation.Visit -> {
         val wait = minimumWaitTime.takeIf { it > Duration.ZERO }?.toIsoString()
         val visit = when (val loc = location) {
-            is RouteLocation.StopId -> PlanVisitVar(stopLocationIds = listOf(loc.id), minimumWaitTime = wait)
-            is RouteLocation.Coordinates -> PlanVisitVar(
-                coordinate = PlanCoordinateVar(latitude = loc.lat, longitude = loc.lon),
+            is RouteLocation.StopId -> PlanVisitViaLocationInput(stopLocationIds = listOf(loc.id), minimumWaitTime = wait)
+            is RouteLocation.Coordinates -> PlanVisitViaLocationInput(
+                coordinate = PlanCoordinateInput(latitude = loc.lat, longitude = loc.lon),
                 minimumWaitTime = wait,
             )
         }
-        PlanViaLocationVar(visit = visit)
+        PlanViaLocationInput(visit = visit)
     }
 }
 
@@ -309,199 +314,4 @@ private fun ViaLocation.toVar(): PlanViaLocationVar = when (this) {
 private data class PersistedRequest(val id: String, val variables: JsonElement)
 
 @Serializable
-private data class PlanVariables(
-    val dateTime: PlanDateTimeVar,
-    val origin: PlanLabeledLocationVar,
-    val destination: PlanLabeledLocationVar,
-    val via: List<PlanViaLocationVar>? = null,
-    val first: Int? = null,
-    val before: String? = null,
-    val after: String? = null,
-)
-
-@Serializable
-private data class PlanDateTimeVar(val earliestDeparture: String? = null, val latestArrival: String? = null)
-
-@Serializable
-private data class PlanLabeledLocationVar(val location: PlanLocationVar)
-
-@Serializable
-private data class PlanLocationVar(
-    val stopLocation: PlanStopLocationVar? = null,
-    val coordinate: PlanCoordinateVar? = null,
-)
-
-@Serializable
-private data class PlanStopLocationVar(val stopLocationId: String)
-
-@Serializable
-private data class PlanCoordinateVar(val latitude: Double, val longitude: Double)
-
-@Serializable
-private data class PlanViaLocationVar(
-    val passThrough: PlanPassThroughVar? = null,
-    val visit: PlanVisitVar? = null,
-)
-
-@Serializable
-private data class PlanPassThroughVar(val stopLocationIds: List<String>)
-
-@Serializable
-private data class PlanVisitVar(
-    val stopLocationIds: List<String>? = null,
-    val coordinate: PlanCoordinateVar? = null,
-    val minimumWaitTime: String? = null,
-)
-
-@Serializable
-private data class DeparturesVariables(
-    val id: String,
-    val numberOfDepartures: Int,
-    val startTime: Long? = null,
-    val timeRange: Int,
-)
-
-@Serializable
-private data class TripVariables(val id: String, val serviceDate: String? = null)
-
-// --- response shapes (subset of the query selection actually mapped to domain types) ---
-
-@Serializable
 private data class GraphQLResponse<T>(val data: T? = null, val errors: List<GraphQLError>? = null)
-
-@Serializable
-private data class GraphQLError(val message: String? = null)
-
-@Serializable
-private data class PlanData(val planConnection: PlanConnectionDto? = null)
-
-@Serializable
-private data class PlanConnectionDto(
-    val edges: List<PlanEdgeDto?>? = null,
-    val pageInfo: PageInfoDto = PageInfoDto(),
-    val routingErrors: List<RoutingErrorDto> = emptyList(),
-    val searchDateTime: String? = null,
-)
-
-@Serializable
-private data class PlanEdgeDto(val cursor: String, val node: PlanNodeDto)
-
-@Serializable
-private data class PlanNodeDto(
-    val start: String? = null,
-    val end: String? = null,
-    val duration: Long,
-    val waitingTime: Long? = null,
-    val numberOfTransfers: Int,
-    val accessibilityScore: Double? = null,
-    val legs: List<LegDto?> = emptyList(),
-)
-
-@Serializable
-private data class LegDto(
-    val mode: String? = null,
-    val start: ScheduledTimeDto,
-    val end: ScheduledTimeDto,
-    val from: PlaceDto,
-    val to: PlaceDto,
-    val route: RouteDto? = null,
-    val headsign: String? = null,
-    val distance: Double? = null,
-    val duration: Double? = null,
-    val accessibilityScore: Double? = null,
-    val trip: TripRefDto? = null,
-    val legGeometry: GeometryDto? = null,
-)
-
-@Serializable
-private data class ScheduledTimeDto(val scheduledTime: String)
-
-@Serializable
-private data class PlaceDto(val name: String? = null, val stop: StopRefDto? = null)
-
-@Serializable
-private data class StopRefDto(val wheelchairBoarding: String? = null)
-
-@Serializable
-private data class RouteDto(val shortName: String? = null, val longName: String? = null, val mode: String? = null)
-
-@Serializable
-private data class TripRefDto(val gtfsId: String? = null, val bikesAllowed: String? = null)
-
-@Serializable
-private data class GeometryDto(val points: String? = null, val length: Double? = null)
-
-@Serializable
-private data class PageInfoDto(
-    val startCursor: String? = null,
-    val endCursor: String? = null,
-    val hasNextPage: Boolean = false,
-    val hasPreviousPage: Boolean = false,
-    val searchWindowUsed: String? = null,
-)
-
-@Serializable
-private data class RoutingErrorDto(
-    val code: String,
-    val description: String,
-    val inputField: String? = null,
-)
-
-@Serializable
-private data class DeparturesData(val asStop: StopDto? = null, val asStation: StopDto? = null)
-
-@Serializable
-private data class StopDto(
-    val gtfsId: String? = null,
-    val name: String = "",
-    val wheelchairBoarding: String? = null,
-    val stoptimesWithoutPatterns: List<StoptimeDto> = emptyList(),
-)
-
-@Serializable
-private data class StoptimeDto(
-    val serviceDay: Long? = null,
-    val scheduledDeparture: Int? = null,
-    val realtimeDeparture: Int? = null,
-    val realtime: Boolean? = null,
-    val realtimeState: String? = null,
-    val headsign: String? = null,
-    val trip: DepartureTripDto? = null,
-)
-
-@Serializable
-private data class DepartureTripDto(val gtfsId: String? = null, val route: RouteDto? = null)
-
-@Serializable
-private data class TripData(val trip: TripDto? = null)
-
-@Serializable
-private data class TripDto(
-    val gtfsId: String,
-    val directionId: String? = null,
-    val tripHeadsign: String? = null,
-    val bikesAllowed: String? = null,
-    val route: RouteDto = RouteDto(),
-    val stoptimesForDate: List<TripStoptimeDto?>? = null,
-    val tripGeometry: GeometryDto? = null,
-)
-
-@Serializable
-private data class TripStoptimeDto(
-    val serviceDay: Long? = null,
-    val scheduledArrival: Int? = null,
-    val scheduledDeparture: Int? = null,
-    val realtimeArrival: Int? = null,
-    val realtimeDeparture: Int? = null,
-    val realtime: Boolean? = null,
-    val stop: TripStopDto? = null,
-)
-
-@Serializable
-private data class TripStopDto(
-    val gtfsId: String,
-    val name: String,
-    val lat: Double? = null,
-    val lon: Double? = null,
-    val wheelchairBoarding: String? = null,
-)

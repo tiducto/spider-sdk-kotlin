@@ -15,7 +15,10 @@ import kotlin.test.Test
  * [deniedPackagePrefixes] overrides the allowlist for specific subpackages
  * (e.g. a future codegen output package under `cz.davidkurzica.client.`),
  * so generated wire types can stay denied even though their parent package
- * is allowed. Empty today — the SDK hand-writes its wire DTOs as `private`.
+ * is allowed. Empty today — the generated wire models live in the separate
+ * `:contract` module (package `cz.davidkurzica.contract.*`, consumed as an
+ * `implementation` dependency), which isn't on the allowlist, so a leak of
+ * one into the public surface already fails this test.
  */
 class PublicApiLeakTest {
 

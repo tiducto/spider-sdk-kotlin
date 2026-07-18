@@ -1,0 +1,44 @@
+name: Generate contract module
+
+# Pulls the wire contract from tiducto/spider-contract, regenerates the :contract module's Kotlin
+# models, and opens a PR with the diff. The generated classes are committed to the repo (the module
+# carries the classes, not the spec) — this job is how they get refreshed. Manual for now.
+on:
+  workflow_dispatch:
+    inputs:
+      contract_ref:
+        description: "spider-contract ref (branch, tag, or SHA) to generate from"
+        required: false
+        default: "main"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Regenerate contract models
+        env:
+          # Reads the private contract repo; PR creation below uses the default GITHUB_TOKEN instead.
+          CONTRACT_REPO_TOKEN: ${{ secrets.CONTRACT_REPO_TOKEN }}
+        run: ./scripts/generate-contract.sh --ref "${{ inputs.contract_ref }}"
+
+      - name: Open PR with regenerated models
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: contract/regen
+          base: main
+          title: "chore(contract): regenerate models from spider-contract@${{ inputs.contract_ref }}"
+          commit-message: "chore(contract): regenerate models from spider-contract@${{ inputs.contract_ref }}"
+          body: |
+            Regenerated `:contract` models from
+            [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract)@`${{ inputs.contract_ref }}`
+            via `scripts/generate-contract.sh` (openapi-generator).
+
+            Generated code — review the API-surface diff, don't hand-edit the models.
+          delete-branch: true
