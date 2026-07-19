@@ -5,10 +5,11 @@ name: build
 # models are committed Kotlin (generated out-of-band by scripts/generate-contract.sh),
 # so this just compiles them like any other source — no codegen step in the build.
 
+# One run per PR (macOS runners are ~10x Linux, so no post-merge run); workflow_dispatch to
+# validate main on demand. Concurrency below cancels superseded pushes on the same ref.
 on:
   pull_request:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
