@@ -1,37 +1,37 @@
-package cz.davidkurzica.contract.meili
+package cz.davidkurzica.contract.stops
 
 import kotlinx.serialization.Serializable
 
 /**
- * The Meili stop-search wire contract.
+ * The stop-search wire contract.
  *
  * **Hand-written, not generated.** Unlike the OTP models under `cz.davidkurzica.contract.routing`
  * (produced by openapi-generator and wiped/rewritten by `scripts/generate-contract.sh`), these live in
  * their own package so the generator's `rm -rf` on `routing/` never touches them. The real upstream
- * owner of the [MeiliStop] document shape is the `stops_env_{envId}` index builder (`seed-stops.sh`,
+ * owner of the [StopHit] document shape is the `stops_env_{envId}` index builder (`seed-stops.sh`,
  * another repo) — this file is the SDK-side mirror of that cross-repo contract, pinned by
- * `MeiliWireContractTest`. See `docs/CONTRACT_MAPPING.md`.
+ * `StopsWireContractTest`. See `docs/CONTRACT_MAPPING.md`.
  *
  * `:client` consumes these internally and maps them to the public domain type `Stop`; they must not
  * appear in `:client`'s public API (`:contract` is an `implementation` dependency; `PublicApiLeakTest`
  * enforces it).
  */
 
-/** POST body for `/stops/search`. [filter] is a Meili filter expression the client composes. */
+/** POST body for `/stops/search`. [filter] is a stop-search filter expression the client composes. */
 @Serializable
-data class SearchRequest(
+data class StopSearchRequest(
     val q: String,
     val filter: String? = null,
 )
 
 /**
- * Meili search envelope. Generic over the hit type (the SDK only ever searches the stops index →
- * `SearchResponse<MeiliStop>`, but the shape is the index-agnostic Meili response). [query] is Meili's
- * echo of the search term. Extra envelope fields Meili adds (`processingTimeMs`, `estimatedTotalHits`,
+ * The stop-search envelope. Generic over the hit type (the SDK only ever searches the stops index →
+ * `StopSearchResponse<StopHit>`, but the shape is the index-agnostic search response). [query] is the backend's
+ * echo of the search term. Extra envelope fields the backend adds (`processingTimeMs`, `estimatedTotalHits`,
  * …) are tolerated by the client's `ignoreUnknownKeys` decoder and intentionally not modeled.
  */
 @Serializable
-data class SearchResponse<T>(val hits: List<T>, val query: String)
+data class StopSearchResponse<T>(val hits: List<T>, val query: String)
 
 /**
  * One stop document as indexed. [gtfsId]/[name] are always present; coordinates and the admin-geography
@@ -39,7 +39,7 @@ data class SearchResponse<T>(val hits: List<T>, val query: String)
  * nullable. These field names must match the index builder (`seed-stops.sh`).
  */
 @Serializable
-data class MeiliStop(
+data class StopHit(
     val gtfsId: String,
     val name: String,
     val lat: Double? = null,
@@ -51,9 +51,9 @@ data class MeiliStop(
     val suburb: String? = null,
 )
 
-/** Meili error envelope, parsed on a non-2xx to surface a useful message. */
+/** Stop-search error envelope, parsed on a non-2xx to surface a useful message. */
 @Serializable
-data class MeiliError(
+data class StopSearchError(
     val message: String,
     val code: String? = null,
     val type: String? = null,

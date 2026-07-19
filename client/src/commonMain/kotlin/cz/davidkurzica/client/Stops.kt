@@ -32,10 +32,10 @@ import kotlinx.collections.immutable.ImmutableList
  * enrich produces a [SpiderResult.Error] surfacing the backend's rejection.
  */
 class SpiderStops(
-    private val meiliUrl: String,
+    private val baseUrl: String,
     apiKey: String,
 ) {
-    private val meili = MeiliClient(meiliUrl, apiKey)
+    private val stops = StopsClient(baseUrl, apiKey)
 
     suspend fun search(block: StopRequest.() -> Unit): SpiderResult<ImmutableList<Stop>> {
         var name = ""
@@ -44,12 +44,12 @@ class SpiderStops(
             val request = StopRequest().apply(block)
             name = request.nameQuery.orEmpty()
             filters = request.nonNameFilters
-            SpiderResult.Success(meili.searchStops(query = name, filters = filters))
+            SpiderResult.Success(stops.searchStops(query = name, filters = filters))
         } catch (e: kotlin.coroutines.cancellation.CancellationException) {
             throw e
         } catch (e: Exception) {
             Logger.e(throwable = e, tag = "SpiderStops") {
-                "search failed against $meiliUrl (q=$name, filters=${filters.size})"
+                "search failed against $baseUrl (q=$name, filters=${filters.size})"
             }
             SpiderResult.Error(e.toSpiderError())
         }
@@ -61,7 +61,7 @@ class StopsConfig
 object Stops : SpiderFeature<StopsConfig, SpiderStops> {
     override fun newConfig() = StopsConfig()
     override fun build(baseUrl: String, apiKey: String, config: StopsConfig): SpiderStops =
-        SpiderStops(meiliUrl = baseUrl, apiKey = apiKey)
+        SpiderStops(baseUrl = baseUrl, apiKey = apiKey)
 }
 
 /**

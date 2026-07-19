@@ -1,39 +1,39 @@
 package cz.davidkurzica.client
 
-import cz.davidkurzica.contract.meili.MeiliStop
-import cz.davidkurzica.contract.meili.SearchRequest
-import cz.davidkurzica.contract.meili.SearchResponse
+import cz.davidkurzica.contract.stops.StopHit
+import cz.davidkurzica.contract.stops.StopSearchRequest
+import cz.davidkurzica.contract.stops.StopSearchResponse
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlinx.serialization.json.Json
 
 /**
- * Guards the Meili `/stops/search` wire format. Mirrors RoutingWireContractTest, but the Json config mirrors
- * MeiliClient's own — `ignoreUnknownKeys = true`, and NOT `explicitNulls = false` (MeiliClient doesn't
+ * Guards the `/stops/search` wire format. Mirrors RoutingWireContractTest, but the Json config mirrors
+ * StopsClient's own — `ignoreUnknownKeys = true`, and NOT `explicitNulls = false` (StopsClient doesn't
  * set it; the only optional request field, `filter`, is dropped by its `= null` default anyway).
  *
  * Native-safe test names (no `()` etc. in backticks) — commonTest runs on all targets.
  */
-class MeiliWireContractTest {
+class StopsWireContractTest {
 
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
     fun `search request without a filter omits the filter key`() {
         val expected = json.parseToJsonElement("""{"q":"Hlavní"}""")
-        val actual = json.encodeToJsonElement(SearchRequest.serializer(), SearchRequest(q = "Hlavní"))
+        val actual = json.encodeToJsonElement(StopSearchRequest.serializer(), StopSearchRequest(q = "Hlavní"))
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `search request with a filter carries the raw meili expression`() {
+    fun `search request with a filter carries the raw filter expression`() {
         val expected = json.parseToJsonElement(
             """{"q":"Hlavní","filter":"\"city\" = \"Brno\""}""",
         )
         val actual = json.encodeToJsonElement(
-            SearchRequest.serializer(),
-            SearchRequest(q = "Hlavní", filter = "\"city\" = \"Brno\""),
+            StopSearchRequest.serializer(),
+            StopSearchRequest(q = "Hlavní", filter = "\"city\" = \"Brno\""),
         )
         assertEquals(expected, actual)
     }
@@ -55,7 +55,7 @@ class MeiliWireContractTest {
             }
             """.trimIndent()
 
-        val response = json.decodeFromString(SearchResponse.serializer(MeiliStop.serializer()), body)
+        val response = json.decodeFromString(StopSearchResponse.serializer(StopHit.serializer()), body)
         val hit = response.hits.single()
         assertEquals("Hlavní", response.query)
         assertEquals("1:U123", hit.gtfsId)
@@ -66,7 +66,7 @@ class MeiliWireContractTest {
     @Test
     fun `absent coordinates and admin levels decode to null`() {
         val body = """{"hits":[{"gtfsId":"1:U999","name":"Zastávka bez metadat"}],"query":"x"}"""
-        val hit = json.decodeFromString(SearchResponse.serializer(MeiliStop.serializer()), body).hits.single()
+        val hit = json.decodeFromString(StopSearchResponse.serializer(StopHit.serializer()), body).hits.single()
         assertNull(hit.lat)
         assertNull(hit.lon)
         assertNull(hit.country)

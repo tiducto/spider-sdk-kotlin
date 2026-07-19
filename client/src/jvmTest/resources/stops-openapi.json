@@ -1,0 +1,90 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tiducto Transit API — Stops",
+    "version": "1.0",
+    "description": "Stop text/geo search — a plain-REST customer surface (key-auth). Hand-authored companion to routing-openapi.json and realtime-openapi.json; the three share one pack version. Enum-ish fields are bare strings so unrecognized values pass through unchanged."
+  },
+  "servers": [
+    { "url": "https://api.transitapi.eu/{project}/{env}", "variables": { "project": { "default": "9" }, "env": { "default": "7" } } }
+  ],
+  "security": [ { "apikey": [] } ],
+  "paths": {
+    "/{project}/{env}/stops/search": {
+      "post": {
+        "summary": "Stop text/geo search.",
+        "operationId": "stops_search",
+        "x-surface": "stops",
+        "parameters": [
+          { "name": "project", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "env", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StopSearchRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Search hits.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StopSearchResponse" } } }
+          },
+          "401": { "description": "Missing or invalid apikey." },
+          "4XX": {
+            "description": "Stop-search error (e.g. filtering a non-filterable attribute).",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StopSearchError" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apikey": { "type": "apiKey", "in": "header", "name": "apikey", "description": "Kong key-auth. The raw key in an `apikey` header (not Authorization: Bearer)." }
+    },
+    "schemas": {
+      "StopSearchRequest": {
+        "type": "object",
+        "description": "POST body for /stops/search. `filter` is a stop-search filter expression the client composes (not a modeled shape).",
+        "required": ["q"],
+        "properties": {
+          "q": { "type": "string" },
+          "filter": { "type": "string" }
+        }
+      },
+      "StopSearchResponse": {
+        "type": "object",
+        "required": ["hits", "query"],
+        "properties": {
+          "hits": { "type": "array", "items": { "$ref": "#/components/schemas/StopHit" } },
+          "query": { "type": "string" }
+        }
+      },
+      "StopHit": {
+        "type": "object",
+        "description": "One indexed stop document. Field names must match the stops_env_{envId} index builder (seed-stops.sh). Admin levels and coordinates are populated only where the deployment enriched them.",
+        "required": ["gtfsId", "name"],
+        "properties": {
+          "gtfsId": { "type": "string" },
+          "name": { "type": "string" },
+          "lat": { "type": "number" },
+          "lon": { "type": "number" },
+          "country": { "type": "string" },
+          "region": { "type": "string" },
+          "district": { "type": "string" },
+          "city": { "type": "string" },
+          "suburb": { "type": "string" }
+        }
+      },
+      "StopSearchError": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" },
+          "code": { "type": "string" },
+          "type": { "type": "string" },
+          "link": { "type": "string" }
+        }
+      }
+    }
+  }
+}

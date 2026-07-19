@@ -21,7 +21,7 @@ project/env), which the production Kong gateway rejected on these counts. All ar
 | 2 | **routing transport** | Persisted-query POST `{"id":"<sha256>","variables":{…}}` | plain Ktor POST of `{id,variables}` (no Apollo) |
 | 3 | **routing routes** | Per-op `/{project}/{env}/routing/plan\|departures\|trip` | per-op URL from `PersistedQueries` |
 | 4 | **project/env** | Numeric ids in the path (`/9/7/…`) | folded into the customer's `baseUrl` |
-| 5 | **Stops** | `/{project}/{env}/stops/search`, `apikey`, Kong injects Meili key | `MeiliClient` posts `$baseUrl/stops/search` + `apikey` |
+| 5 | **Stops** | `/{project}/{env}/stops/search`, `apikey`, Kong injects the search key | `StopsClient` posts `$baseUrl/stops/search` + `apikey` |
 | 6 | **Realtime** | `/{project}/{env}/realtime/*` (deployed) | `RealtimeClient` GETs `$baseUrl/realtime/{vehicles,vehicles/by-trip/{id},delays,alerts}` + `apikey` |
 
 ## Contract module layout & versioning (all three surfaces)
@@ -31,14 +31,14 @@ The `:contract` module carries the wire shapes, split by ownership:
 | Package | Surface | Owner | Drift test |
 |---------|---------|-------|-----------|
 | `contract.routing` | routing | **generated** from spider-contract `openapi.json` (`generate-contract.sh`, wiped/rewritten on regen) | `RoutingWireContractTest` |
-| `contract.meili` | Meili stop search | **hand-written**, mirrors the `stops_env_{envId}` index (`seed-stops.sh`) | `MeiliWireContractTest` |
+| `contract.stops` | Stop search | **hand-written**, mirrors the `stops_env_{envId}` index (`seed-stops.sh`) | `StopsWireContractTest` |
 | `contract.realtime` | GTFS-RT | **hand-written**, mirrors the realtime gateway serializer | `RealtimeWireContractTest` |
 
 The hand-written packages sit outside `routing/` on purpose — the generator's `rm -rf` only touches
 `routing/`. If a surface later moves to codegen, delete its hand-written package and let it regenerate.
 
 **One version for the whole pack.** There is a single `SpiderContract.VERSION` (in `:client`) covering
-routing + Meili + Realtime, sent on every request as `x-spider-contract-version` and exposed as
+routing + stops + Realtime, sent on every request as `x-spider-contract-version` and exposed as
 `SpiderClient.contractVersion`. It is the honest REST analog of routing's persisted-query id: a *declared*
 version, not a per-operation content-hash. **Enforcement is fail-fast:** `ContractGuard` reads the
 version the gateway declares on each response and, on an incompatible MAJOR, throws
@@ -80,7 +80,7 @@ documents have diverged; the current contract queries are simpler/older. Adopt t
    entry, operation detection for the `trip` root field, and routing config allowing those fields. This
    is a genuine surface expansion (spider-services docs are strict about the closed set) — worth it
    for trip detail, but a deliberate product/security call.
-4. **Stops index doc fields must match.** SDK `MeiliStop` reads `gtfsId, name, lat, lon,
+4. **Stops index doc fields must match.** SDK `StopHit` reads `gtfsId, name, lat, lon,
    country, region, district, city, suburb`. Keep the `stops_env_{envId}` builder in sync
    (`seed-stops.sh` is the reference; cross-repo contract).
 
@@ -105,8 +105,8 @@ maps to `UNKNOWN_DEFAULT_OPEN_API` instead of failing the parse. The `.graphql` 
 `src/commonMain/graphql/` are **not compiled** — they're kept as the canonical query documents the
 persisted ids are hashed from (the contract registers the same text).
 
-Stops go through `MeiliClient` → `$baseUrl/stops/search` + `apikey` (Kong rewrites to the env's Meili
-index and injects the Meili key). project/env are folded into the customer's `baseUrl` (e.g.
+Stops go through `StopsClient` → `$baseUrl/stops/search` + `apikey` (Kong rewrites to the env's search
+index and injects the search key). project/env are folded into the customer's `baseUrl` (e.g.
 `https://api.transitapi.eu/9/7`); no separate params.
 
 ## Status — done
