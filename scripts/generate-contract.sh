@@ -22,7 +22,7 @@ CONTRACT_REPO="${CONTRACT_REPO:-tiducto/spider-contract}"
 CONTRACT_REF="main"
 CODEGEN_REPO="${CODEGEN_REPO:-tiducto/spider-codegen}"
 CODEGEN_REF="${CODEGEN_REF:-master}"
-PACKAGE="cz.davidkurzica.contract.models"
+PACKAGE="cz.davidkurzica.contract.routing"
 LOCAL_SPEC=""
 
 while [[ $# -gt 0 ]]; do
@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-MODELS_DIR="$REPO_ROOT/contract/src/commonMain/kotlin/cz/davidkurzica/contract/models"
+ROUTING_DIR="$REPO_ROOT/contract/src/commonMain/kotlin/cz/davidkurzica/contract/routing"
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
@@ -77,12 +77,12 @@ if [[ ! -d "$GENERATED" ]]; then
     exit 1
 fi
 
-echo "==> Syncing into $MODELS_DIR (replacing existing)"
-rm -rf "$MODELS_DIR"
-mkdir -p "$MODELS_DIR"
-cp -R "$GENERATED/." "$MODELS_DIR/"
+echo "==> Syncing into $ROUTING_DIR (replacing existing)"
+rm -rf "$ROUTING_DIR"
+mkdir -p "$ROUTING_DIR"
+cp -R "$GENERATED/." "$ROUTING_DIR/"
 
-echo "==> Done. $(find "$MODELS_DIR" -name '*.kt' | wc -l | tr -d ' ') model files."
+echo "==> Done. $(find "$ROUTING_DIR" -name '*.kt' | wc -l | tr -d ' ') model files."
 
 # The Meili/Realtime wire types are hand-written (:contract/meili + :contract/realtime), NOT generated.
 # rest-openapi.json is their published contract; keep it as the jvmTest pin fixture so SDK-type drift from
