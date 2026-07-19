@@ -27,22 +27,38 @@ jobs:
         with:
           node-version: "22"
 
+      # Resolve the requested ref to a concrete commit + the contract version it carries, so the PR is
+      # keyed on the version (one PR per version) and generation is pinned to a SHA (no moving-main race).
+      - name: Resolve contract version
+        id: contract
+        env:
+          GH_TOKEN: ${{ secrets.CONTRACT_REPO_TOKEN }}
+        run: |
+          SHA=$(gh api "repos/tiducto/spider-contract/commits/${{ inputs.contract_ref }}" --jq '.sha')
+          VER=$(gh api "repos/tiducto/spider-contract/contents/dist/manifest.json?ref=$SHA" --jq '.content' | base64 -d | jq -r '.version')
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+
       - name: Regenerate contract models
         env:
           # Reads the private contract AND spider-codegen repos; PR creation below uses the default GITHUB_TOKEN.
           CONTRACT_REPO_TOKEN: ${{ secrets.CONTRACT_REPO_TOKEN }}
-        run: ./scripts/generate-contract.sh --ref "${{ inputs.contract_ref }}"
+        run: ./scripts/generate-contract.sh --ref "${{ steps.contract.outputs.sha }}"
 
       - name: Open PR with regenerated models
         uses: peter-evans/create-pull-request@v8
         with:
-          branch: contract/regen
+          # One PR per contract version; re-running the same version updates its PR.
+          branch: contract/v${{ steps.contract.outputs.ver }}
           base: main
-          title: "chore(contract): regenerate models from spider-contract@${{ inputs.contract_ref }}"
-          commit-message: "chore(contract): regenerate models from spider-contract@${{ inputs.contract_ref }}"
+          # Only the generated routing classes — NOT the stops/realtime JSON pin fixtures the script also
+          # refreshes. A fixture-only change therefore produces no PR (nothing to regenerate in the classes).
+          add-paths: contract/src/commonMain/kotlin/cz/davidkurzica/contract/routing
+          title: "chore(contract): regenerate models from spider-contract v${{ steps.contract.outputs.ver }}"
+          commit-message: "chore(contract): regenerate models from spider-contract v${{ steps.contract.outputs.ver }}"
           body: |
             Regenerated `:contract` models from
-            [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract)@`${{ inputs.contract_ref }}`
+            [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract) **v${{ steps.contract.outputs.ver }}** (`${{ steps.contract.outputs.sha }}`)
             via `scripts/generate-contract.sh` (spider-codegen, our own generator).
 
             Generated code — review the API-surface diff, don't hand-edit the models.
