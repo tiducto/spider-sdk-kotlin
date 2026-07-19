@@ -1,22 +1,28 @@
 #!/usr/bin/env bash
 # Regenerate the :contract module's Kotlin models from the wire contract.
 #
-# The single source of truth for contract codegen — the generate-contract workflow just calls this, so
-# local and CI runs produce byte-identical output. The generated classes are committed on purpose (see
-# contract/build.gradle.kts): the module carries the classes, not the spec, and has no codegen in its build.
+# Single source of truth for contract codegen — the generate-contract workflow just calls this, so local
+# and CI runs produce the same output. The generated classes are committed on purpose (contract/build.gradle.kts):
+# the module carries the classes, not the spec, and has no codegen in its build.
+#
+# Models come from spider-codegen (tiducto/spider-codegen) — our own generator — NOT Docker openapi-generator.
+# OTP optional lists are emitted as `List<X>? = null` (--optional-lists nullable) to preserve the exact wire
+# shape the client sends: an omitted optional list, never `[]`.
 #
 # Usage:
 #   scripts/generate-contract.sh                      # fetch main from the contract repo
 #   scripts/generate-contract.sh --ref v1.2.0         # a specific ref/tag/branch
 #   scripts/generate-contract.sh --spec path/to.json  # a local spec, no fetch
 #
-# CONTRACT_REPO_TOKEN reads the private contract repo (CI); locally falls back to ambient `gh` auth.
-# GENERATOR_VERSION pins the OpenAPI Generator tag (default below).
+# CONTRACT_REPO_TOKEN reads the private contract + codegen repos (CI); locally falls back to ambient `gh` auth.
+# CODEGEN_REF pins the spider-codegen ref (default below); CODEGEN_DIR points at a local checkout to skip the clone.
 set -euo pipefail
 
 CONTRACT_REPO="${CONTRACT_REPO:-tiducto/spider-contract}"
 CONTRACT_REF="main"
-GENERATOR_VERSION="${GENERATOR_VERSION:-7.14.0}"
+CODEGEN_REPO="${CODEGEN_REPO:-tiducto/spider-codegen}"
+CODEGEN_REF="${CODEGEN_REF:-master}"
+PACKAGE="cz.davidkurzica.contract.models"
 LOCAL_SPEC=""
 
 while [[ $# -gt 0 ]]; do
@@ -42,24 +48,30 @@ else
         | base64 -d > "$WORK_DIR/openapi.json"
 fi
 
-echo "==> Generating models with openapi-generator v$GENERATOR_VERSION"
-# Flag rationale (keep in sync with the client's expectations):
-#   dateLibrary=string          date-time fields stay String, so the wire bytes are unchanged (no
-#                               kotlinx-datetime serializer semantics leaking in).
-#   enumUnknownDefaultCase=true every enum gets a custom serializer that decodes an unrecognized value
-#                               to an UNKNOWN_DEFAULT_OPEN_API member instead of throwing — so a mode/
-#                               state OTP adds after this contract was pinned can't fail the parse.
-#   sourceFolder=...commonMain  emit straight into the KMP commonMain layout (no post-move).
-#   default library (not multiplatform): the multiplatform library emits a duplicate @Serializable
-#                               annotation that won't compile; the models are pure common Kotlin anyway.
-docker run --rm -v "$WORK_DIR:/local" "openapitools/openapi-generator-cli:v$GENERATOR_VERSION" generate \
-    -i /local/openapi.json \
-    -g kotlin \
-    --global-property models,modelDocs=false,modelTests=false \
-    --additional-properties=serializationLibrary=kotlinx_serialization,packageName=cz.davidkurzica.contract,dateLibrary=string,enumPropertyNaming=UPPERCASE,enumUnknownDefaultCase=true,sourceFolder=src/commonMain/kotlin \
-    -o /local/out >/dev/null
+# Obtain + build the generator. Set CODEGEN_DIR to a local checkout to skip the clone (local dev).
+if [[ -n "${CODEGEN_DIR:-}" ]]; then
+    echo "==> Using local spider-codegen at $CODEGEN_DIR"
+    CODEGEN="$CODEGEN_DIR"
+else
+    echo "==> Cloning $CODEGEN_REPO@$CODEGEN_REF"
+    CODEGEN="$WORK_DIR/spider-codegen"
+    GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
+        gh repo clone "$CODEGEN_REPO" "$CODEGEN" -- --depth 1 --branch "$CODEGEN_REF" \
+        || { echo "ERROR: could not clone $CODEGEN_REPO@$CODEGEN_REF — CONTRACT_REPO_TOKEN must have read access to $CODEGEN_REPO (a separate private repo from $CONTRACT_REPO)." >&2; exit 1; }
+fi
 
-GENERATED="$WORK_DIR/out/src/commonMain/kotlin/cz/davidkurzica/contract/models"
+echo "==> Building spider-codegen"
+( cd "$CODEGEN" && npm ci --silent && npm run build --silent )
+
+echo "==> Generating models with spider-codegen (--optional-lists nullable)"
+node "$CODEGEN/dist/cli.js" \
+    --spec "$WORK_DIR/openapi.json" \
+    --lang kotlin \
+    --package "$PACKAGE" \
+    --optional-lists nullable \
+    --out "$WORK_DIR/gen"
+
+GENERATED="$WORK_DIR/gen/$(echo "$PACKAGE" | tr '.' '/')"
 if [[ ! -d "$GENERATED" ]]; then
     echo "ERROR: generator produced no models at $GENERATED" >&2
     exit 1
