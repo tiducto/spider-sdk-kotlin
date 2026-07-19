@@ -29,8 +29,8 @@ import kotlin.time.Instant
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
-// Live GTFS-RT read API, served from the same gateway as routing/Meili under `$baseUrl/realtime/...`.
-// Plain REST GETs with the raw key in the `apikey` header (Kong key-auth), mirroring MeiliClient.
+// Live GTFS-RT read API, served from the same gateway as routing/stops under `$baseUrl/realtime/...`.
+// Plain REST GETs with the raw key in the `apikey` header (Kong key-auth), mirroring StopsClient.
 // Ids (tripId/routeId/stopId) are opaque, feed-prefixed and passed through unchanged, exactly like
 // the routing gtfsIds — a tripId from routing departures/plan/trip feeds straight back into these calls.
 internal class RealtimeClient(

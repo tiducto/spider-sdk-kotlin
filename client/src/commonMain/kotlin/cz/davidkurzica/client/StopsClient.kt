@@ -1,9 +1,9 @@
 package cz.davidkurzica.client
 
-import cz.davidkurzica.contract.meili.MeiliError
-import cz.davidkurzica.contract.meili.MeiliStop
-import cz.davidkurzica.contract.meili.SearchRequest
-import cz.davidkurzica.contract.meili.SearchResponse
+import cz.davidkurzica.contract.stops.StopSearchError
+import cz.davidkurzica.contract.stops.StopHit
+import cz.davidkurzica.contract.stops.StopSearchRequest
+import cz.davidkurzica.contract.stops.StopSearchResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -23,7 +23,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
-internal class MeiliClient(
+internal class StopsClient(
     private val baseUrl: String,
     private val apiKey: String,
 ) {
@@ -36,7 +36,7 @@ internal class MeiliClient(
             level = LogLevel.INFO
             logger = object : Logger {
                 override fun log(message: String) {
-                    co.touchlab.kermit.Logger.d(tag = "MeiliClient") { message }
+                    co.touchlab.kermit.Logger.d(tag = "StopsClient") { message }
                 }
             }
         }
@@ -47,7 +47,7 @@ internal class MeiliClient(
         filters: Collection<Filter> = emptyList(),
     ): ImmutableList<Stop> {
         val url = "$baseUrl/stops/search"
-        val filterExpr = filters.takeIf { it.isNotEmpty() }?.toMeiliExpression()
+        val filterExpr = filters.takeIf { it.isNotEmpty() }?.toFilterExpression()
         val httpResponse = http.post {
             url(url)
             contentType(ContentType.Application.Json)
@@ -56,40 +56,40 @@ internal class MeiliClient(
                 append("apikey", apiKey)
                 append(SpiderContract.HEADER, SpiderContract.VERSION)
             }
-            setBody(SearchRequest(q = query, filter = filterExpr))
+            setBody(StopSearchRequest(q = query, filter = filterExpr))
         }
         ContractGuard.check(httpResponse.headers[SpiderContract.HEADER])
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
-            val message = runCatching { json.decodeFromString<MeiliError>(body).message }.getOrNull()
+            val message = runCatching { json.decodeFromString<StopSearchError>(body).message }.getOrNull()
                 ?: body.take(300)
             throw SpiderTransportException.Http(httpResponse.status.value, "POST $url → ${httpResponse.status.value}: $message")
         }
 
-        val response: SearchResponse<MeiliStop> = httpResponse.body()
+        val response: StopSearchResponse<StopHit> = httpResponse.body()
         return response.hits.map { it.toStop() }.toImmutableList()
     }
 
-    // Meili filter syntax: `field = "value" AND other = "x"`. Embedded `"` and `\`
-    // are escaped per Meili's grammar so values containing quotes don't break the
+    // stop-search filter syntax: `field = "value" AND other = "x"`. Embedded `"` and `\`
+    // are escaped per the filter grammar so values containing quotes don't break the
     // expression. Operators other than `eq` are not supported yet — when one is
-    // requested we surface a clear error rather than emit a string Meili would
+    // requested we surface a clear error rather than emit a string the backend would
     // reject anyway.
-    private fun Collection<Filter>.toMeiliExpression(): String =
-        joinToString(" AND ") { it.toMeiliClause() }
+    private fun Collection<Filter>.toFilterExpression(): String =
+        joinToString(" AND ") { it.toFilterClause() }
 
-    private fun Filter.toMeiliClause(): String = when (operator) {
-        "eq" -> "\"${key.escapeMeiliString()}\" = \"${value.toString().escapeMeiliString()}\""
+    private fun Filter.toFilterClause(): String = when (operator) {
+        "eq" -> "\"${key.escapeFilterString()}\" = \"${value.toString().escapeFilterString()}\""
         else -> throw IllegalArgumentException("Unsupported filter operator: $operator")
     }
 
-    private fun String.escapeMeiliString(): String =
+    private fun String.escapeFilterString(): String =
         replace("\\", "\\\\").replace("\"", "\\\"")
 
-    private fun MeiliStop.toStop(): Stop {
+    private fun StopHit.toStop(): Stop {
         // Iterate the enum so admin entries come back in canonical order
-        // (COUNTRY → SUBURB) regardless of how Meili serialized the doc.
+        // (COUNTRY → SUBURB) regardless of how the backend serialized the doc.
         val adminPairs = buildList {
             AdminLevel.entries.forEach { level ->
                 val value = when (level) {

@@ -42,9 +42,9 @@ if [[ -n "$LOCAL_SPEC" ]]; then
     echo "==> Using local spec: $LOCAL_SPEC"
     cp "$LOCAL_SPEC" "$WORK_DIR/openapi.json"
 else
-    echo "==> Fetching openapi.json from $CONTRACT_REPO@$CONTRACT_REF"
+    echo "==> Fetching routing-openapi.json from $CONTRACT_REPO@$CONTRACT_REF"
     GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
-        gh api "repos/$CONTRACT_REPO/contents/openapi.json?ref=$CONTRACT_REF" --jq '.content' \
+        gh api "repos/$CONTRACT_REPO/contents/routing-openapi.json?ref=$CONTRACT_REF" --jq '.content' \
         | base64 -d > "$WORK_DIR/openapi.json"
 fi
 
@@ -84,16 +84,19 @@ cp -R "$GENERATED/." "$ROUTING_DIR/"
 
 echo "==> Done. $(find "$ROUTING_DIR" -name '*.kt' | wc -l | tr -d ' ') model files."
 
-# The Meili/Realtime wire types are hand-written (:contract/meili + :contract/realtime), NOT generated.
-# rest-openapi.json is their published contract; keep it as the jvmTest pin fixture so SDK-type drift from
-# the contract fails the build (RestOpenApiContractTest). Repo-sourced only — a --spec local run leaves it.
-REST_FIXTURE="$REPO_ROOT/client/src/jvmTest/resources/rest-openapi.json"
+# The stops + realtime wire types are hand-written (:contract/stops + :contract/realtime), NOT generated.
+# stops-openapi.json + realtime-openapi.json are their published contracts; keep them as jvmTest pin
+# fixtures so SDK-type drift from the contract fails the build (OpenApiPinTest). Repo-sourced only —
+# a --spec local run leaves them.
+FIXTURE_DIR="$REPO_ROOT/client/src/jvmTest/resources"
 if [[ -z "$LOCAL_SPEC" ]]; then
-    echo "==> Fetching rest-openapi.json → jvmTest pin fixture"
-    mkdir -p "$(dirname "$REST_FIXTURE")"
-    GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
-        gh api "repos/$CONTRACT_REPO/contents/rest-openapi.json?ref=$CONTRACT_REF" --jq '.content' \
-        | base64 -d > "$REST_FIXTURE"
+    mkdir -p "$FIXTURE_DIR"
+    for doc in stops-openapi.json realtime-openapi.json; do
+        echo "==> Fetching $doc → jvmTest pin fixture"
+        GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
+            gh api "repos/$CONTRACT_REPO/contents/$doc?ref=$CONTRACT_REF" --jq '.content' \
+            | base64 -d > "$FIXTURE_DIR/$doc"
+    done
 else
-    echo "==> Skipping rest-openapi.json fetch (local --spec run); pin fixture left unchanged."
+    echo "==> Skipping stops/realtime fixture fetch (local --spec run); pin fixtures left unchanged."
 fi
