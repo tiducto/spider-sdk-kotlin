@@ -18,7 +18,7 @@ class SpiderClient(
     }
 
     /**
-     * The single wire-contract version this client speaks across every installed feature (OTP, Meili,
+     * The single wire-contract version this client speaks across every installed feature (routing, Meili,
      * Realtime move together). Sent on every request; a gateway that declares an incompatible version
      * crashes the call with [SpiderContractMismatchError] rather than returning a [SpiderResult.Error].
      */

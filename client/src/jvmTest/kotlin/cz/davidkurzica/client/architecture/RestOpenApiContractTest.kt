@@ -25,7 +25,7 @@ import kotlin.test.fail
  * Cross-repo pin: the hand-written REST wire types (`cz.davidkurzica.contract.meili` +
  * `.realtime`) must match the published `rest-openapi.json` contract (from `tiducto/spider-contract`,
  * kept in sync by `scripts/generate-contract.sh`). These are two mirrors of one contract — this test
- * turns any drift between them into a red build, the REST analog of `OtpWireContractTest`.
+ * turns any drift between them into a red build, the REST analog of `RoutingWireContractTest`.
  *
  * A *check*, not codegen: it compares field-sets, so it never touches the generator. jvmTest because it
  * reads the spec off the classpath.

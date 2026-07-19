@@ -17,14 +17,14 @@ import kotlin.test.assertEquals
 import kotlinx.serialization.json.Json
 
 /**
- * Guards the OTP wire format the client speaks to the persisted-query gateway. The client now builds
+ * Guards the routing wire format the client speaks to the persisted-query gateway. The client now builds
  * requests from — and parses responses into — the generated :contract models; this test pins the
  * serialized shape so a future contract regeneration can't silently change the bytes on the wire
  * (a mismatch there is a 403 at the gateway or a mis-parsed response, both live-affecting).
  *
- * The Json config mirrors OtpClient's exactly — the two must stay in lockstep.
+ * The Json config mirrors RoutingClient's exactly — the two must stay in lockstep.
  */
-class OtpWireContractTest {
+class RoutingWireContractTest {
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -95,7 +95,7 @@ class OtpWireContractTest {
 
     @Test
     fun `unknown enum value maps to the typed UNKNOWN case instead of throwing`() {
-        // A mode the pinned contract enum doesn't know (OTP adds one later). The generated enum's
+        // A mode the pinned contract enum doesn't know (the upstream engine adds one later). The generated enum's
         // custom serializer must decode it to UNKNOWN_DEFAULT_OPEN_API — the whole response still parses.
         val body =
             """

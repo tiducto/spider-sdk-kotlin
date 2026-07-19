@@ -9,7 +9,7 @@ import kotlin.test.assertNull
 import kotlinx.serialization.json.Json
 
 /**
- * Guards the Meili `/stops/search` wire format. Mirrors OtpWireContractTest, but the Json config mirrors
+ * Guards the Meili `/stops/search` wire format. Mirrors RoutingWireContractTest, but the Json config mirrors
  * MeiliClient's own — `ignoreUnknownKeys = true`, and NOT `explicitNulls = false` (MeiliClient doesn't
  * set it; the only optional request field, `filter`, is dropped by its `= null` default anyway).
  *

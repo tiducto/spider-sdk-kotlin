@@ -1,7 +1,7 @@
 package cz.davidkurzica.client
 
 /**
- * The single wire-contract version this SDK speaks. **One version for the whole pack** — OTP routing,
+ * The single wire-contract version this SDK speaks. **One version for the whole pack** — routing,
  * Meili stop search, and Realtime — because there is exactly one [SpiderClient]. Bump [VERSION]
  * whenever *any* surface's wire shape changes; every surface moves together.
  *

@@ -6,7 +6,7 @@
 # the module carries the classes, not the spec, and has no codegen in its build.
 #
 # Models come from spider-codegen (tiducto/spider-codegen) — our own generator — NOT Docker openapi-generator.
-# OTP optional lists are emitted as `List<X>? = null` (--optional-lists nullable) to preserve the exact wire
+# Routing optional lists are emitted as `List<X>? = null` (--optional-lists nullable) to preserve the exact wire
 # shape the client sends: an omitted optional list, never `[]`.
 #
 # Usage:
