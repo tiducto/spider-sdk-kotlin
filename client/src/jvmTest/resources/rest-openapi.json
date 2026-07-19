@@ -1,0 +1,270 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tiducto Transit API — REST surfaces",
+    "version": "1.0",
+    "description": "Meilisearch stop search + GTFS-RT realtime, the plain-REST customer surfaces (poll-based, key-auth). Hand-authored companion to the OTP openapi.json; the two share one pack version. Realtime is deliberately poll-only (cacheable, high-fanout) — no streaming/subscription surface, so it is OpenAPI, not AsyncAPI. Enum-ish fields are bare strings so unrecognized producer values pass through unchanged."
+  },
+  "servers": [
+    { "url": "https://api.transitapi.eu/{project}/{env}", "variables": { "project": { "default": "9" }, "env": { "default": "7" } } }
+  ],
+  "security": [ { "apikey": [] } ],
+  "paths": {
+    "/{project}/{env}/stops/search": {
+      "post": {
+        "summary": "Stop text/geo search (Meilisearch).",
+        "operationId": "stops_search",
+        "x-surface": "meili",
+        "parameters": [
+          { "name": "project", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "env", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StopSearchRequest" } } }
+        },
+        "responses": {
+          "200": {
+            "description": "Search hits.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StopSearchResponse" } } }
+          },
+          "401": { "description": "Missing or invalid apikey." },
+          "4XX": {
+            "description": "Meili error (e.g. filtering a non-filterable attribute).",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MeiliError" } } }
+          }
+        }
+      }
+    },
+    "/{project}/{env}/realtime/vehicles": {
+      "get": {
+        "summary": "Live vehicle positions for the given trips.",
+        "operationId": "realtime_vehicles",
+        "x-surface": "realtime",
+        "parameters": [
+          { "name": "project", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "env", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "tripIds", "in": "query", "required": true, "description": "Comma-separated, feed-prefixed trip ids.", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Positions found, plus any missing trip ids and feed freshness.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VehiclesResponse" } } }
+          },
+          "401": { "description": "Missing or invalid apikey." }
+        }
+      }
+    },
+    "/{project}/{env}/realtime/vehicles/by-trip/{id}": {
+      "get": {
+        "summary": "Live vehicle for a single trip (404 = none currently reporting, a normal state).",
+        "operationId": "realtime_vehicle_by_trip",
+        "x-surface": "realtime",
+        "parameters": [
+          { "name": "project", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "env", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "id", "in": "path", "required": true, "description": "Feed-prefixed trip id.", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "The vehicle (or null) plus feed freshness.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/VehicleByTripResponse" } } }
+          },
+          "404": { "description": "No vehicle currently reporting for this trip (normal, not an error)." },
+          "401": { "description": "Missing or invalid apikey." }
+        }
+      }
+    },
+    "/{project}/{env}/realtime/delays": {
+      "get": {
+        "summary": "Live schedule deviation for the given trips.",
+        "operationId": "realtime_delays",
+        "x-surface": "realtime",
+        "parameters": [
+          { "name": "project", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "env", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "tripIds", "in": "query", "required": true, "description": "Comma-separated, feed-prefixed trip ids.", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delays found, plus any missing trip ids and feed freshness.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DelaysResponse" } } }
+          },
+          "401": { "description": "Missing or invalid apikey." }
+        }
+      }
+    },
+    "/{project}/{env}/realtime/alerts": {
+      "get": {
+        "summary": "All active service alerts for the environment.",
+        "operationId": "realtime_alerts",
+        "x-surface": "realtime",
+        "parameters": [
+          { "name": "project", "in": "path", "required": true, "schema": { "type": "string" } },
+          { "name": "env", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active alerts plus feed freshness.",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AlertsResponse" } } }
+          },
+          "401": { "description": "Missing or invalid apikey." }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apikey": { "type": "apiKey", "in": "header", "name": "apikey", "description": "Kong key-auth. The raw key in an `apikey` header (not Authorization: Bearer)." }
+    },
+    "schemas": {
+      "StopSearchRequest": {
+        "type": "object",
+        "description": "POST body for /stops/search. `filter` is a Meili filter expression the client composes (not a modeled shape).",
+        "required": ["q"],
+        "properties": {
+          "q": { "type": "string" },
+          "filter": { "type": "string" }
+        }
+      },
+      "StopSearchResponse": {
+        "type": "object",
+        "required": ["hits", "query"],
+        "properties": {
+          "hits": { "type": "array", "items": { "$ref": "#/components/schemas/MeiliStop" } },
+          "query": { "type": "string" }
+        }
+      },
+      "MeiliStop": {
+        "type": "object",
+        "description": "One indexed stop document. Field names must match the stops_env_{envId} index builder (seed-stops.sh). Admin levels and coordinates are populated only where the deployment enriched them.",
+        "required": ["gtfsId", "name"],
+        "properties": {
+          "gtfsId": { "type": "string" },
+          "name": { "type": "string" },
+          "lat": { "type": "number" },
+          "lon": { "type": "number" },
+          "country": { "type": "string" },
+          "region": { "type": "string" },
+          "district": { "type": "string" },
+          "city": { "type": "string" },
+          "suburb": { "type": "string" }
+        }
+      },
+      "MeiliError": {
+        "type": "object",
+        "required": ["message"],
+        "properties": {
+          "message": { "type": "string" },
+          "code": { "type": "string" },
+          "type": { "type": "string" },
+          "link": { "type": "string" }
+        }
+      },
+      "VehiclesResponse": {
+        "type": "object",
+        "properties": {
+          "vehicles": { "type": "array", "items": { "$ref": "#/components/schemas/Vehicle" } },
+          "missing": { "type": "array", "items": { "type": "string" } },
+          "feedTimestamp": { "type": "integer", "format": "int64", "description": "Epoch seconds; null when the feed has not reported." },
+          "staleSeconds": { "type": "integer", "format": "int32" }
+        }
+      },
+      "VehicleByTripResponse": {
+        "type": "object",
+        "properties": {
+          "vehicle": { "$ref": "#/components/schemas/Vehicle" },
+          "feedTimestamp": { "type": "integer", "format": "int64" },
+          "staleSeconds": { "type": "integer", "format": "int32" }
+        }
+      },
+      "Vehicle": {
+        "type": "object",
+        "description": "A vehicle's live position. GTFS-RT producers populate wildly different subsets, so every field is optional. `currentStatus` and `occupancyStatus` are raw GTFS-RT strings passed through unchanged (no enum — unrecognized producer values must survive).",
+        "properties": {
+          "tripId": { "type": "string" },
+          "routeId": { "type": "string" },
+          "vehicleId": { "type": "string" },
+          "label": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "bearing": { "type": "number" },
+          "speed": { "type": "number" },
+          "stopId": { "type": "string" },
+          "currentStatus": { "type": "string" },
+          "occupancyStatus": { "type": "string" },
+          "timestamp": { "type": "integer", "format": "int64", "description": "Epoch seconds." }
+        }
+      },
+      "DelaysResponse": {
+        "type": "object",
+        "properties": {
+          "delays": { "type": "array", "items": { "$ref": "#/components/schemas/Delay" } },
+          "missing": { "type": "array", "items": { "type": "string" } },
+          "feedTimestamp": { "type": "integer", "format": "int64" },
+          "staleSeconds": { "type": "integer", "format": "int32" }
+        }
+      },
+      "Delay": {
+        "type": "object",
+        "description": "Live schedule deviation for a trip. `scheduleRelationship` is a raw GTFS-RT string.",
+        "properties": {
+          "tripId": { "type": "string" },
+          "routeId": { "type": "string" },
+          "delaySeconds": { "type": "integer", "format": "int32", "description": "Trip-level delay; positive = late." },
+          "scheduleRelationship": { "type": "string" },
+          "stopTimeUpdates": { "type": "array", "items": { "$ref": "#/components/schemas/StopTimeUpdate" } }
+        }
+      },
+      "StopTimeUpdate": {
+        "type": "object",
+        "properties": {
+          "stopId": { "type": "string" },
+          "stopSequence": { "type": "integer", "format": "int32" },
+          "arrivalDelay": { "type": "integer", "format": "int32" },
+          "departureDelay": { "type": "integer", "format": "int32" },
+          "scheduleRelationship": { "type": "string" }
+        }
+      },
+      "AlertsResponse": {
+        "type": "object",
+        "properties": {
+          "alerts": { "type": "array", "items": { "$ref": "#/components/schemas/Alert" } },
+          "feedTimestamp": { "type": "integer", "format": "int64" },
+          "staleSeconds": { "type": "integer", "format": "int32" }
+        }
+      },
+      "Alert": {
+        "type": "object",
+        "description": "A service alert. Text is already resolved to one language by the gateway. `cause`/`effect`/`severityLevel` are raw GTFS-RT strings.",
+        "properties": {
+          "id": { "type": "string" },
+          "cause": { "type": "string" },
+          "effect": { "type": "string" },
+          "severityLevel": { "type": "string" },
+          "headerText": { "type": "string" },
+          "descriptionText": { "type": "string" },
+          "url": { "type": "string" },
+          "activePeriods": { "type": "array", "items": { "$ref": "#/components/schemas/ActivePeriod" } },
+          "informedEntities": { "type": "array", "items": { "$ref": "#/components/schemas/InformedEntity" } }
+        }
+      },
+      "ActivePeriod": {
+        "type": "object",
+        "properties": {
+          "start": { "type": "integer", "format": "int64", "description": "Epoch seconds." },
+          "end": { "type": "integer", "format": "int64", "description": "Epoch seconds." }
+        }
+      },
+      "InformedEntity": {
+        "type": "object",
+        "properties": {
+          "agencyId": { "type": "string" },
+          "routeId": { "type": "string" },
+          "tripId": { "type": "string" },
+          "stopId": { "type": "string" }
+        }
+      }
+    }
+  }
+}
