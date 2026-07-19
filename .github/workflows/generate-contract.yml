@@ -112,6 +112,8 @@ jobs:
           # One PR per contract version; re-running the same version updates its PR.
           branch: contract/v${{ steps.next.outputs.ver }}
           base: main
+          # Tag the auto-generated sync PRs so they're easy to filter (and for any auto-merge/CODEOWNERS rules).
+          labels: contract-sync
           # Only the generated routing classes and the marker — NOT the stops/realtime JSON pin fixtures
           # the script also refreshes under client/src/jvmTest/resources.
           add-paths: |
