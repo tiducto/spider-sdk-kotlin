@@ -33,7 +33,7 @@ dependencies {
 ## Usage
 
 ```kotlin
-val client = SpiderClient(baseUrl = "https://api.example.eu/{project}/{env}", apiKey = "otp_sk_…") {
+val client = SpiderClient(baseUrl = "https://api.example.eu/{project}/{env}", apiKey = "spk_…") {
     install(Routing)
     install(Stops)
     install(Realtime)

@@ -40,11 +40,11 @@ import kotlinx.serialization.json.JsonElement
 
 // gtfsIds are opaque and feed-prefixed ("1:U…"); the SDK never re-prefixes them — a stop id from search
 // feeds straight into route()/departures()/trip() (re-prefixing is what once 404'd).
-internal class OtpClient(
+internal class RoutingClient(
     private val baseUrl: String,
     private val apiKey: String,
 ) {
-    // explicitNulls=false so an omitted optional reads as "unset" at OTP. Unknown enum values decode to
+    // explicitNulls=false so an omitted optional reads as "unset" upstream. Unknown enum values decode to
     // UNKNOWN_DEFAULT_OPEN_API via the generated enums' serializers (coercion doesn't — it throws).
     private val json = Json {
         ignoreUnknownKeys = true
@@ -56,7 +56,7 @@ internal class OtpClient(
             level = LogLevel.INFO
             logger = object : Logger {
                 override fun log(message: String) {
-                    co.touchlab.kermit.Logger.d(tag = "OtpClient") { message }
+                    co.touchlab.kermit.Logger.d(tag = "RoutingClient") { message }
                 }
             }
         }
@@ -82,7 +82,7 @@ internal class OtpClient(
             after = after,
         )
         val data = execute(PersistedQueries.PLAN, PlanConnectionVariables.serializer(), variables, PlanConnectionData.serializer())
-        val plan = data.planConnection ?: throw SpiderTransportException.NoData("OTP returned no planConnection")
+        val plan = data.planConnection ?: throw SpiderTransportException.NoData("routing returned no plan data")
 
         return Route(
             request = request,
@@ -149,7 +149,7 @@ internal class OtpClient(
         )
         val data = execute(PersistedQueries.DEPARTURES, StopDeparturesVariables.serializer(), variables, StopDeparturesData.serializer())
         val stop = data.asStop ?: data.asStation
-            ?: throw SpiderTransportException.NoData("OTP returned no stop or station for id=$id")
+            ?: throw SpiderTransportException.NoData("routing returned no stop or station for id=$id")
 
         return stop.stoptimesWithoutPatterns.orEmpty().mapNotNull { st ->
             val serviceDay = st.serviceDay ?: return@mapNotNull null
@@ -178,7 +178,7 @@ internal class OtpClient(
     suspend fun trip(tripId: String, serviceDate: String? = null): TripDetails {
         val variables = TripVariables(id = tripId, serviceDate = serviceDate)
         val data = execute(PersistedQueries.TRIP, TripVariables.serializer(), variables, TripData.serializer())
-        val trip = data.trip ?: throw SpiderTransportException.NoData("OTP returned no trip for id=$tripId")
+        val trip = data.trip ?: throw SpiderTransportException.NoData("routing returned no trip for id=$tripId")
 
         val stops = trip.stoptimesForDate.orEmpty().mapNotNull { st ->
             val s = st.stop ?: return@mapNotNull null
@@ -224,7 +224,7 @@ internal class OtpClient(
             PersistedRequest(id = op.id, variables = json.encodeToJsonElement(variablesSerializer, variables)),
         )
         val response = http.post {
-            url("$baseUrl/otp/${op.path}")
+            url("$baseUrl/routing/${op.path}")
             contentType(ContentType.Application.Json)
             // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
             headers {
@@ -238,18 +238,18 @@ internal class OtpClient(
         val text = response.bodyAsText()
         if (!response.status.isSuccess()) {
             // A 403 here means the id isn't allow-listed at the gateway (contract/SDK hash mismatch).
-            throw SpiderTransportException.Http(response.status.value, "OTP ${op.path} → ${response.status.value}: ${text.take(300)}")
+            throw SpiderTransportException.Http(response.status.value, "routing ${op.path} → ${response.status.value}: ${text.take(300)}")
         }
         val envelope = json.decodeFromString(GraphQLResponse.serializer(dataSerializer), text)
         envelope.errors?.takeIf { it.isNotEmpty() }?.let { errors ->
-            throw SpiderTransportException.Upstream("OTP ${op.path} errors: ${errors.map { it.message }}")
+            throw SpiderTransportException.Upstream("routing ${op.path} errors: ${errors.map { it.message }}")
         }
-        return envelope.data ?: throw SpiderTransportException.NoData("OTP ${op.path} returned no data")
+        return envelope.data ?: throw SpiderTransportException.NoData("routing ${op.path} returned no data")
     }
 }
 
 /**
- * Each OTP operation's persisted-query id and its gateway route suffix. The id is the lowercase hex
+ * Each routing operation's persisted-query id and its gateway route suffix. The id is the lowercase hex
  * sha256 of the canonical query document under src/commonMain/graphql/ — the SDK owns these documents
  * (direction is contract ← SDK), and the Spider contract registers the same text so the ids match; a
  * mismatch is a 403 at the gateway. See `docs/CONTRACT_MAPPING.md`.
@@ -276,7 +276,7 @@ private fun transitModeFromWire(raw: String?): TransitMode? = when (raw) {
     "FERRY" -> TransitMode.FERRY
     "AIRPLANE" -> TransitMode.AIRPLANE
     "TAXI" -> TransitMode.TAXI
-    // TRANSIT, CABLE_CAR, FUNICULAR, GONDOLA, SNOW_AND_ICE + any value OTP adds later.
+    // TRANSIT, CABLE_CAR, FUNICULAR, GONDOLA, SNOW_AND_ICE + any value the upstream engine adds later.
     else -> TransitMode.UNKNOWN
 }
 

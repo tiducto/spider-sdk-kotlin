@@ -10,10 +10,10 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.serialization.Serializable
 
 class SpiderRouting(
-    private val otpBaseUrl: String,
+    private val baseUrl: String,
     apiKey: String,
 ) {
-    private val otp = OtpClient(otpBaseUrl, apiKey)
+    private val routing = RoutingClient(baseUrl, apiKey)
 
     suspend fun route(
         from: RouteLocation,
@@ -43,12 +43,12 @@ class SpiderRouting(
         before: String? = null,
         after: String? = null,
     ): SpiderResult<Route> = try {
-        SpiderResult.Success(otp.planConnection(request, first = first, before = before, after = after))
+        SpiderResult.Success(routing.planConnection(request, first = first, before = before, after = after))
     } catch (e: kotlin.coroutines.cancellation.CancellationException) {
         throw e
     } catch (e: Exception) {
         Logger.e(throwable = e, tag = "SpiderRouting") {
-            "route failed against $otpBaseUrl (from=${request.from} to=${request.to} first=$first before=$before after=$after)"
+            "route failed against $baseUrl (from=${request.from} to=${request.to} first=$first before=$before after=$after)"
         }
         SpiderResult.Error(e.toSpiderError())
     }
@@ -63,11 +63,11 @@ class SpiderRouting(
         startTime: Instant? = null,
         timeRange: Duration = 24.hours,
     ): SpiderResult<ImmutableList<Departure>> = try {
-        SpiderResult.Success(otp.stopDepartures(id, numberOfDepartures, startTime, timeRange))
+        SpiderResult.Success(routing.stopDepartures(id, numberOfDepartures, startTime, timeRange))
     } catch (e: kotlin.coroutines.cancellation.CancellationException) {
         throw e
     } catch (e: Exception) {
-        Logger.e(throwable = e, tag = "SpiderRouting") { "departures failed against $otpBaseUrl (stopId=$id)" }
+        Logger.e(throwable = e, tag = "SpiderRouting") { "departures failed against $baseUrl (stopId=$id)" }
         SpiderResult.Error(e.toSpiderError())
     }
 
@@ -76,11 +76,11 @@ class SpiderRouting(
         tripId: String,
         serviceDate: String? = null,
     ): SpiderResult<TripDetails> = try {
-        SpiderResult.Success(otp.trip(tripId, serviceDate))
+        SpiderResult.Success(routing.trip(tripId, serviceDate))
     } catch (e: kotlin.coroutines.cancellation.CancellationException) {
         throw e
     } catch (e: Exception) {
-        Logger.e(throwable = e, tag = "SpiderRouting") { "trip failed against $otpBaseUrl (tripId=$tripId)" }
+        Logger.e(throwable = e, tag = "SpiderRouting") { "trip failed against $baseUrl (tripId=$tripId)" }
         SpiderResult.Error(e.toSpiderError())
     }
 }
@@ -90,7 +90,7 @@ class RoutingConfig
 object Routing : SpiderFeature<RoutingConfig, SpiderRouting> {
     override fun newConfig() = RoutingConfig()
     override fun build(baseUrl: String, apiKey: String, config: RoutingConfig): SpiderRouting =
-        SpiderRouting(otpBaseUrl = baseUrl, apiKey = apiKey)
+        SpiderRouting(baseUrl = baseUrl, apiKey = apiKey)
 }
 
 sealed interface RouteLocation {

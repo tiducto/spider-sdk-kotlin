@@ -3,7 +3,7 @@
   "info": {
     "title": "Tiducto Transit API — REST surfaces",
     "version": "1.0",
-    "description": "Meilisearch stop search + GTFS-RT realtime, the plain-REST customer surfaces (poll-based, key-auth). Hand-authored companion to the OTP openapi.json; the two share one pack version. Realtime is deliberately poll-only (cacheable, high-fanout) — no streaming/subscription surface, so it is OpenAPI, not AsyncAPI. Enum-ish fields are bare strings so unrecognized producer values pass through unchanged."
+    "description": "Meilisearch stop search + GTFS-RT realtime, the plain-REST customer surfaces (poll-based, key-auth). Hand-authored companion to the routing openapi.json; the two share one pack version. Realtime is deliberately poll-only (cacheable, high-fanout) — no streaming/subscription surface, so it is OpenAPI, not AsyncAPI. Enum-ish fields are bare strings so unrecognized producer values pass through unchanged."
   },
   "servers": [
     { "url": "https://api.transitapi.eu/{project}/{env}", "variables": { "project": { "default": "9" }, "env": { "default": "7" } } }
