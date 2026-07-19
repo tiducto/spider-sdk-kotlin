@@ -56,7 +56,8 @@ else
     echo "==> Cloning $CODEGEN_REPO@$CODEGEN_REF"
     CODEGEN="$WORK_DIR/spider-codegen"
     GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
-        gh repo clone "$CODEGEN_REPO" "$CODEGEN" -- --depth 1 --branch "$CODEGEN_REF" >/dev/null 2>&1
+        gh repo clone "$CODEGEN_REPO" "$CODEGEN" -- --depth 1 --branch "$CODEGEN_REF" \
+        || { echo "ERROR: could not clone $CODEGEN_REPO@$CODEGEN_REF — CONTRACT_REPO_TOKEN must have read access to $CODEGEN_REPO (a separate private repo from $CONTRACT_REPO)." >&2; exit 1; }
 fi
 
 echo "==> Building spider-codegen"
