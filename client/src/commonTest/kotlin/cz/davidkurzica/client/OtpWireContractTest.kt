@@ -32,7 +32,7 @@ class OtpWireContractTest {
     }
 
     @Test
-    fun `plan variables serialize to the expected wire shape (nulls and label dropped)`() {
+    fun `plan variables serialize to the expected wire shape without nulls or label`() {
         val variables = PlanConnectionVariables(
             dateTime = PlanDateTimeInput(earliestDeparture = "2026-07-19T10:00:00Z"),
             origin = PlanLabeledLocationInput(
