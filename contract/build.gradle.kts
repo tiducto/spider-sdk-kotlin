@@ -9,7 +9,7 @@ group = "eu.tiducto"
 version = "1.0.0-SNAPSHOT"
 
 // Package layout, by ownership:
-//   contract/models    — GENERATED from spider-contract's openapi.json (scripts/generate-contract.sh /
+//   contract/models    — GENERATED from spider-contract's dist/routing-openapi.json (scripts/generate-contract.sh /
 //                        the generate-contract workflow) and committed. Don't hand-edit — regenerate.
 //                        The script's `rm -rf` targets ONLY this package.
 //   contract/stops     — HAND-WRITTEN stop-search wire contract (mirror of the seed-stops.sh index).

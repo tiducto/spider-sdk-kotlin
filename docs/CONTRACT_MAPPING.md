@@ -30,7 +30,7 @@ The `:contract` module carries the wire shapes, split by ownership:
 
 | Package | Surface | Owner | Drift test |
 |---------|---------|-------|-----------|
-| `contract.routing` | routing | **generated** from spider-contract `openapi.json` (`generate-contract.sh`, wiped/rewritten on regen) | `RoutingWireContractTest` |
+| `contract.routing` | routing | **generated** from spider-contract `dist/routing-openapi.json` (`generate-contract.sh`, wiped/rewritten on regen) | `RoutingWireContractTest` |
 | `contract.stops` | Stop search | **hand-written**, mirrors the `stops_env_{envId}` index (`seed-stops.sh`) | `StopsWireContractTest` |
 | `contract.realtime` | GTFS-RT | **hand-written**, mirrors the realtime gateway serializer | `RealtimeWireContractTest` |
 
@@ -98,7 +98,7 @@ operation it:
    (`PlanConnectionData`, `StopDeparturesData`, `TripData`, …), then maps them to the domain types
    (`Route`, `Departure`, `TripDetails`).
 
-The wire models are generated from `tiducto/spider-contract`'s `openapi.json` into the `:contract`
+The wire models are generated from `tiducto/spider-contract`'s `dist/routing-openapi.json` into the `:contract`
 module (`scripts/generate-contract.sh` / the **Generate contract module** workflow) and committed. Their
 enums tolerate unrecognized upstream values (`enumUnknownDefaultCase`) so a mode/state routing adds later
 maps to `UNKNOWN` instead of failing the parse. The `.graphql` files under
