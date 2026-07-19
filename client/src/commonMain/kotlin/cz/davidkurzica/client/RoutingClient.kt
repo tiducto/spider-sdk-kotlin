@@ -45,7 +45,7 @@ internal class RoutingClient(
     private val apiKey: String,
 ) {
     // explicitNulls=false so an omitted optional reads as "unset" upstream. Unknown enum values decode to
-    // UNKNOWN_DEFAULT_OPEN_API via the generated enums' serializers (coercion doesn't — it throws).
+    // UNKNOWN via the generated enums' serializers (coercion doesn't — it throws).
     private val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false

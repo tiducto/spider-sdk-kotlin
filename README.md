@@ -62,4 +62,4 @@ and maps them to its domain types. See [`docs/CONTRACT_MAPPING.md`](docs/CONTRAC
 To refresh the models after the contract changes, run the **Generate contract module** GitHub workflow
 (manual dispatch) — it pulls the spec, regenerates, and opens a PR. Locally: `scripts/generate-contract.sh`
 (needs Docker). The models use typed enums that tolerate unrecognized upstream values (an
-`UNKNOWN_DEFAULT_OPEN_API` case) rather than failing to parse.
+`UNKNOWN` case) rather than failing to parse.

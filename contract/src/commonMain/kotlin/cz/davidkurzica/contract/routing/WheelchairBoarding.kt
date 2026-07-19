@@ -12,14 +12,14 @@ enum class WheelchairBoarding(val value: String) {
     @SerialName("NOT_POSSIBLE") NOT_POSSIBLE("NOT_POSSIBLE"),
     @SerialName("NO_INFORMATION") NO_INFORMATION("NO_INFORMATION"),
     @SerialName("POSSIBLE") POSSIBLE("POSSIBLE"),
-    @SerialName("unknown_default_open_api") UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
+    @SerialName("UNKNOWN") UNKNOWN("UNKNOWN");
 }
 
 internal object WheelchairBoardingSerializer : KSerializer<WheelchairBoarding> {
     override val descriptor = String.serializer().descriptor
     override fun deserialize(decoder: Decoder): WheelchairBoarding {
         val raw = decoder.decodeString()
-        return WheelchairBoarding.entries.firstOrNull { it.value == raw } ?: WheelchairBoarding.UNKNOWN_DEFAULT_OPEN_API
+        return WheelchairBoarding.entries.firstOrNull { it.value == raw } ?: WheelchairBoarding.UNKNOWN
     }
     override fun serialize(encoder: Encoder, value: WheelchairBoarding) {
         encoder.encodeString(value.value)

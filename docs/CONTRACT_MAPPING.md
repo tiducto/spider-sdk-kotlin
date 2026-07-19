@@ -101,7 +101,7 @@ operation it:
 The wire models are generated from `tiducto/spider-contract`'s `openapi.json` into the `:contract`
 module (`scripts/generate-contract.sh` / the **Generate contract module** workflow) and committed. Their
 enums tolerate unrecognized upstream values (`enumUnknownDefaultCase`) so a mode/state routing adds later
-maps to `UNKNOWN_DEFAULT_OPEN_API` instead of failing the parse. The `.graphql` files under
+maps to `UNKNOWN` instead of failing the parse. The `.graphql` files under
 `src/commonMain/graphql/` are **not compiled** — they're kept as the canonical query documents the
 persisted ids are hashed from (the contract registers the same text).
 

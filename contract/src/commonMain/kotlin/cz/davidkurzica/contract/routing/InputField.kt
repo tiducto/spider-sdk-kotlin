@@ -13,14 +13,14 @@ enum class InputField(val value: String) {
     @SerialName("FROM") FROM("FROM"),
     @SerialName("TO") TO("TO"),
     @SerialName("VIA") VIA("VIA"),
-    @SerialName("unknown_default_open_api") UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
+    @SerialName("UNKNOWN") UNKNOWN("UNKNOWN");
 }
 
 internal object InputFieldSerializer : KSerializer<InputField> {
     override val descriptor = String.serializer().descriptor
     override fun deserialize(decoder: Decoder): InputField {
         val raw = decoder.decodeString()
-        return InputField.entries.firstOrNull { it.value == raw } ?: InputField.UNKNOWN_DEFAULT_OPEN_API
+        return InputField.entries.firstOrNull { it.value == raw } ?: InputField.UNKNOWN
     }
     override fun serialize(encoder: Encoder, value: InputField) {
         encoder.encodeString(value.value)
