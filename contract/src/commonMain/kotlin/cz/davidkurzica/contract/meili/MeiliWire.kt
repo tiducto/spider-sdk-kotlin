@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 /**
  * The Meili stop-search wire contract.
  *
- * **Hand-written, not generated.** Unlike the OTP models under `cz.davidkurzica.contract.models`
+ * **Hand-written, not generated.** Unlike the OTP models under `cz.davidkurzica.contract.routing`
  * (produced by openapi-generator and wiped/rewritten by `scripts/generate-contract.sh`), these live in
- * their own package so the generator's `rm -rf` on `models/` never touches them. The real upstream
+ * their own package so the generator's `rm -rf` on `routing/` never touches them. The real upstream
  * owner of the [MeiliStop] document shape is the `stops_env_{envId}` index builder (`seed-stops.sh`,
  * another repo) — this file is the SDK-side mirror of that cross-repo contract, pinned by
  * `MeiliWireContractTest`. See `docs/CONTRACT_MAPPING.md`.
