@@ -12,9 +12,17 @@ class SpiderClient(
 
     init {
         Logger.i(tag = "SpiderClient") {
-            "Initialized baseUrl=$baseUrl apiKey=set features=${features.keys.joinToString { it::class.simpleName ?: "?" }}"
+            "Initialized baseUrl=$baseUrl apiKey=set contract=${SpiderContract.VERSION} " +
+                "features=${features.keys.joinToString { it::class.simpleName ?: "?" }}"
         }
     }
+
+    /**
+     * The single wire-contract version this client speaks across every installed feature (OTP, Meili,
+     * Realtime move together). Sent on every request; a gateway that declares an incompatible version
+     * crashes the call with [SpiderContractMismatchError] rather than returning a [SpiderResult.Error].
+     */
+    val contractVersion: String get() = SpiderContract.VERSION
 
     val routing: SpiderRouting get() = feature(Routing)
     val stops: SpiderStops get() = feature(Stops)

@@ -1,5 +1,9 @@
 package cz.davidkurzica.client
 
+import cz.davidkurzica.contract.meili.MeiliError
+import cz.davidkurzica.contract.meili.MeiliStop
+import cz.davidkurzica.contract.meili.SearchRequest
+import cz.davidkurzica.contract.meili.SearchResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -17,7 +21,6 @@ import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 internal class MeiliClient(
@@ -49,9 +52,13 @@ internal class MeiliClient(
             url(url)
             contentType(ContentType.Application.Json)
             // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
-            headers { append("apikey", apiKey) }
+            headers {
+                append("apikey", apiKey)
+                append(SpiderContract.HEADER, SpiderContract.VERSION)
+            }
             setBody(SearchRequest(q = query, filter = filterExpr))
         }
+        ContractGuard.check(httpResponse.headers[SpiderContract.HEADER])
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
@@ -104,33 +111,3 @@ internal class MeiliClient(
         )
     }
 }
-
-@Serializable
-internal data class SearchRequest(
-    val q: String,
-    val filter: String? = null,
-)
-
-@Serializable
-internal data class SearchResponse<T>(val hits: List<T>, val query: String)
-
-@Serializable
-internal data class MeiliStop(
-    val gtfsId: String,
-    val name: String,
-    val lat: Double? = null,
-    val lon: Double? = null,
-    val country: String? = null,
-    val region: String? = null,
-    val district: String? = null,
-    val city: String? = null,
-    val suburb: String? = null,
-)
-
-@Serializable
-internal data class MeiliError(
-    val message: String,
-    val code: String? = null,
-    val type: String? = null,
-    val link: String? = null,
-)

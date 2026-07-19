@@ -22,9 +22,31 @@ project/env), which the production Kong gateway rejected on these counts. All ar
 | 3 | **OTP routes** | Per-op `/{project}/{env}/otp/plan\|departures\|trip` | per-op URL from `PersistedQueries` |
 | 4 | **project/env** | Numeric ids in the path (`/9/7/…`) | folded into the customer's `baseUrl` |
 | 5 | **Stops** | `/{project}/{env}/stops/search`, `apikey`, Kong injects Meili key | `MeiliClient` posts `$baseUrl/stops/search` + `apikey` |
-| 6 | **Realtime** | `/{project}/{env}/realtime` (deployed) | no feature | not implemented |
+| 6 | **Realtime** | `/{project}/{env}/realtime/*` (deployed) | `RealtimeClient` GETs `$baseUrl/realtime/{vehicles,vehicles/by-trip/{id},delays,alerts}` + `apikey` |
 
-## Persisted-query binding (the core of the contract)
+## Contract module layout & versioning (all three surfaces)
+
+The `:contract` module carries the wire shapes, split by ownership:
+
+| Package | Surface | Owner | Drift test |
+|---------|---------|-------|-----------|
+| `contract.models` | OTP | **generated** from spider-contract `openapi.json` (`generate-contract.sh`, wiped/rewritten on regen) | `OtpWireContractTest` |
+| `contract.meili` | Meili stop search | **hand-written**, mirrors the `stops_env_{envId}` index (`seed-stops.sh`) | `MeiliWireContractTest` |
+| `contract.realtime` | GTFS-RT | **hand-written**, mirrors the realtime gateway serializer | `RealtimeWireContractTest` |
+
+The hand-written packages sit outside `models/` on purpose — the generator's `rm -rf` only touches
+`models/`. If a surface later moves to codegen, delete its hand-written package and let it regenerate.
+
+**One version for the whole pack.** There is a single `SpiderContract.VERSION` (in `:client`) covering
+OTP + Meili + Realtime, sent on every request as `x-spider-contract-version` and exposed as
+`SpiderClient.contractVersion`. It is the honest REST analog of OTP's persisted-query id: a *declared*
+version, not a per-operation content-hash. **Enforcement is fail-fast:** `ContractGuard` reads the
+version the gateway declares on each response and, on an incompatible MAJOR, throws
+`SpiderContractMismatchError` — a `kotlin.Error` that bypasses `SpiderResult` and crashes, because an
+incompatible contract is a build/deploy error, not a recoverable per-call failure. It is **dormant**
+until the gateway echoes the header (Kong ignores it today), then enforces automatically.
+
+## Persisted-query binding (the core of the OTP contract)
 
 Enforcement keys on `sha256(canonicalize(queryText))` where `canonicalize` = `\r\n`→`\n`, `\r`→`\n`,
 then `trim` (`ContractHashing` in spider-services). The contract must register the SDK's **exact**
