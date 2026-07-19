@@ -16,14 +16,14 @@ enum class RoutingErrorCode(val value: String) {
     @SerialName("OUTSIDE_BOUNDS") OUTSIDE_BOUNDS("OUTSIDE_BOUNDS"),
     @SerialName("OUTSIDE_SERVICE_PERIOD") OUTSIDE_SERVICE_PERIOD("OUTSIDE_SERVICE_PERIOD"),
     @SerialName("WALKING_BETTER_THAN_TRANSIT") WALKING_BETTER_THAN_TRANSIT("WALKING_BETTER_THAN_TRANSIT"),
-    @SerialName("unknown_default_open_api") UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
+    @SerialName("UNKNOWN") UNKNOWN("UNKNOWN");
 }
 
 internal object RoutingErrorCodeSerializer : KSerializer<RoutingErrorCode> {
     override val descriptor = String.serializer().descriptor
     override fun deserialize(decoder: Decoder): RoutingErrorCode {
         val raw = decoder.decodeString()
-        return RoutingErrorCode.entries.firstOrNull { it.value == raw } ?: RoutingErrorCode.UNKNOWN_DEFAULT_OPEN_API
+        return RoutingErrorCode.entries.firstOrNull { it.value == raw } ?: RoutingErrorCode.UNKNOWN
     }
     override fun serialize(encoder: Encoder, value: RoutingErrorCode) {
         encoder.encodeString(value.value)

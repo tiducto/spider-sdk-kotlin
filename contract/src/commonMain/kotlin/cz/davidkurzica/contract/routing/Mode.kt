@@ -31,14 +31,14 @@ enum class Mode(val value: String) {
     @SerialName("TRANSIT") TRANSIT("TRANSIT"),
     @SerialName("TROLLEYBUS") TROLLEYBUS("TROLLEYBUS"),
     @SerialName("WALK") WALK("WALK"),
-    @SerialName("unknown_default_open_api") UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
+    @SerialName("UNKNOWN") UNKNOWN("UNKNOWN");
 }
 
 internal object ModeSerializer : KSerializer<Mode> {
     override val descriptor = String.serializer().descriptor
     override fun deserialize(decoder: Decoder): Mode {
         val raw = decoder.decodeString()
-        return Mode.entries.firstOrNull { it.value == raw } ?: Mode.UNKNOWN_DEFAULT_OPEN_API
+        return Mode.entries.firstOrNull { it.value == raw } ?: Mode.UNKNOWN
     }
     override fun serialize(encoder: Encoder, value: Mode) {
         encoder.encodeString(value.value)

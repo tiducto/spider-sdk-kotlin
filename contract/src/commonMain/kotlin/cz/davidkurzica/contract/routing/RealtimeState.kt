@@ -14,14 +14,14 @@ enum class RealtimeState(val value: String) {
     @SerialName("MODIFIED") MODIFIED("MODIFIED"),
     @SerialName("SCHEDULED") SCHEDULED("SCHEDULED"),
     @SerialName("UPDATED") UPDATED("UPDATED"),
-    @SerialName("unknown_default_open_api") UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
+    @SerialName("UNKNOWN") UNKNOWN("UNKNOWN");
 }
 
 internal object RealtimeStateSerializer : KSerializer<RealtimeState> {
     override val descriptor = String.serializer().descriptor
     override fun deserialize(decoder: Decoder): RealtimeState {
         val raw = decoder.decodeString()
-        return RealtimeState.entries.firstOrNull { it.value == raw } ?: RealtimeState.UNKNOWN_DEFAULT_OPEN_API
+        return RealtimeState.entries.firstOrNull { it.value == raw } ?: RealtimeState.UNKNOWN
     }
     override fun serialize(encoder: Encoder, value: RealtimeState) {
         encoder.encodeString(value.value)

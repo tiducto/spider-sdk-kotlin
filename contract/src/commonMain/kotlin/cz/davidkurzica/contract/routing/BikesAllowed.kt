@@ -12,14 +12,14 @@ enum class BikesAllowed(val value: String) {
     @SerialName("ALLOWED") ALLOWED("ALLOWED"),
     @SerialName("NOT_ALLOWED") NOT_ALLOWED("NOT_ALLOWED"),
     @SerialName("NO_INFORMATION") NO_INFORMATION("NO_INFORMATION"),
-    @SerialName("unknown_default_open_api") UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
+    @SerialName("UNKNOWN") UNKNOWN("UNKNOWN");
 }
 
 internal object BikesAllowedSerializer : KSerializer<BikesAllowed> {
     override val descriptor = String.serializer().descriptor
     override fun deserialize(decoder: Decoder): BikesAllowed {
         val raw = decoder.decodeString()
-        return BikesAllowed.entries.firstOrNull { it.value == raw } ?: BikesAllowed.UNKNOWN_DEFAULT_OPEN_API
+        return BikesAllowed.entries.firstOrNull { it.value == raw } ?: BikesAllowed.UNKNOWN
     }
     override fun serialize(encoder: Encoder, value: BikesAllowed) {
         encoder.encodeString(value.value)

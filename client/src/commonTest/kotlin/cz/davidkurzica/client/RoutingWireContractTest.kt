@@ -96,7 +96,7 @@ class RoutingWireContractTest {
     @Test
     fun `unknown enum value maps to the typed UNKNOWN case instead of throwing`() {
         // A mode the pinned contract enum doesn't know (the upstream engine adds one later). The generated enum's
-        // custom serializer must decode it to UNKNOWN_DEFAULT_OPEN_API — the whole response still parses.
+        // custom serializer must decode it to UNKNOWN — the whole response still parses.
         val body =
             """
             {"data":{"planConnection":{
@@ -114,6 +114,6 @@ class RoutingWireContractTest {
             """.trimIndent()
 
         val env = json.decodeFromString(PlanConnectionResponse.serializer(), body)
-        assertEquals(Mode.UNKNOWN_DEFAULT_OPEN_API, env.data!!.planConnection!!.edges!!.single().node.legs.single().mode)
+        assertEquals(Mode.UNKNOWN, env.data!!.planConnection!!.edges!!.single().node.legs.single().mode)
     }
 }

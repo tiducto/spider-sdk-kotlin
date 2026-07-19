@@ -24,14 +24,14 @@ enum class TransitMode(val value: String) {
     @SerialName("TAXI") TAXI("TAXI"),
     @SerialName("TRAM") TRAM("TRAM"),
     @SerialName("TROLLEYBUS") TROLLEYBUS("TROLLEYBUS"),
-    @SerialName("unknown_default_open_api") UNKNOWN_DEFAULT_OPEN_API("unknown_default_open_api");
+    @SerialName("UNKNOWN") UNKNOWN("UNKNOWN");
 }
 
 internal object TransitModeSerializer : KSerializer<TransitMode> {
     override val descriptor = String.serializer().descriptor
     override fun deserialize(decoder: Decoder): TransitMode {
         val raw = decoder.decodeString()
-        return TransitMode.entries.firstOrNull { it.value == raw } ?: TransitMode.UNKNOWN_DEFAULT_OPEN_API
+        return TransitMode.entries.firstOrNull { it.value == raw } ?: TransitMode.UNKNOWN
     }
     override fun serialize(encoder: Encoder, value: TransitMode) {
         encoder.encodeString(value.value)
