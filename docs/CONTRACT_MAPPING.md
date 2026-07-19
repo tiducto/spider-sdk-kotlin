@@ -30,12 +30,12 @@ The `:contract` module carries the wire shapes, split by ownership:
 
 | Package | Surface | Owner | Drift test |
 |---------|---------|-------|-----------|
-| `contract.models` | OTP | **generated** from spider-contract `openapi.json` (`generate-contract.sh`, wiped/rewritten on regen) | `OtpWireContractTest` |
+| `contract.routing` | OTP | **generated** from spider-contract `openapi.json` (`generate-contract.sh`, wiped/rewritten on regen) | `OtpWireContractTest` |
 | `contract.meili` | Meili stop search | **hand-written**, mirrors the `stops_env_{envId}` index (`seed-stops.sh`) | `MeiliWireContractTest` |
 | `contract.realtime` | GTFS-RT | **hand-written**, mirrors the realtime gateway serializer | `RealtimeWireContractTest` |
 
-The hand-written packages sit outside `models/` on purpose — the generator's `rm -rf` only touches
-`models/`. If a surface later moves to codegen, delete its hand-written package and let it regenerate.
+The hand-written packages sit outside `routing/` on purpose — the generator's `rm -rf` only touches
+`routing/`. If a surface later moves to codegen, delete its hand-written package and let it regenerate.
 
 **One version for the whole pack.** There is a single `SpiderContract.VERSION` (in `:client`) covering
 OTP + Meili + Realtime, sent on every request as `x-spider-contract-version` and exposed as
