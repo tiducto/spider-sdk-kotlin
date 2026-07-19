@@ -5,10 +5,12 @@ name: build
 # models are committed Kotlin (generated out-of-band by scripts/generate-contract.sh),
 # so this just compiles them like any other source — no codegen step in the build.
 
-# One run per PR (macOS runners are ~10x Linux, so no post-merge run); workflow_dispatch to
-# validate main on demand. Concurrency below cancels superseded pushes on the same ref.
+# CI runs only when a PR is ready — draft PRs skip it, so an unfinished PR doesn't burn a run;
+# ready_for_review re-triggers when a draft is promoted. macOS runners are ~10x Linux, so no
+# post-merge run; workflow_dispatch validates main on demand. Concurrency cancels superseded pushes.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
@@ -20,6 +22,8 @@ concurrency:
 
 jobs:
   build:
+    # Skip draft PRs; still runs on workflow_dispatch (which has no pull_request context).
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
