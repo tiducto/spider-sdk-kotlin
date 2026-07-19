@@ -1,4 +1,4 @@
-name: Generate contract module
+name: Pull contract updates
 
 # Pulls the wire contract from tiducto/spider-contract, regenerates the :contract module's Kotlin
 # models, and opens a PR with the diff. The generated classes are committed to the repo (the module

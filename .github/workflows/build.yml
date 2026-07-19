@@ -1,4 +1,4 @@
-name: build
+name: Build SDK
 
 # Builds the whole KMP library. Runs on macOS because the repo declares Apple
 # targets (iosArm64/macos*), which can't compile on a Linux runner. :contract's
