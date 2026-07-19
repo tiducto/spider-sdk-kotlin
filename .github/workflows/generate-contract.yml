@@ -22,9 +22,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Regenerate contract models
         env:
-          # Reads the private contract repo; PR creation below uses the default GITHUB_TOKEN instead.
+          # Reads the private contract AND spider-codegen repos; PR creation below uses the default GITHUB_TOKEN.
           CONTRACT_REPO_TOKEN: ${{ secrets.CONTRACT_REPO_TOKEN }}
         run: ./scripts/generate-contract.sh --ref "${{ inputs.contract_ref }}"
 
@@ -38,7 +43,7 @@ jobs:
           body: |
             Regenerated `:contract` models from
             [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract)@`${{ inputs.contract_ref }}`
-            via `scripts/generate-contract.sh` (openapi-generator).
+            via `scripts/generate-contract.sh` (spider-codegen, our own generator).
 
             Generated code — review the API-surface diff, don't hand-edit the models.
           delete-branch: true
