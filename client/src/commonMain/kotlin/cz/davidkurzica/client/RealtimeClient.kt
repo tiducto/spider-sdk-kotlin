@@ -6,6 +6,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
@@ -45,10 +46,9 @@ internal class RealtimeClient(
     }
 
     suspend fun vehicles(tripIds: List<String>): VehiclePositions {
-        val response = http.get {
+        val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles") }
             parameter("tripIds", tripIds.joinToString(","))
-            headers { append("apikey", apiKey) }
         }
         val dto: VehiclesResponseDto = response.decodeOrThrow("realtime/vehicles")
         return VehiclePositions(
@@ -59,9 +59,8 @@ internal class RealtimeClient(
     }
 
     suspend fun vehicleForTrip(tripId: String): LiveVehicleUpdate {
-        val response = http.get {
+        val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles", "by-trip", tripId) }
-            headers { append("apikey", apiKey) }
         }
         // No vehicle currently reporting for this trip is a normal state, not a failure.
         if (response.status == HttpStatusCode.NotFound) {
@@ -75,10 +74,9 @@ internal class RealtimeClient(
     }
 
     suspend fun delays(tripIds: List<String>): TripDelays {
-        val response = http.get {
+        val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "delays") }
             parameter("tripIds", tripIds.joinToString(","))
-            headers { append("apikey", apiKey) }
         }
         val dto: DelaysResponseDto = response.decodeOrThrow("realtime/delays")
         return TripDelays(
@@ -89,15 +87,29 @@ internal class RealtimeClient(
     }
 
     suspend fun alerts(): ServiceAlerts {
-        val response = http.get {
+        val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "alerts") }
-            headers { append("apikey", apiKey) }
         }
         val dto: AlertsResponseDto = response.decodeOrThrow("realtime/alerts")
         return ServiceAlerts(
             alerts = dto.alerts.map { it.toDomain() }.toImmutableList(),
             freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
         )
+    }
+
+    // Every realtime GET goes through here: the raw key in `apikey` (Kong key-auth), the contract
+    // version so the gateway can enforce compatibility, and the inbound contract guard — run once per
+    // request, before status handling, so even a 404/by-trip miss still checks the declared version.
+    private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse {
+        val response = http.get {
+            block()
+            headers {
+                append("apikey", apiKey)
+                append(SpiderContract.HEADER, SpiderContract.VERSION)
+            }
+        }
+        ContractGuard.check(response.headers[SpiderContract.HEADER])
+        return response
     }
 
     private suspend inline fun <reified T> HttpResponse.decodeOrThrow(where: String): T {

@@ -227,9 +227,14 @@ internal class OtpClient(
             url("$baseUrl/otp/${op.path}")
             contentType(ContentType.Application.Json)
             // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
-            headers { append("apikey", apiKey) }
+            headers {
+                append("apikey", apiKey)
+                append(SpiderContract.HEADER, SpiderContract.VERSION)
+            }
             setBody(payload)
         }
+        // Crash on an incompatible contract before we try to parse a shape we may no longer understand.
+        ContractGuard.check(response.headers[SpiderContract.HEADER])
         val text = response.bodyAsText()
         if (!response.status.isSuccess()) {
             // A 403 here means the id isn't allow-listed at the gateway (contract/SDK hash mismatch).

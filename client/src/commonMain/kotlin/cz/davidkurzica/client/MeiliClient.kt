@@ -49,9 +49,13 @@ internal class MeiliClient(
             url(url)
             contentType(ContentType.Application.Json)
             // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
-            headers { append("apikey", apiKey) }
+            headers {
+                append("apikey", apiKey)
+                append(SpiderContract.HEADER, SpiderContract.VERSION)
+            }
             setBody(SearchRequest(q = query, filter = filterExpr))
         }
+        ContractGuard.check(httpResponse.headers[SpiderContract.HEADER])
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
