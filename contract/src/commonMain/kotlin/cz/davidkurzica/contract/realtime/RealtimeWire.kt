@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
  * The Realtime (GTFS-RT) wire contract.
  *
  * **Hand-written, not generated** — same rationale as `cz.davidkurzica.contract.meili`: kept in its own
- * package, away from the generator-owned `models/`. The upstream owner is the GTFS-RT gateway
+ * package, away from the generator-owned `routing/`. The upstream owner is the GTFS-RT gateway
  * serializer; this file mirrors it and is pinned by `RealtimeWireContractTest`.
  *
  * Everything is nullable / defaulted: GTFS-RT producers populate wildly different subsets and feeds go
