@@ -71,3 +71,17 @@ mkdir -p "$MODELS_DIR"
 cp -R "$GENERATED/." "$MODELS_DIR/"
 
 echo "==> Done. $(find "$MODELS_DIR" -name '*.kt' | wc -l | tr -d ' ') model files."
+
+# The Meili/Realtime wire types are hand-written (:contract/meili + :contract/realtime), NOT generated.
+# rest-openapi.json is their published contract; keep it as the jvmTest pin fixture so SDK-type drift from
+# the contract fails the build (RestOpenApiContractTest). Repo-sourced only — a --spec local run leaves it.
+REST_FIXTURE="$REPO_ROOT/client/src/jvmTest/resources/rest-openapi.json"
+if [[ -z "$LOCAL_SPEC" ]]; then
+    echo "==> Fetching rest-openapi.json → jvmTest pin fixture"
+    mkdir -p "$(dirname "$REST_FIXTURE")"
+    GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
+        gh api "repos/$CONTRACT_REPO/contents/rest-openapi.json?ref=$CONTRACT_REF" --jq '.content' \
+        | base64 -d > "$REST_FIXTURE"
+else
+    echo "==> Skipping rest-openapi.json fetch (local --spec run); pin fixture left unchanged."
+fi
