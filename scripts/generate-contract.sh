@@ -42,9 +42,9 @@ if [[ -n "$LOCAL_SPEC" ]]; then
     echo "==> Using local spec: $LOCAL_SPEC"
     cp "$LOCAL_SPEC" "$WORK_DIR/openapi.json"
 else
-    echo "==> Fetching routing-openapi.json from $CONTRACT_REPO@$CONTRACT_REF"
+    echo "==> Fetching dist/routing-openapi.json from $CONTRACT_REPO@$CONTRACT_REF"
     GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
-        gh api "repos/$CONTRACT_REPO/contents/routing-openapi.json?ref=$CONTRACT_REF" --jq '.content' \
+        gh api "repos/$CONTRACT_REPO/contents/dist/routing-openapi.json?ref=$CONTRACT_REF" --jq '.content' \
         | base64 -d > "$WORK_DIR/openapi.json"
 fi
 
@@ -92,9 +92,9 @@ FIXTURE_DIR="$REPO_ROOT/client/src/jvmTest/resources"
 if [[ -z "$LOCAL_SPEC" ]]; then
     mkdir -p "$FIXTURE_DIR"
     for doc in stops-openapi.json realtime-openapi.json; do
-        echo "==> Fetching $doc → jvmTest pin fixture"
+        echo "==> Fetching dist/$doc → jvmTest pin fixture"
         GH_TOKEN="${CONTRACT_REPO_TOKEN:-${GH_TOKEN:-}}" \
-            gh api "repos/$CONTRACT_REPO/contents/$doc?ref=$CONTRACT_REF" --jq '.content' \
+            gh api "repos/$CONTRACT_REPO/contents/dist/$doc?ref=$CONTRACT_REF" --jq '.content' \
             | base64 -d > "$FIXTURE_DIR/$doc"
     done
 else
