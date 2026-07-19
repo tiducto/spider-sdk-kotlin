@@ -8,9 +8,14 @@ plugins {
 group = "eu.tiducto"
 version = "1.0.0-SNAPSHOT"
 
-// The models under src/commonMain/.../contract/models are GENERATED from spider-contract's openapi.json
-// (scripts/generate-contract.sh / the generate-contract workflow) and committed. Don't hand-edit them —
-// change the contract and regenerate.
+// Package layout, by ownership:
+//   contract/models    — GENERATED from spider-contract's openapi.json (scripts/generate-contract.sh /
+//                        the generate-contract workflow) and committed. Don't hand-edit — regenerate.
+//                        The script's `rm -rf` targets ONLY this package.
+//   contract/meili     — HAND-WRITTEN Meili stop-search wire contract (mirror of the seed-stops.sh index).
+//   contract/realtime  — HAND-WRITTEN GTFS-RT wire contract (mirror of the realtime gateway serializer).
+// The hand-written packages live outside `models/` on purpose so a regen never wipes them. If these
+// surfaces ever move to codegen, delete the hand-written package and let them regenerate into `models/`.
 kotlin {
     jvmToolchain(25)
 

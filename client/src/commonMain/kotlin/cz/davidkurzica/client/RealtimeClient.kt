@@ -1,5 +1,13 @@
 package cz.davidkurzica.client
 
+import cz.davidkurzica.contract.realtime.AlertDto
+import cz.davidkurzica.contract.realtime.AlertsResponseDto
+import cz.davidkurzica.contract.realtime.DelayDto
+import cz.davidkurzica.contract.realtime.DelaysResponseDto
+import cz.davidkurzica.contract.realtime.StopTimeUpdateDto
+import cz.davidkurzica.contract.realtime.VehicleByTripResponseDto
+import cz.davidkurzica.contract.realtime.VehicleDto
+import cz.davidkurzica.contract.realtime.VehiclesResponseDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -19,7 +27,6 @@ import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.time.Instant
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 // Live GTFS-RT read API, served from the same gateway as OTP/Meili under `$baseUrl/realtime/...`.
@@ -167,92 +174,4 @@ private fun AlertDto.toDomain(): ServiceAlert = ServiceAlert(
     informedEntities = informedEntities.map {
         AlertInformedEntity(agencyId = it.agencyId, routeId = it.routeId, tripId = it.tripId, stopId = it.stopId)
     }.toImmutableList(),
-)
-
-@Serializable
-private data class VehiclesResponseDto(
-    val vehicles: List<VehicleDto> = emptyList(),
-    val missing: List<String> = emptyList(),
-    val feedTimestamp: Long? = null,
-    val staleSeconds: Int? = null,
-)
-
-@Serializable
-private data class VehicleByTripResponseDto(
-    val vehicle: VehicleDto? = null,
-    val feedTimestamp: Long? = null,
-    val staleSeconds: Int? = null,
-)
-
-@Serializable
-private data class VehicleDto(
-    val tripId: String? = null,
-    val routeId: String? = null,
-    val vehicleId: String? = null,
-    val label: String? = null,
-    val latitude: Double? = null,
-    val longitude: Double? = null,
-    val bearing: Double? = null,
-    val speed: Double? = null,
-    val stopId: String? = null,
-    val currentStatus: String? = null,
-    val occupancyStatus: String? = null,
-    val timestamp: Long? = null,
-)
-
-@Serializable
-private data class DelaysResponseDto(
-    val delays: List<DelayDto> = emptyList(),
-    val missing: List<String> = emptyList(),
-    val feedTimestamp: Long? = null,
-    val staleSeconds: Int? = null,
-)
-
-@Serializable
-private data class DelayDto(
-    val tripId: String? = null,
-    val routeId: String? = null,
-    val delaySeconds: Int? = null,
-    val scheduleRelationship: String? = null,
-    val stopTimeUpdates: List<StopTimeUpdateDto> = emptyList(),
-)
-
-@Serializable
-private data class StopTimeUpdateDto(
-    val stopId: String? = null,
-    val stopSequence: Int? = null,
-    val arrivalDelay: Int? = null,
-    val departureDelay: Int? = null,
-    val scheduleRelationship: String? = null,
-)
-
-@Serializable
-private data class AlertsResponseDto(
-    val alerts: List<AlertDto> = emptyList(),
-    val feedTimestamp: Long? = null,
-    val staleSeconds: Int? = null,
-)
-
-@Serializable
-private data class AlertDto(
-    val id: String? = null,
-    val cause: String? = null,
-    val effect: String? = null,
-    val severityLevel: String? = null,
-    val headerText: String? = null,
-    val descriptionText: String? = null,
-    val url: String? = null,
-    val activePeriods: List<ActivePeriodDto> = emptyList(),
-    val informedEntities: List<InformedEntityDto> = emptyList(),
-)
-
-@Serializable
-private data class ActivePeriodDto(val start: Long? = null, val end: Long? = null)
-
-@Serializable
-private data class InformedEntityDto(
-    val agencyId: String? = null,
-    val routeId: String? = null,
-    val tripId: String? = null,
-    val stopId: String? = null,
 )

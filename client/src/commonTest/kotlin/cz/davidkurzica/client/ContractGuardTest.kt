@@ -38,7 +38,7 @@ class ContractGuardTest {
     }
 
     @Test
-    fun `the mismatch error is a fatal Error - it bypasses SpiderResult, not an Exception`() {
+    fun `the mismatch error is a fatal Error not an Exception so it bypasses SpiderResult`() {
         // The per-call runCatching blocks only catch Exception; this must be an Error so it propagates
         // and crashes instead of being wrapped in SpiderResult.Error.
         val error: Error = SpiderContractMismatchError(expected = "1.0.0", actual = "2.0.0")
