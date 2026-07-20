@@ -177,17 +177,17 @@ export declare namespace SpiderError {
         const constructor: abstract new () => SpiderError;
     }
 }
-export declare class Location {
+export declare class SpiderLocation {
     private constructor();
     get kind(): string;
     get stopId(): Nullable<string>;
     get latitude(): Nullable<number>;
     get longitude(): Nullable<number>;
 }
-export declare namespace Location {
+export declare namespace SpiderLocation {
     /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
     namespace $metadata$ {
-        const constructor: abstract new () => Location;
+        const constructor: abstract new () => SpiderLocation;
     }
     abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
         private constructor();
@@ -196,8 +196,8 @@ export declare namespace Location {
         /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
         namespace $metadata$ {
             abstract class constructor {
-                coordinate(latitude: number, longitude: number): Location;
-                stop(id: string): Location;
+                coordinate(latitude: number, longitude: number): SpiderLocation;
+                stop(id: string): SpiderLocation;
                 private constructor();
             }
         }
@@ -375,8 +375,8 @@ export declare namespace SpiderClient {
 }
 export declare class SpiderRouting {
     private constructor();
-    plan(from: Location, to: Location, departAtEpochMs?: Nullable<number>, first?: number): Promise<SpiderResult<Route>>;
-    planArriveBy(from: Location, to: Location, arriveByEpochMs: number, first?: number): Promise<SpiderResult<Route>>;
+    plan(origin: SpiderLocation, destination: SpiderLocation, departAtEpochMs?: Nullable<number>, first?: number): Promise<SpiderResult<Route>>;
+    planArriveBy(origin: SpiderLocation, destination: SpiderLocation, arriveByEpochMs: number, first?: number): Promise<SpiderResult<Route>>;
     nextPage(route: Route, first?: number): Promise<Nullable<SpiderResult<Route>>>;
     previousPage(route: Route, first?: number): Promise<Nullable<SpiderResult<Route>>>;
     departures(stopId: string, numberOfDepartures?: number, startTimeEpochMs?: Nullable<number>, timeRangeSeconds?: number): Promise<SpiderResult<Array<Departure>>>;

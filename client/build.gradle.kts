@@ -16,7 +16,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "cz.davidkurzica.client"
+        namespace = "eu.tiducto.spider.client"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
     }
@@ -142,9 +142,15 @@ publishing {
 //   1. Scope the package name + point publishConfig at GitHub Packages npm.
 //   2. Drop sourcemaps — they reference intermediate Kotlin build paths that don't survive, so a
 //      consuming Vite build only warns about missing sources (same reasoning as web/shared).
+//   3. Install the hand-written facade shim (npm/index.mjs + index.d.mts) as the package entry point.
+//      Kotlin/JS @JsExport can't hoist companion members to bare statics, so the generated bundle only
+//      offers `SpiderLocation.Companion.coordinate(...)`; the shim re-exports everything and adds a
+//      clean `Location` object, so consumers write `Location.coordinate(...)` / `Location.stop(...)`.
 // See .github/workflows/publish-npm.yml for the actual publish (uses the built-in GITHUB_TOKEN).
+val npmShimDir = layout.projectDirectory.dir("npm")
 tasks.named("jsBrowserDevelopmentLibraryDistribution") {
     val distDir = layout.buildDirectory.dir("dist/js/developmentLibrary")
+    val shimDir = npmShimDir
     doLast {
         val dir = distDir.get().asFile
         dir.listFiles()?.forEach { f ->
@@ -157,23 +163,29 @@ tasks.named("jsBrowserDevelopmentLibraryDistribution") {
             }
         }
 
+        shimDir.asFile.listFiles()?.forEach { it.copyTo(dir.resolve(it.name), overwrite = true) }
+
         val pkg = dir.resolve("package.json")
         pkg.writeText(
-            pkg.readText().replace(
-                "  \"name\": \"spider-sdk-client\",",
-                """
-                |  "name": "@tiducto/spider-sdk-client",
-                |  "description": "Spider transit API SDK for JS/TS — trip planning, stop search and realtime.",
-                |  "repository": {
-                |    "type": "git",
-                |    "url": "git+https://github.com/tiducto/spider-sdk-kotlin.git"
-                |  },
-                |  "license": "UNLICENSED",
-                |  "publishConfig": {
-                |    "registry": "https://npm.pkg.github.com"
-                |  },
-                """.trimMargin(),
-            ),
+            pkg.readText()
+                .replace(
+                    "  \"name\": \"spider-sdk-client\",",
+                    """
+                    |  "name": "@tiducto/spider-sdk-client",
+                    |  "description": "Spider transit API SDK for JS/TS — trip planning, stop search and realtime.",
+                    |  "repository": {
+                    |    "type": "git",
+                    |    "url": "git+https://github.com/tiducto/spider-sdk-kotlin.git"
+                    |  },
+                    |  "license": "UNLICENSED",
+                    |  "publishConfig": {
+                    |    "registry": "https://npm.pkg.github.com"
+                    |  },
+                    """.trimMargin(),
+                )
+                // Repoint the entry at the facade shim so `Location.coordinate(...)` is what consumers get.
+                .replace("\"main\": \"spider-sdk-client.mjs\"", "\"main\": \"index.mjs\"")
+                .replace("\"types\": \"spider-sdk-client.d.mts\"", "\"types\": \"index.d.mts\""),
         )
     }
 }

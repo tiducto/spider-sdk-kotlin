@@ -22,7 +22,7 @@ CONTRACT_REPO="${CONTRACT_REPO:-tiducto/spider-contract}"
 CONTRACT_REF="main"
 CODEGEN_REPO="${CODEGEN_REPO:-tiducto/spider-codegen}"
 CODEGEN_REF="${CODEGEN_REF:-master}"
-PACKAGE="cz.davidkurzica.contract.routing"
+PACKAGE="eu.tiducto.spider.contract.routing"
 LOCAL_SPEC=""
 
 while [[ $# -gt 0 ]]; do
@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ROUTING_DIR="$REPO_ROOT/contract/src/commonMain/kotlin/cz/davidkurzica/contract/routing"
+ROUTING_DIR="$REPO_ROOT/contract/src/commonMain/kotlin/eu/tiducto/spider/contract/routing"
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 

@@ -1,21 +1,21 @@
-public final class cz/davidkurzica/client/AdminLevel : java/lang/Enum {
-	public static final field CITY Lcz/davidkurzica/client/AdminLevel;
-	public static final field COUNTRY Lcz/davidkurzica/client/AdminLevel;
-	public static final field DISTRICT Lcz/davidkurzica/client/AdminLevel;
-	public static final field REGION Lcz/davidkurzica/client/AdminLevel;
-	public static final field SUBURB Lcz/davidkurzica/client/AdminLevel;
+public final class eu/tiducto/spider/client/AdminLevel : java/lang/Enum {
+	public static final field CITY Leu/tiducto/spider/client/AdminLevel;
+	public static final field COUNTRY Leu/tiducto/spider/client/AdminLevel;
+	public static final field DISTRICT Leu/tiducto/spider/client/AdminLevel;
+	public static final field REGION Leu/tiducto/spider/client/AdminLevel;
+	public static final field SUBURB Leu/tiducto/spider/client/AdminLevel;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getOsmLevel ()I
-	public static fun valueOf (Ljava/lang/String;)Lcz/davidkurzica/client/AdminLevel;
-	public static fun values ()[Lcz/davidkurzica/client/AdminLevel;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/AdminLevel;
+	public static fun values ()[Leu/tiducto/spider/client/AdminLevel;
 }
 
-public final class cz/davidkurzica/client/AlertActivePeriod {
+public final class eu/tiducto/spider/client/AlertActivePeriod {
 	public fun <init> (Lkotlin/time/Instant;Lkotlin/time/Instant;)V
 	public final fun component1 ()Lkotlin/time/Instant;
 	public final fun component2 ()Lkotlin/time/Instant;
-	public final fun copy (Lkotlin/time/Instant;Lkotlin/time/Instant;)Lcz/davidkurzica/client/AlertActivePeriod;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/AlertActivePeriod;Lkotlin/time/Instant;Lkotlin/time/Instant;ILjava/lang/Object;)Lcz/davidkurzica/client/AlertActivePeriod;
+	public final fun copy (Lkotlin/time/Instant;Lkotlin/time/Instant;)Leu/tiducto/spider/client/AlertActivePeriod;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/AlertActivePeriod;Lkotlin/time/Instant;Lkotlin/time/Instant;ILjava/lang/Object;)Leu/tiducto/spider/client/AlertActivePeriod;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEnd ()Lkotlin/time/Instant;
 	public final fun getStart ()Lkotlin/time/Instant;
@@ -23,14 +23,14 @@ public final class cz/davidkurzica/client/AlertActivePeriod {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/AlertInformedEntity {
+public final class eu/tiducto/spider/client/AlertInformedEntity {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcz/davidkurzica/client/AlertInformedEntity;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/AlertInformedEntity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/AlertInformedEntity;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Leu/tiducto/spider/client/AlertInformedEntity;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/AlertInformedEntity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/AlertInformedEntity;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAgencyId ()Ljava/lang/String;
 	public final fun getRouteId ()Ljava/lang/String;
@@ -40,21 +40,21 @@ public final class cz/davidkurzica/client/AlertInformedEntity {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/BikesAllowed : java/lang/Enum {
-	public static final field Allowed Lcz/davidkurzica/client/BikesAllowed;
-	public static final field Companion Lcz/davidkurzica/client/BikesAllowed$Companion;
-	public static final field NotAllowed Lcz/davidkurzica/client/BikesAllowed;
+public final class eu/tiducto/spider/client/BikesAllowed : java/lang/Enum {
+	public static final field Allowed Leu/tiducto/spider/client/BikesAllowed;
+	public static final field Companion Leu/tiducto/spider/client/BikesAllowed$Companion;
+	public static final field NotAllowed Leu/tiducto/spider/client/BikesAllowed;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lcz/davidkurzica/client/BikesAllowed;
-	public static fun values ()[Lcz/davidkurzica/client/BikesAllowed;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/BikesAllowed;
+	public static fun values ()[Leu/tiducto/spider/client/BikesAllowed;
 }
 
-public final class cz/davidkurzica/client/BikesAllowed$Companion {
+public final class eu/tiducto/spider/client/BikesAllowed$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/Departure {
-	public fun <init> (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/TransitMode;)V
+public final class eu/tiducto/spider/client/Departure {
+	public fun <init> (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;)V
 	public final fun component1 ()Lkotlin/time/Instant;
 	public final fun component2 ()Lkotlin/time/Instant;
 	public final fun component3 ()Z
@@ -63,12 +63,12 @@ public final class cz/davidkurzica/client/Departure {
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Ljava/lang/String;
-	public final fun component9 ()Lcz/davidkurzica/client/TransitMode;
-	public final fun copy (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/TransitMode;)Lcz/davidkurzica/client/Departure;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/Departure;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/TransitMode;ILjava/lang/Object;)Lcz/davidkurzica/client/Departure;
+	public final fun component9 ()Leu/tiducto/spider/client/TransitMode;
+	public final fun copy (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;)Leu/tiducto/spider/client/Departure;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Departure;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;ILjava/lang/Object;)Leu/tiducto/spider/client/Departure;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getHeadsign ()Ljava/lang/String;
-	public final fun getMode ()Lcz/davidkurzica/client/TransitMode;
+	public final fun getMode ()Leu/tiducto/spider/client/TransitMode;
 	public final fun getRealtimeState ()Ljava/lang/String;
 	public final fun getRealtimeTime ()Lkotlin/time/Instant;
 	public final fun getRouteLongName ()Ljava/lang/String;
@@ -80,12 +80,12 @@ public final class cz/davidkurzica/client/Departure {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/FeedFreshness {
+public final class eu/tiducto/spider/client/FeedFreshness {
 	public fun <init> (Lkotlin/time/Instant;Ljava/lang/Integer;)V
 	public final fun component1 ()Lkotlin/time/Instant;
 	public final fun component2 ()Ljava/lang/Integer;
-	public final fun copy (Lkotlin/time/Instant;Ljava/lang/Integer;)Lcz/davidkurzica/client/FeedFreshness;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/FeedFreshness;Lkotlin/time/Instant;Ljava/lang/Integer;ILjava/lang/Object;)Lcz/davidkurzica/client/FeedFreshness;
+	public final fun copy (Lkotlin/time/Instant;Ljava/lang/Integer;)Leu/tiducto/spider/client/FeedFreshness;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/FeedFreshness;Lkotlin/time/Instant;Ljava/lang/Integer;ILjava/lang/Object;)Leu/tiducto/spider/client/FeedFreshness;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getFeedTimestamp ()Lkotlin/time/Instant;
 	public final fun getStaleSeconds ()Ljava/lang/Integer;
@@ -93,7 +93,7 @@ public final class cz/davidkurzica/client/FeedFreshness {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/Filter {
+public final class eu/tiducto/spider/client/Filter {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getKey ()Ljava/lang/String;
@@ -102,7 +102,7 @@ public final class cz/davidkurzica/client/Filter {
 	public fun hashCode ()I
 }
 
-public class cz/davidkurzica/client/ImmutableListSerializer : kotlinx/serialization/KSerializer {
+public class eu/tiducto/spider/client/ImmutableListSerializer : kotlinx/serialization/KSerializer {
 	public fun <init> (Lkotlinx/serialization/KSerializer;)V
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lkotlinx/collections/immutable/ImmutableList;
@@ -111,8 +111,8 @@ public class cz/davidkurzica/client/ImmutableListSerializer : kotlinx/serializat
 	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Lkotlinx/collections/immutable/ImmutableList;)V
 }
 
-public final class cz/davidkurzica/client/Itinerary {
-	public static final field Companion Lcz/davidkurzica/client/Itinerary$Companion;
+public final class eu/tiducto/spider/client/Itinerary {
+	public static final field Companion Leu/tiducto/spider/client/Itinerary$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Double;Lkotlinx/collections/immutable/ImmutableList;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Double;Lkotlinx/collections/immutable/ImmutableList;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -122,8 +122,8 @@ public final class cz/davidkurzica/client/Itinerary {
 	public final fun component5 ()I
 	public final fun component6 ()Ljava/lang/Double;
 	public final fun component7 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Double;Lkotlinx/collections/immutable/ImmutableList;)Lcz/davidkurzica/client/Itinerary;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/Itinerary;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Double;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Lcz/davidkurzica/client/Itinerary;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Double;Lkotlinx/collections/immutable/ImmutableList;)Leu/tiducto/spider/client/Itinerary;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Itinerary;Ljava/lang/String;Ljava/lang/String;JLjava/lang/Long;ILjava/lang/Double;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Leu/tiducto/spider/client/Itinerary;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessibilityScore ()Ljava/lang/Double;
 	public final fun getDurationSeconds ()J
@@ -136,28 +136,28 @@ public final class cz/davidkurzica/client/Itinerary {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final synthetic class cz/davidkurzica/client/Itinerary$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lcz/davidkurzica/client/Itinerary$$serializer;
+public final synthetic class eu/tiducto/spider/client/Itinerary$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Leu/tiducto/spider/client/Itinerary$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcz/davidkurzica/client/Itinerary;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Leu/tiducto/spider/client/Itinerary;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcz/davidkurzica/client/Itinerary;)V
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Leu/tiducto/spider/client/Itinerary;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/Itinerary$Companion {
+public final class eu/tiducto/spider/client/Itinerary$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/LatLon {
-	public static final field Companion Lcz/davidkurzica/client/LatLon$Companion;
+public final class eu/tiducto/spider/client/LatLon {
+	public static final field Companion Leu/tiducto/spider/client/LatLon$Companion;
 	public fun <init> (DD)V
 	public final fun component1 ()D
 	public final fun component2 ()D
-	public final fun copy (DD)Lcz/davidkurzica/client/LatLon;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/LatLon;DDILjava/lang/Object;)Lcz/davidkurzica/client/LatLon;
+	public final fun copy (DD)Leu/tiducto/spider/client/LatLon;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/LatLon;DDILjava/lang/Object;)Leu/tiducto/spider/client/LatLon;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getLat ()D
 	public final fun getLon ()D
@@ -165,32 +165,32 @@ public final class cz/davidkurzica/client/LatLon {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final synthetic class cz/davidkurzica/client/LatLon$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lcz/davidkurzica/client/LatLon$$serializer;
+public final synthetic class eu/tiducto/spider/client/LatLon$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Leu/tiducto/spider/client/LatLon$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcz/davidkurzica/client/LatLon;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Leu/tiducto/spider/client/LatLon;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcz/davidkurzica/client/LatLon;)V
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Leu/tiducto/spider/client/LatLon;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/LatLon$Companion {
+public final class eu/tiducto/spider/client/LatLon$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/Leg {
-	public static final field Companion Lcz/davidkurzica/client/Leg$Companion;
-	public fun <init> (Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Ljava/lang/Double;Lcz/davidkurzica/client/WheelchairBoarding;Lcz/davidkurzica/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;)V
-	public synthetic fun <init> (Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Ljava/lang/Double;Lcz/davidkurzica/client/WheelchairBoarding;Lcz/davidkurzica/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lcz/davidkurzica/client/TransitMode;
+public final class eu/tiducto/spider/client/Leg {
+	public static final field Companion Leu/tiducto/spider/client/Leg$Companion;
+	public fun <init> (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Leu/tiducto/spider/client/TransitMode;
 	public final fun component10 ()Ljava/lang/Double;
 	public final fun component11 ()Ljava/lang/String;
-	public final fun component12 ()Lcz/davidkurzica/client/BikesAllowed;
+	public final fun component12 ()Leu/tiducto/spider/client/BikesAllowed;
 	public final fun component13 ()Ljava/lang/Double;
-	public final fun component14 ()Lcz/davidkurzica/client/WheelchairBoarding;
-	public final fun component15 ()Lcz/davidkurzica/client/WheelchairBoarding;
+	public final fun component14 ()Leu/tiducto/spider/client/WheelchairBoarding;
+	public final fun component15 ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public final fun component16 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
@@ -200,49 +200,49 @@ public final class cz/davidkurzica/client/Leg {
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()Ljava/lang/Double;
-	public final fun copy (Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Ljava/lang/Double;Lcz/davidkurzica/client/WheelchairBoarding;Lcz/davidkurzica/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;)Lcz/davidkurzica/client/Leg;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/Leg;Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Ljava/lang/Double;Lcz/davidkurzica/client/WheelchairBoarding;Lcz/davidkurzica/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Lcz/davidkurzica/client/Leg;
+	public final fun copy (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;)Leu/tiducto/spider/client/Leg;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Leg;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Leu/tiducto/spider/client/Leg;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessibilityScore ()Ljava/lang/Double;
-	public final fun getBikesAllowed ()Lcz/davidkurzica/client/BikesAllowed;
+	public final fun getBikesAllowed ()Leu/tiducto/spider/client/BikesAllowed;
 	public final fun getDistanceMeters ()Ljava/lang/Double;
 	public final fun getDurationSeconds ()Ljava/lang/Double;
 	public final fun getEndScheduled ()Ljava/lang/String;
 	public final fun getFromName ()Ljava/lang/String;
-	public final fun getFromWheelchair ()Lcz/davidkurzica/client/WheelchairBoarding;
+	public final fun getFromWheelchair ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public final fun getGeometry ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getHeadsign ()Ljava/lang/String;
-	public final fun getMode ()Lcz/davidkurzica/client/TransitMode;
+	public final fun getMode ()Leu/tiducto/spider/client/TransitMode;
 	public final fun getRouteLongName ()Ljava/lang/String;
 	public final fun getRouteShortName ()Ljava/lang/String;
 	public final fun getStartScheduled ()Ljava/lang/String;
 	public final fun getToName ()Ljava/lang/String;
-	public final fun getToWheelchair ()Lcz/davidkurzica/client/WheelchairBoarding;
+	public final fun getToWheelchair ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public final fun getTripGtfsId ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final synthetic class cz/davidkurzica/client/Leg$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lcz/davidkurzica/client/Leg$$serializer;
+public final synthetic class eu/tiducto/spider/client/Leg$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Leu/tiducto/spider/client/Leg$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lcz/davidkurzica/client/Leg;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Leu/tiducto/spider/client/Leg;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lcz/davidkurzica/client/Leg;)V
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Leu/tiducto/spider/client/Leg;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/Leg$Companion {
+public final class eu/tiducto/spider/client/Leg$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/LiveVehicle {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/OccupancyStatus;Lkotlin/time/Instant;)V
+public final class eu/tiducto/spider/client/LiveVehicle {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/OccupancyStatus;Lkotlin/time/Instant;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Ljava/lang/String;
-	public final fun component11 ()Lcz/davidkurzica/client/OccupancyStatus;
+	public final fun component11 ()Leu/tiducto/spider/client/OccupancyStatus;
 	public final fun component12 ()Lkotlin/time/Instant;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
@@ -252,15 +252,15 @@ public final class cz/davidkurzica/client/LiveVehicle {
 	public final fun component7 ()Ljava/lang/Double;
 	public final fun component8 ()Ljava/lang/Double;
 	public final fun component9 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/OccupancyStatus;Lkotlin/time/Instant;)Lcz/davidkurzica/client/LiveVehicle;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/LiveVehicle;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/OccupancyStatus;Lkotlin/time/Instant;ILjava/lang/Object;)Lcz/davidkurzica/client/LiveVehicle;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/OccupancyStatus;Lkotlin/time/Instant;)Leu/tiducto/spider/client/LiveVehicle;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/LiveVehicle;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/Double;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/OccupancyStatus;Lkotlin/time/Instant;ILjava/lang/Object;)Leu/tiducto/spider/client/LiveVehicle;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBearing ()Ljava/lang/Double;
 	public final fun getCurrentStatus ()Ljava/lang/String;
 	public final fun getLabel ()Ljava/lang/String;
 	public final fun getLatitude ()Ljava/lang/Double;
 	public final fun getLongitude ()Ljava/lang/Double;
-	public final fun getOccupancy ()Lcz/davidkurzica/client/OccupancyStatus;
+	public final fun getOccupancy ()Leu/tiducto/spider/client/OccupancyStatus;
 	public final fun getRouteId ()Ljava/lang/String;
 	public final fun getSpeed ()Ljava/lang/Double;
 	public final fun getStopId ()Ljava/lang/String;
@@ -271,28 +271,28 @@ public final class cz/davidkurzica/client/LiveVehicle {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/LiveVehicleUpdate {
-	public fun <init> (Lcz/davidkurzica/client/LiveVehicle;Lcz/davidkurzica/client/FeedFreshness;)V
-	public final fun component1 ()Lcz/davidkurzica/client/LiveVehicle;
-	public final fun component2 ()Lcz/davidkurzica/client/FeedFreshness;
-	public final fun copy (Lcz/davidkurzica/client/LiveVehicle;Lcz/davidkurzica/client/FeedFreshness;)Lcz/davidkurzica/client/LiveVehicleUpdate;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/LiveVehicleUpdate;Lcz/davidkurzica/client/LiveVehicle;Lcz/davidkurzica/client/FeedFreshness;ILjava/lang/Object;)Lcz/davidkurzica/client/LiveVehicleUpdate;
+public final class eu/tiducto/spider/client/LiveVehicleUpdate {
+	public fun <init> (Leu/tiducto/spider/client/LiveVehicle;Leu/tiducto/spider/client/FeedFreshness;)V
+	public final fun component1 ()Leu/tiducto/spider/client/LiveVehicle;
+	public final fun component2 ()Leu/tiducto/spider/client/FeedFreshness;
+	public final fun copy (Leu/tiducto/spider/client/LiveVehicle;Leu/tiducto/spider/client/FeedFreshness;)Leu/tiducto/spider/client/LiveVehicleUpdate;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/LiveVehicleUpdate;Leu/tiducto/spider/client/LiveVehicle;Leu/tiducto/spider/client/FeedFreshness;ILjava/lang/Object;)Leu/tiducto/spider/client/LiveVehicleUpdate;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFreshness ()Lcz/davidkurzica/client/FeedFreshness;
-	public final fun getVehicle ()Lcz/davidkurzica/client/LiveVehicle;
+	public final fun getFreshness ()Leu/tiducto/spider/client/FeedFreshness;
+	public final fun getVehicle ()Leu/tiducto/spider/client/LiveVehicle;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class cz/davidkurzica/client/Location {
+public abstract interface class eu/tiducto/spider/client/Location {
 }
 
-public final class cz/davidkurzica/client/Location$Coordinate : cz/davidkurzica/client/Location {
+public final class eu/tiducto/spider/client/Location$Coordinate : eu/tiducto/spider/client/Location {
 	public fun <init> (DD)V
 	public final fun component1 ()D
 	public final fun component2 ()D
-	public final fun copy (DD)Lcz/davidkurzica/client/Location$Coordinate;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/Location$Coordinate;DDILjava/lang/Object;)Lcz/davidkurzica/client/Location$Coordinate;
+	public final fun copy (DD)Leu/tiducto/spider/client/Location$Coordinate;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Location$Coordinate;DDILjava/lang/Object;)Leu/tiducto/spider/client/Location$Coordinate;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getLatitude ()D
 	public final fun getLongitude ()D
@@ -300,90 +300,90 @@ public final class cz/davidkurzica/client/Location$Coordinate : cz/davidkurzica/
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/Location$Stop : cz/davidkurzica/client/Location {
+public final class eu/tiducto/spider/client/Location$Stop : eu/tiducto/spider/client/Location {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcz/davidkurzica/client/Location$Stop;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/Location$Stop;Ljava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/Location$Stop;
+	public final fun copy (Ljava/lang/String;)Leu/tiducto/spider/client/Location$Stop;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Location$Stop;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/Location$Stop;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getId ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/OccupancyStatus : java/lang/Enum {
-	public static final field CRUSHED_STANDING_ROOM_ONLY Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field Companion Lcz/davidkurzica/client/OccupancyStatus$Companion;
-	public static final field EMPTY Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field FEW_SEATS_AVAILABLE Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field FULL Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field MANY_SEATS_AVAILABLE Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field NOT_ACCEPTING_PASSENGERS Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field NOT_BOARDABLE Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field STANDING_ROOM_ONLY Lcz/davidkurzica/client/OccupancyStatus;
-	public static final field UNKNOWN Lcz/davidkurzica/client/OccupancyStatus;
+public final class eu/tiducto/spider/client/OccupancyStatus : java/lang/Enum {
+	public static final field CRUSHED_STANDING_ROOM_ONLY Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field Companion Leu/tiducto/spider/client/OccupancyStatus$Companion;
+	public static final field EMPTY Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field FEW_SEATS_AVAILABLE Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field FULL Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field MANY_SEATS_AVAILABLE Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field NOT_ACCEPTING_PASSENGERS Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field NOT_BOARDABLE Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field STANDING_ROOM_ONLY Leu/tiducto/spider/client/OccupancyStatus;
+	public static final field UNKNOWN Leu/tiducto/spider/client/OccupancyStatus;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lcz/davidkurzica/client/OccupancyStatus;
-	public static fun values ()[Lcz/davidkurzica/client/OccupancyStatus;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/OccupancyStatus;
+	public static fun values ()[Leu/tiducto/spider/client/OccupancyStatus;
 }
 
-public final class cz/davidkurzica/client/OccupancyStatus$Companion {
-	public final fun fromWire (Ljava/lang/String;)Lcz/davidkurzica/client/OccupancyStatus;
+public final class eu/tiducto/spider/client/OccupancyStatus$Companion {
+	public final fun fromWire (Ljava/lang/String;)Leu/tiducto/spider/client/OccupancyStatus;
 }
 
-public final class cz/davidkurzica/client/Realtime : cz/davidkurzica/client/SpiderFeature {
-	public static final field INSTANCE Lcz/davidkurzica/client/Realtime;
-	public fun build (Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/RealtimeConfig;)Lcz/davidkurzica/client/SpiderRealtime;
+public final class eu/tiducto/spider/client/Realtime : eu/tiducto/spider/client/SpiderFeature {
+	public static final field INSTANCE Leu/tiducto/spider/client/Realtime;
+	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RealtimeConfig;)Leu/tiducto/spider/client/SpiderRealtime;
 	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
-	public fun newConfig ()Lcz/davidkurzica/client/RealtimeConfig;
+	public fun newConfig ()Leu/tiducto/spider/client/RealtimeConfig;
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class cz/davidkurzica/client/RealtimeConfig {
+public final class eu/tiducto/spider/client/RealtimeConfig {
 	public fun <init> ()V
 }
 
-public final class cz/davidkurzica/client/Route {
-	public fun <init> (Lcz/davidkurzica/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)V
-	public final fun component1 ()Lcz/davidkurzica/client/RouteRequest;
+public final class eu/tiducto/spider/client/Route {
+	public fun <init> (Leu/tiducto/spider/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)V
+	public final fun component1 ()Leu/tiducto/spider/client/RouteRequest;
 	public final fun component2 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun component3 ()Lcz/davidkurzica/client/RoutePageInfo;
+	public final fun component3 ()Leu/tiducto/spider/client/RoutePageInfo;
 	public final fun component4 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component5 ()Ljava/lang/String;
-	public final fun copy (Lcz/davidkurzica/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)Lcz/davidkurzica/client/Route;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/Route;Lcz/davidkurzica/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/Route;
+	public final fun copy (Leu/tiducto/spider/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)Leu/tiducto/spider/client/Route;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Route;Leu/tiducto/spider/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/Route;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEdges ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun getPageInfo ()Lcz/davidkurzica/client/RoutePageInfo;
-	public final fun getRequest ()Lcz/davidkurzica/client/RouteRequest;
+	public final fun getPageInfo ()Leu/tiducto/spider/client/RoutePageInfo;
+	public final fun getRequest ()Leu/tiducto/spider/client/RouteRequest;
 	public final fun getRoutingErrors ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getSearchDateTime ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/RouteEdge {
-	public fun <init> (Ljava/lang/String;Lcz/davidkurzica/client/Itinerary;)V
+public final class eu/tiducto/spider/client/RouteEdge {
+	public fun <init> (Ljava/lang/String;Leu/tiducto/spider/client/Itinerary;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component2 ()Lcz/davidkurzica/client/Itinerary;
-	public final fun copy (Ljava/lang/String;Lcz/davidkurzica/client/Itinerary;)Lcz/davidkurzica/client/RouteEdge;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteEdge;Ljava/lang/String;Lcz/davidkurzica/client/Itinerary;ILjava/lang/Object;)Lcz/davidkurzica/client/RouteEdge;
+	public final fun component2 ()Leu/tiducto/spider/client/Itinerary;
+	public final fun copy (Ljava/lang/String;Leu/tiducto/spider/client/Itinerary;)Leu/tiducto/spider/client/RouteEdge;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/RouteEdge;Ljava/lang/String;Leu/tiducto/spider/client/Itinerary;ILjava/lang/Object;)Leu/tiducto/spider/client/RouteEdge;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCursor ()Ljava/lang/String;
-	public final fun getItinerary ()Lcz/davidkurzica/client/Itinerary;
+	public final fun getItinerary ()Leu/tiducto/spider/client/Itinerary;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/RoutePageInfo {
+public final class eu/tiducto/spider/client/RoutePageInfo {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Z
 	public final fun component4 ()Z
 	public final fun component5 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;)Lcz/davidkurzica/client/RoutePageInfo;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RoutePageInfo;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/RoutePageInfo;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;)Leu/tiducto/spider/client/RoutePageInfo;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/RoutePageInfo;Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/RoutePageInfo;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEndCursor ()Ljava/lang/String;
 	public final fun getHasNextPage ()Z
@@ -394,69 +394,69 @@ public final class cz/davidkurzica/client/RoutePageInfo {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/RouteRequest {
-	public fun <init> (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;)V
-	public synthetic fun <init> (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lcz/davidkurzica/client/Location;
-	public final fun component2 ()Lcz/davidkurzica/client/Location;
-	public final fun component3 ()Lcz/davidkurzica/client/RouteTime;
+public final class eu/tiducto/spider/client/RouteRequest {
+	public fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Leu/tiducto/spider/client/Location;
+	public final fun component2 ()Leu/tiducto/spider/client/Location;
+	public final fun component3 ()Leu/tiducto/spider/client/RouteTime;
 	public final fun component4 ()Ljava/util/List;
-	public final fun copy (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;)Lcz/davidkurzica/client/RouteRequest;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteRequest;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;ILjava/lang/Object;)Lcz/davidkurzica/client/RouteRequest;
+	public final fun copy (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;)Leu/tiducto/spider/client/RouteRequest;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/RouteRequest;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;ILjava/lang/Object;)Leu/tiducto/spider/client/RouteRequest;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFrom ()Lcz/davidkurzica/client/Location;
-	public final fun getTime ()Lcz/davidkurzica/client/RouteTime;
-	public final fun getTo ()Lcz/davidkurzica/client/Location;
+	public final fun getDestination ()Leu/tiducto/spider/client/Location;
+	public final fun getOrigin ()Leu/tiducto/spider/client/Location;
+	public final fun getTime ()Leu/tiducto/spider/client/RouteTime;
 	public final fun getVia ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class cz/davidkurzica/client/RouteTime {
+public abstract interface class eu/tiducto/spider/client/RouteTime {
 	public abstract fun getTime ()Lkotlin/time/Instant;
 }
 
-public final class cz/davidkurzica/client/RouteTime$ArriveBy : cz/davidkurzica/client/RouteTime {
+public final class eu/tiducto/spider/client/RouteTime$ArriveBy : eu/tiducto/spider/client/RouteTime {
 	public fun <init> (Lkotlin/time/Instant;)V
 	public final fun component1 ()Lkotlin/time/Instant;
-	public final fun copy (Lkotlin/time/Instant;)Lcz/davidkurzica/client/RouteTime$ArriveBy;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteTime$ArriveBy;Lkotlin/time/Instant;ILjava/lang/Object;)Lcz/davidkurzica/client/RouteTime$ArriveBy;
+	public final fun copy (Lkotlin/time/Instant;)Leu/tiducto/spider/client/RouteTime$ArriveBy;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/RouteTime$ArriveBy;Lkotlin/time/Instant;ILjava/lang/Object;)Leu/tiducto/spider/client/RouteTime$ArriveBy;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getTime ()Lkotlin/time/Instant;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/RouteTime$DepartAt : cz/davidkurzica/client/RouteTime {
+public final class eu/tiducto/spider/client/RouteTime$DepartAt : eu/tiducto/spider/client/RouteTime {
 	public fun <init> (Lkotlin/time/Instant;)V
 	public final fun component1 ()Lkotlin/time/Instant;
-	public final fun copy (Lkotlin/time/Instant;)Lcz/davidkurzica/client/RouteTime$DepartAt;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteTime$DepartAt;Lkotlin/time/Instant;ILjava/lang/Object;)Lcz/davidkurzica/client/RouteTime$DepartAt;
+	public final fun copy (Lkotlin/time/Instant;)Leu/tiducto/spider/client/RouteTime$DepartAt;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/RouteTime$DepartAt;Lkotlin/time/Instant;ILjava/lang/Object;)Leu/tiducto/spider/client/RouteTime$DepartAt;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getTime ()Lkotlin/time/Instant;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/Routing : cz/davidkurzica/client/SpiderFeature {
-	public static final field INSTANCE Lcz/davidkurzica/client/Routing;
-	public fun build (Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/RoutingConfig;)Lcz/davidkurzica/client/SpiderRouting;
+public final class eu/tiducto/spider/client/Routing : eu/tiducto/spider/client/SpiderFeature {
+	public static final field INSTANCE Leu/tiducto/spider/client/Routing;
+	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RoutingConfig;)Leu/tiducto/spider/client/SpiderRouting;
 	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
-	public fun newConfig ()Lcz/davidkurzica/client/RoutingConfig;
+	public fun newConfig ()Leu/tiducto/spider/client/RoutingConfig;
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class cz/davidkurzica/client/RoutingConfig {
+public final class eu/tiducto/spider/client/RoutingConfig {
 	public fun <init> ()V
 }
 
-public final class cz/davidkurzica/client/RoutingError {
+public final class eu/tiducto/spider/client/RoutingError {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcz/davidkurzica/client/RoutingError;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RoutingError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/RoutingError;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Leu/tiducto/spider/client/RoutingError;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/RoutingError;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/RoutingError;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getCode ()Ljava/lang/String;
 	public final fun getDescription ()Ljava/lang/String;
@@ -465,7 +465,7 @@ public final class cz/davidkurzica/client/RoutingError {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/ServiceAlert {
+public final class eu/tiducto/spider/client/ServiceAlert {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
@@ -476,8 +476,8 @@ public final class cz/davidkurzica/client/ServiceAlert {
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component9 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;)Lcz/davidkurzica/client/ServiceAlert;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/ServiceAlert;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Lcz/davidkurzica/client/ServiceAlert;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;)Leu/tiducto/spider/client/ServiceAlert;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/ServiceAlert;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Leu/tiducto/spider/client/ServiceAlert;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getActivePeriods ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getCause ()Ljava/lang/String;
@@ -492,184 +492,184 @@ public final class cz/davidkurzica/client/ServiceAlert {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/ServiceAlerts {
-	public fun <init> (Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;)V
+public final class eu/tiducto/spider/client/ServiceAlerts {
+	public fun <init> (Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;)V
 	public final fun component1 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun component2 ()Lcz/davidkurzica/client/FeedFreshness;
-	public final fun copy (Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;)Lcz/davidkurzica/client/ServiceAlerts;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/ServiceAlerts;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;ILjava/lang/Object;)Lcz/davidkurzica/client/ServiceAlerts;
+	public final fun component2 ()Leu/tiducto/spider/client/FeedFreshness;
+	public final fun copy (Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;)Leu/tiducto/spider/client/ServiceAlerts;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/ServiceAlerts;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;ILjava/lang/Object;)Leu/tiducto/spider/client/ServiceAlerts;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAlerts ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun getFreshness ()Lcz/davidkurzica/client/FeedFreshness;
+	public final fun getFreshness ()Leu/tiducto/spider/client/FeedFreshness;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderClient {
+public final class eu/tiducto/spider/client/SpiderClient {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getContractVersion ()Ljava/lang/String;
-	public final fun getRealtime ()Lcz/davidkurzica/client/SpiderRealtime;
-	public final fun getRouting ()Lcz/davidkurzica/client/SpiderRouting;
-	public final fun getStops ()Lcz/davidkurzica/client/SpiderStops;
+	public final fun getRealtime ()Leu/tiducto/spider/client/SpiderRealtime;
+	public final fun getRouting ()Leu/tiducto/spider/client/SpiderRouting;
+	public final fun getStops ()Leu/tiducto/spider/client/SpiderStops;
 }
 
-public final class cz/davidkurzica/client/SpiderClientBuilder {
-	public final fun install (Lcz/davidkurzica/client/SpiderFeature;Lkotlin/jvm/functions/Function1;)V
-	public static synthetic fun install$default (Lcz/davidkurzica/client/SpiderClientBuilder;Lcz/davidkurzica/client/SpiderFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+public final class eu/tiducto/spider/client/SpiderClientBuilder {
+	public final fun install (Leu/tiducto/spider/client/SpiderFeature;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun install$default (Leu/tiducto/spider/client/SpiderClientBuilder;Leu/tiducto/spider/client/SpiderFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
-public final class cz/davidkurzica/client/SpiderContractMismatchError : java/lang/Error {
+public final class eu/tiducto/spider/client/SpiderContractMismatchError : java/lang/Error {
 	public final fun getActual ()Ljava/lang/String;
 	public final fun getExpected ()Ljava/lang/String;
 }
 
-public abstract interface class cz/davidkurzica/client/SpiderError {
+public abstract interface class eu/tiducto/spider/client/SpiderError {
 	public abstract fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 }
 
-public final class cz/davidkurzica/client/SpiderError$Decoding : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$Decoding;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$Decoding;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$Decoding;
+	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Decoding;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Decoding;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Decoding;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderError$DefaultImpls {
-	public static fun getCode (Lcz/davidkurzica/client/SpiderError;)Lcz/davidkurzica/client/SpiderErrorCode;
+public final class eu/tiducto/spider/client/SpiderError$DefaultImpls {
+	public static fun getCode (Leu/tiducto/spider/client/SpiderError;)Leu/tiducto/spider/client/SpiderErrorCode;
 }
 
-public final class cz/davidkurzica/client/SpiderError$Network : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$Network : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$Network;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$Network;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$Network;
+	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Network;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Network;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Network;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderError$NotFound : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$NotFound : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$NotFound;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$NotFound;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$NotFound;
+	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$NotFound;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$NotFound;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$NotFound;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderError$RateLimited : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$RateLimited : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$RateLimited;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$RateLimited;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$RateLimited;
+	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$RateLimited;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$RateLimited;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$RateLimited;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderError$Server : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$Server : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Integer;
 	public final fun component2 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$Server;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$Server;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$Server;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Server;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Server;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Server;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public final fun getHttpStatus ()Ljava/lang/Integer;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderError$Timeout : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$Timeout : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$Timeout;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$Timeout;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$Timeout;
+	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Timeout;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Timeout;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Timeout;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderError$Unauthorized : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$Unauthorized : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$Unauthorized;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$Unauthorized;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$Unauthorized;
+	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Unauthorized;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderError$Unknown : cz/davidkurzica/client/SpiderError {
+public final class eu/tiducto/spider/client/SpiderError$Unknown : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/Integer;
 	public final fun component2 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Lcz/davidkurzica/client/SpiderError$Unknown;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderError$Unknown;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderError$Unknown;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Unknown;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Unknown;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Unknown;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
-	public fun getCode ()Lcz/davidkurzica/client/SpiderErrorCode;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public final fun getHttpStatus ()Ljava/lang/Integer;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderErrorCode : java/lang/Enum {
-	public static final field DECODING Lcz/davidkurzica/client/SpiderErrorCode;
-	public static final field NETWORK Lcz/davidkurzica/client/SpiderErrorCode;
-	public static final field NOT_FOUND Lcz/davidkurzica/client/SpiderErrorCode;
-	public static final field RATE_LIMITED Lcz/davidkurzica/client/SpiderErrorCode;
-	public static final field SERVER Lcz/davidkurzica/client/SpiderErrorCode;
-	public static final field TIMEOUT Lcz/davidkurzica/client/SpiderErrorCode;
-	public static final field UNAUTHORIZED Lcz/davidkurzica/client/SpiderErrorCode;
-	public static final field UNKNOWN Lcz/davidkurzica/client/SpiderErrorCode;
+public final class eu/tiducto/spider/client/SpiderErrorCode : java/lang/Enum {
+	public static final field DECODING Leu/tiducto/spider/client/SpiderErrorCode;
+	public static final field NETWORK Leu/tiducto/spider/client/SpiderErrorCode;
+	public static final field NOT_FOUND Leu/tiducto/spider/client/SpiderErrorCode;
+	public static final field RATE_LIMITED Leu/tiducto/spider/client/SpiderErrorCode;
+	public static final field SERVER Leu/tiducto/spider/client/SpiderErrorCode;
+	public static final field TIMEOUT Leu/tiducto/spider/client/SpiderErrorCode;
+	public static final field UNAUTHORIZED Leu/tiducto/spider/client/SpiderErrorCode;
+	public static final field UNKNOWN Leu/tiducto/spider/client/SpiderErrorCode;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public final fun getWireName ()Ljava/lang/String;
-	public static fun valueOf (Ljava/lang/String;)Lcz/davidkurzica/client/SpiderErrorCode;
-	public static fun values ()[Lcz/davidkurzica/client/SpiderErrorCode;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/SpiderErrorCode;
+	public static fun values ()[Leu/tiducto/spider/client/SpiderErrorCode;
 }
 
-public abstract interface class cz/davidkurzica/client/SpiderFeature {
+public abstract interface class eu/tiducto/spider/client/SpiderFeature {
 	public abstract fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
 	public abstract fun newConfig ()Ljava/lang/Object;
 }
 
-public final class cz/davidkurzica/client/SpiderRealtime {
+public final class eu/tiducto/spider/client/SpiderRealtime {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun alerts (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun delays (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -677,96 +677,96 @@ public final class cz/davidkurzica/client/SpiderRealtime {
 	public final fun vehicles (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract class cz/davidkurzica/client/SpiderResult {
+public abstract class eu/tiducto/spider/client/SpiderResult {
 }
 
-public final class cz/davidkurzica/client/SpiderResult$Error : cz/davidkurzica/client/SpiderResult {
-	public fun <init> (Lcz/davidkurzica/client/SpiderError;)V
-	public final fun component1 ()Lcz/davidkurzica/client/SpiderError;
-	public final fun copy (Lcz/davidkurzica/client/SpiderError;)Lcz/davidkurzica/client/SpiderResult$Error;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderResult$Error;Lcz/davidkurzica/client/SpiderError;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderResult$Error;
+public final class eu/tiducto/spider/client/SpiderResult$Error : eu/tiducto/spider/client/SpiderResult {
+	public fun <init> (Leu/tiducto/spider/client/SpiderError;)V
+	public final fun component1 ()Leu/tiducto/spider/client/SpiderError;
+	public final fun copy (Leu/tiducto/spider/client/SpiderError;)Leu/tiducto/spider/client/SpiderResult$Error;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderResult$Error;Leu/tiducto/spider/client/SpiderError;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderResult$Error;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getError ()Lcz/davidkurzica/client/SpiderError;
+	public final fun getError ()Leu/tiducto/spider/client/SpiderError;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderResult$Success : cz/davidkurzica/client/SpiderResult {
+public final class eu/tiducto/spider/client/SpiderResult$Success : eu/tiducto/spider/client/SpiderResult {
 	public fun <init> (Ljava/lang/Object;)V
 	public final fun component1 ()Ljava/lang/Object;
-	public final fun copy (Ljava/lang/Object;)Lcz/davidkurzica/client/SpiderResult$Success;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/SpiderResult$Success;Ljava/lang/Object;ILjava/lang/Object;)Lcz/davidkurzica/client/SpiderResult$Success;
+	public final fun copy (Ljava/lang/Object;)Leu/tiducto/spider/client/SpiderResult$Success;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderResult$Success;Ljava/lang/Object;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderResult$Success;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getData ()Ljava/lang/Object;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/SpiderRouting {
+public final class eu/tiducto/spider/client/SpiderRouting {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun departures-zkXUZaI (Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun departures-zkXUZaI$default (Lcz/davidkurzica/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun nextPage (Lcz/davidkurzica/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun nextPage$default (Lcz/davidkurzica/client/SpiderRouting;Lcz/davidkurzica/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun previousPage (Lcz/davidkurzica/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun previousPage$default (Lcz/davidkurzica/client/SpiderRouting;Lcz/davidkurzica/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun route (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun route$default (Lcz/davidkurzica/client/SpiderRouting;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun departures-zkXUZaI$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun nextPage (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun nextPage$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun plan (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun plan$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun previousPage (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun previousPage$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun trip (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun trip$default (Lcz/davidkurzica/client/SpiderRouting;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public static synthetic fun trip$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
-public final class cz/davidkurzica/client/SpiderStops {
+public final class eu/tiducto/spider/client/SpiderStops {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
 	public final fun search (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public final class cz/davidkurzica/client/Stop {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Lcz/davidkurzica/client/WheelchairBoarding;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Lcz/davidkurzica/client/WheelchairBoarding;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class eu/tiducto/spider/client/Stop {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/Double;
 	public final fun component4 ()Ljava/lang/Double;
 	public final fun component5 ()Ljava/util/Map;
-	public final fun component6 ()Lcz/davidkurzica/client/WheelchairBoarding;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Lcz/davidkurzica/client/WheelchairBoarding;)Lcz/davidkurzica/client/Stop;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/Stop;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Lcz/davidkurzica/client/WheelchairBoarding;ILjava/lang/Object;)Lcz/davidkurzica/client/Stop;
+	public final fun component6 ()Leu/tiducto/spider/client/WheelchairBoarding;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;)Leu/tiducto/spider/client/Stop;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Stop;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Ljava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;ILjava/lang/Object;)Leu/tiducto/spider/client/Stop;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAdmin ()Ljava/util/Map;
 	public final fun getGtfsId ()Ljava/lang/String;
 	public final fun getLat ()Ljava/lang/Double;
 	public final fun getLon ()Ljava/lang/Double;
 	public final fun getName ()Ljava/lang/String;
-	public final fun getWheelchairBoarding ()Lcz/davidkurzica/client/WheelchairBoarding;
+	public final fun getWheelchairBoarding ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/StopFilters {
+public final class eu/tiducto/spider/client/StopFilters {
 	public fun <init> ()V
-	public final fun eq (Lcz/davidkurzica/client/AdminLevel;Ljava/lang/Object;)V
+	public final fun eq (Leu/tiducto/spider/client/AdminLevel;Ljava/lang/Object;)V
 	public final fun eq (Ljava/lang/String;Ljava/lang/Object;)V
 	public final fun getName ()Ljava/lang/String;
 	public final fun toSet ()Ljava/util/Set;
 }
 
-public final class cz/davidkurzica/client/StopRequest {
+public final class eu/tiducto/spider/client/StopRequest {
 	public fun <init> ()V
 	public final fun filter (Lkotlin/jvm/functions/Function1;)V
 	public final fun getNameQuery ()Ljava/lang/String;
 	public final fun getNonNameFilters ()Ljava/util/Set;
 }
 
-public final class cz/davidkurzica/client/StopTimeUpdate {
+public final class eu/tiducto/spider/client/StopTimeUpdate {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/Integer;
 	public final fun component3 ()Ljava/lang/Integer;
 	public final fun component4 ()Ljava/lang/Integer;
 	public final fun component5 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)Lcz/davidkurzica/client/StopTimeUpdate;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/StopTimeUpdate;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/StopTimeUpdate;
+	public final fun copy (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;)Leu/tiducto/spider/client/StopTimeUpdate;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/StopTimeUpdate;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/StopTimeUpdate;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getArrivalDelay ()Ljava/lang/Integer;
 	public final fun getDepartureDelay ()Ljava/lang/Integer;
@@ -777,51 +777,51 @@ public final class cz/davidkurzica/client/StopTimeUpdate {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/Stops : cz/davidkurzica/client/SpiderFeature {
-	public static final field INSTANCE Lcz/davidkurzica/client/Stops;
-	public fun build (Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/StopsConfig;)Lcz/davidkurzica/client/SpiderStops;
+public final class eu/tiducto/spider/client/Stops : eu/tiducto/spider/client/SpiderFeature {
+	public static final field INSTANCE Leu/tiducto/spider/client/Stops;
+	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/StopsConfig;)Leu/tiducto/spider/client/SpiderStops;
 	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
-	public fun newConfig ()Lcz/davidkurzica/client/StopsConfig;
+	public fun newConfig ()Leu/tiducto/spider/client/StopsConfig;
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class cz/davidkurzica/client/StopsConfig {
+public final class eu/tiducto/spider/client/StopsConfig {
 	public fun <init> ()V
 }
 
-public final class cz/davidkurzica/client/TransitMode : java/lang/Enum {
-	public static final field AIRPLANE Lcz/davidkurzica/client/TransitMode;
-	public static final field BUS Lcz/davidkurzica/client/TransitMode;
-	public static final field CARPOOL Lcz/davidkurzica/client/TransitMode;
-	public static final field COACH Lcz/davidkurzica/client/TransitMode;
-	public static final field Companion Lcz/davidkurzica/client/TransitMode$Companion;
-	public static final field FERRY Lcz/davidkurzica/client/TransitMode;
-	public static final field MONORAIL Lcz/davidkurzica/client/TransitMode;
-	public static final field RAIL Lcz/davidkurzica/client/TransitMode;
-	public static final field SUBWAY Lcz/davidkurzica/client/TransitMode;
-	public static final field TAXI Lcz/davidkurzica/client/TransitMode;
-	public static final field TRAM Lcz/davidkurzica/client/TransitMode;
-	public static final field TROLLEYBUS Lcz/davidkurzica/client/TransitMode;
-	public static final field UNKNOWN Lcz/davidkurzica/client/TransitMode;
-	public static final field WALK Lcz/davidkurzica/client/TransitMode;
+public final class eu/tiducto/spider/client/TransitMode : java/lang/Enum {
+	public static final field AIRPLANE Leu/tiducto/spider/client/TransitMode;
+	public static final field BUS Leu/tiducto/spider/client/TransitMode;
+	public static final field CARPOOL Leu/tiducto/spider/client/TransitMode;
+	public static final field COACH Leu/tiducto/spider/client/TransitMode;
+	public static final field Companion Leu/tiducto/spider/client/TransitMode$Companion;
+	public static final field FERRY Leu/tiducto/spider/client/TransitMode;
+	public static final field MONORAIL Leu/tiducto/spider/client/TransitMode;
+	public static final field RAIL Leu/tiducto/spider/client/TransitMode;
+	public static final field SUBWAY Leu/tiducto/spider/client/TransitMode;
+	public static final field TAXI Leu/tiducto/spider/client/TransitMode;
+	public static final field TRAM Leu/tiducto/spider/client/TransitMode;
+	public static final field TROLLEYBUS Leu/tiducto/spider/client/TransitMode;
+	public static final field UNKNOWN Leu/tiducto/spider/client/TransitMode;
+	public static final field WALK Leu/tiducto/spider/client/TransitMode;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lcz/davidkurzica/client/TransitMode;
-	public static fun values ()[Lcz/davidkurzica/client/TransitMode;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/TransitMode;
+	public static fun values ()[Leu/tiducto/spider/client/TransitMode;
 }
 
-public final class cz/davidkurzica/client/TransitMode$Companion {
+public final class eu/tiducto/spider/client/TransitMode$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class cz/davidkurzica/client/TripDelay {
+public final class eu/tiducto/spider/client/TripDelay {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/Integer;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;)Lcz/davidkurzica/client/TripDelay;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/TripDelay;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Lcz/davidkurzica/client/TripDelay;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;)Leu/tiducto/spider/client/TripDelay;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/TripDelay;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Leu/tiducto/spider/client/TripDelay;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDelaySeconds ()Ljava/lang/Integer;
 	public final fun getRouteId ()Ljava/lang/String;
@@ -832,43 +832,43 @@ public final class cz/davidkurzica/client/TripDelay {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/TripDelays {
-	public fun <init> (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;)V
+public final class eu/tiducto/spider/client/TripDelays {
+	public fun <init> (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;)V
 	public final fun component1 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component2 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun component3 ()Lcz/davidkurzica/client/FeedFreshness;
-	public final fun copy (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;)Lcz/davidkurzica/client/TripDelays;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/TripDelays;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;ILjava/lang/Object;)Lcz/davidkurzica/client/TripDelays;
-	public final fun delayFor (Ljava/lang/String;)Lcz/davidkurzica/client/TripDelay;
+	public final fun component3 ()Leu/tiducto/spider/client/FeedFreshness;
+	public final fun copy (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;)Leu/tiducto/spider/client/TripDelays;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/TripDelays;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;ILjava/lang/Object;)Leu/tiducto/spider/client/TripDelays;
+	public final fun delayFor (Ljava/lang/String;)Leu/tiducto/spider/client/TripDelay;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDelays ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun getFreshness ()Lcz/davidkurzica/client/FeedFreshness;
+	public final fun getFreshness ()Leu/tiducto/spider/client/FeedFreshness;
 	public final fun getMissing ()Lkotlinx/collections/immutable/ImmutableList;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/TripDetails {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class eu/tiducto/spider/client/TripDetails {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Lcz/davidkurzica/client/TransitMode;
+	public final fun component4 ()Leu/tiducto/spider/client/TransitMode;
 	public final fun component5 ()Ljava/lang/String;
 	public final fun component6 ()Ljava/lang/String;
-	public final fun component7 ()Lcz/davidkurzica/client/BikesAllowed;
+	public final fun component7 ()Leu/tiducto/spider/client/BikesAllowed;
 	public final fun component8 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component9 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;)Lcz/davidkurzica/client/TripDetails;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/TripDetails;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Lcz/davidkurzica/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Lcz/davidkurzica/client/TripDetails;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;)Leu/tiducto/spider/client/TripDetails;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/TripDetails;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;ILjava/lang/Object;)Leu/tiducto/spider/client/TripDetails;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getBikesAllowed ()Lcz/davidkurzica/client/BikesAllowed;
+	public final fun getBikesAllowed ()Leu/tiducto/spider/client/BikesAllowed;
 	public final fun getDirectionId ()Ljava/lang/String;
 	public final fun getGeometry ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getGtfsId ()Ljava/lang/String;
 	public final fun getHeadsign ()Ljava/lang/String;
-	public final fun getMode ()Lcz/davidkurzica/client/TransitMode;
+	public final fun getMode ()Leu/tiducto/spider/client/TransitMode;
 	public final fun getRouteLongName ()Ljava/lang/String;
 	public final fun getRouteShortName ()Ljava/lang/String;
 	public final fun getStops ()Lkotlinx/collections/immutable/ImmutableList;
@@ -876,11 +876,11 @@ public final class cz/davidkurzica/client/TripDetails {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/TripStop {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLcz/davidkurzica/client/WheelchairBoarding;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLcz/davidkurzica/client/WheelchairBoarding;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+public final class eu/tiducto/spider/client/TripStop {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
-	public final fun component10 ()Lcz/davidkurzica/client/WheelchairBoarding;
+	public final fun component10 ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/Double;
 	public final fun component4 ()Ljava/lang/Double;
@@ -889,8 +889,8 @@ public final class cz/davidkurzica/client/TripStop {
 	public final fun component7 ()Lkotlin/time/Instant;
 	public final fun component8 ()Lkotlin/time/Instant;
 	public final fun component9 ()Z
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLcz/davidkurzica/client/WheelchairBoarding;)Lcz/davidkurzica/client/TripStop;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/TripStop;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLcz/davidkurzica/client/WheelchairBoarding;ILjava/lang/Object;)Lcz/davidkurzica/client/TripStop;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;)Leu/tiducto/spider/client/TripStop;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/TripStop;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Double;Ljava/lang/Double;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;ILjava/lang/Object;)Leu/tiducto/spider/client/TripStop;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getGtfsId ()Ljava/lang/String;
 	public final fun getLat ()Ljava/lang/Double;
@@ -900,66 +900,66 @@ public final class cz/davidkurzica/client/TripStop {
 	public final fun getRealtimeDeparture ()Lkotlin/time/Instant;
 	public final fun getScheduledArrival ()Lkotlin/time/Instant;
 	public final fun getScheduledDeparture ()Lkotlin/time/Instant;
-	public final fun getWheelchairBoarding ()Lcz/davidkurzica/client/WheelchairBoarding;
+	public final fun getWheelchairBoarding ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public fun hashCode ()I
 	public final fun isRealtime ()Z
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/VehiclePositions {
-	public fun <init> (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;)V
+public final class eu/tiducto/spider/client/VehiclePositions {
+	public fun <init> (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;)V
 	public final fun component1 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component2 ()Lkotlinx/collections/immutable/ImmutableList;
-	public final fun component3 ()Lcz/davidkurzica/client/FeedFreshness;
-	public final fun copy (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;)Lcz/davidkurzica/client/VehiclePositions;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/VehiclePositions;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Lcz/davidkurzica/client/FeedFreshness;ILjava/lang/Object;)Lcz/davidkurzica/client/VehiclePositions;
+	public final fun component3 ()Leu/tiducto/spider/client/FeedFreshness;
+	public final fun copy (Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;)Leu/tiducto/spider/client/VehiclePositions;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/VehiclePositions;Lkotlinx/collections/immutable/ImmutableList;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/FeedFreshness;ILjava/lang/Object;)Leu/tiducto/spider/client/VehiclePositions;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFreshness ()Lcz/davidkurzica/client/FeedFreshness;
+	public final fun getFreshness ()Leu/tiducto/spider/client/FeedFreshness;
 	public final fun getMissing ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getVehicles ()Lkotlinx/collections/immutable/ImmutableList;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class cz/davidkurzica/client/ViaLocation {
+public abstract interface class eu/tiducto/spider/client/ViaLocation {
 }
 
-public final class cz/davidkurzica/client/ViaLocation$PassThrough : cz/davidkurzica/client/ViaLocation {
+public final class eu/tiducto/spider/client/ViaLocation$PassThrough : eu/tiducto/spider/client/ViaLocation {
 	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/util/List;)V
 	public final fun component1 ()Ljava/util/List;
-	public final fun copy (Ljava/util/List;)Lcz/davidkurzica/client/ViaLocation$PassThrough;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/ViaLocation$PassThrough;Ljava/util/List;ILjava/lang/Object;)Lcz/davidkurzica/client/ViaLocation$PassThrough;
+	public final fun copy (Ljava/util/List;)Leu/tiducto/spider/client/ViaLocation$PassThrough;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/ViaLocation$PassThrough;Ljava/util/List;ILjava/lang/Object;)Leu/tiducto/spider/client/ViaLocation$PassThrough;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getStopIds ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/ViaLocation$Visit : cz/davidkurzica/client/ViaLocation {
-	public synthetic fun <init> (Lcz/davidkurzica/client/Location;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lcz/davidkurzica/client/Location;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lcz/davidkurzica/client/Location;
+public final class eu/tiducto/spider/client/ViaLocation$Visit : eu/tiducto/spider/client/ViaLocation {
+	public synthetic fun <init> (Leu/tiducto/spider/client/Location;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/Location;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Leu/tiducto/spider/client/Location;
 	public final fun component2-UwyO8pc ()J
-	public final fun copy-HG0u8IE (Lcz/davidkurzica/client/Location;J)Lcz/davidkurzica/client/ViaLocation$Visit;
-	public static synthetic fun copy-HG0u8IE$default (Lcz/davidkurzica/client/ViaLocation$Visit;Lcz/davidkurzica/client/Location;JILjava/lang/Object;)Lcz/davidkurzica/client/ViaLocation$Visit;
+	public final fun copy-HG0u8IE (Leu/tiducto/spider/client/Location;J)Leu/tiducto/spider/client/ViaLocation$Visit;
+	public static synthetic fun copy-HG0u8IE$default (Leu/tiducto/spider/client/ViaLocation$Visit;Leu/tiducto/spider/client/Location;JILjava/lang/Object;)Leu/tiducto/spider/client/ViaLocation$Visit;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getLocation ()Lcz/davidkurzica/client/Location;
+	public final fun getLocation ()Leu/tiducto/spider/client/Location;
 	public final fun getMinimumWaitTime-UwyO8pc ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class cz/davidkurzica/client/WheelchairBoarding : java/lang/Enum {
-	public static final field Companion Lcz/davidkurzica/client/WheelchairBoarding$Companion;
-	public static final field NotPossible Lcz/davidkurzica/client/WheelchairBoarding;
-	public static final field Possible Lcz/davidkurzica/client/WheelchairBoarding;
+public final class eu/tiducto/spider/client/WheelchairBoarding : java/lang/Enum {
+	public static final field Companion Leu/tiducto/spider/client/WheelchairBoarding$Companion;
+	public static final field NotPossible Leu/tiducto/spider/client/WheelchairBoarding;
+	public static final field Possible Leu/tiducto/spider/client/WheelchairBoarding;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lcz/davidkurzica/client/WheelchairBoarding;
-	public static fun values ()[Lcz/davidkurzica/client/WheelchairBoarding;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/WheelchairBoarding;
+	public static fun values ()[Leu/tiducto/spider/client/WheelchairBoarding;
 }
 
-public final class cz/davidkurzica/client/WheelchairBoarding$Companion {
+public final class eu/tiducto/spider/client/WheelchairBoarding$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 

@@ -24,7 +24,7 @@ kotlin {
     jvm()
 
     android {
-        namespace = "cz.davidkurzica.contract"
+        namespace = "eu.tiducto.spider.contract"
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
     }
