@@ -127,34 +127,34 @@ abstract interface <#A: kotlin/Any, #B: kotlin/Any> cz.davidkurzica.client/Spide
     abstract fun newConfig(): #A // cz.davidkurzica.client/SpiderFeature.newConfig|newConfig(){}[0]
 }
 
-sealed interface cz.davidkurzica.client/RouteLocation { // cz.davidkurzica.client/RouteLocation|null[0]
-    final class Coordinates : cz.davidkurzica.client/RouteLocation { // cz.davidkurzica.client/RouteLocation.Coordinates|null[0]
-        constructor <init>(kotlin/Double, kotlin/Double) // cz.davidkurzica.client/RouteLocation.Coordinates.<init>|<init>(kotlin.Double;kotlin.Double){}[0]
+sealed interface cz.davidkurzica.client/Location { // cz.davidkurzica.client/Location|null[0]
+    final class Coordinate : cz.davidkurzica.client/Location { // cz.davidkurzica.client/Location.Coordinate|null[0]
+        constructor <init>(kotlin/Double, kotlin/Double) // cz.davidkurzica.client/Location.Coordinate.<init>|<init>(kotlin.Double;kotlin.Double){}[0]
 
-        final val lat // cz.davidkurzica.client/RouteLocation.Coordinates.lat|{}lat[0]
-            final fun <get-lat>(): kotlin/Double // cz.davidkurzica.client/RouteLocation.Coordinates.lat.<get-lat>|<get-lat>(){}[0]
-        final val lon // cz.davidkurzica.client/RouteLocation.Coordinates.lon|{}lon[0]
-            final fun <get-lon>(): kotlin/Double // cz.davidkurzica.client/RouteLocation.Coordinates.lon.<get-lon>|<get-lon>(){}[0]
+        final val latitude // cz.davidkurzica.client/Location.Coordinate.latitude|{}latitude[0]
+            final fun <get-latitude>(): kotlin/Double // cz.davidkurzica.client/Location.Coordinate.latitude.<get-latitude>|<get-latitude>(){}[0]
+        final val longitude // cz.davidkurzica.client/Location.Coordinate.longitude|{}longitude[0]
+            final fun <get-longitude>(): kotlin/Double // cz.davidkurzica.client/Location.Coordinate.longitude.<get-longitude>|<get-longitude>(){}[0]
 
-        final fun component1(): kotlin/Double // cz.davidkurzica.client/RouteLocation.Coordinates.component1|component1(){}[0]
-        final fun component2(): kotlin/Double // cz.davidkurzica.client/RouteLocation.Coordinates.component2|component2(){}[0]
-        final fun copy(kotlin/Double = ..., kotlin/Double = ...): cz.davidkurzica.client/RouteLocation.Coordinates // cz.davidkurzica.client/RouteLocation.Coordinates.copy|copy(kotlin.Double;kotlin.Double){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // cz.davidkurzica.client/RouteLocation.Coordinates.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // cz.davidkurzica.client/RouteLocation.Coordinates.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // cz.davidkurzica.client/RouteLocation.Coordinates.toString|toString(){}[0]
+        final fun component1(): kotlin/Double // cz.davidkurzica.client/Location.Coordinate.component1|component1(){}[0]
+        final fun component2(): kotlin/Double // cz.davidkurzica.client/Location.Coordinate.component2|component2(){}[0]
+        final fun copy(kotlin/Double = ..., kotlin/Double = ...): cz.davidkurzica.client/Location.Coordinate // cz.davidkurzica.client/Location.Coordinate.copy|copy(kotlin.Double;kotlin.Double){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // cz.davidkurzica.client/Location.Coordinate.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // cz.davidkurzica.client/Location.Coordinate.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // cz.davidkurzica.client/Location.Coordinate.toString|toString(){}[0]
     }
 
-    final class StopId : cz.davidkurzica.client/RouteLocation { // cz.davidkurzica.client/RouteLocation.StopId|null[0]
-        constructor <init>(kotlin/String) // cz.davidkurzica.client/RouteLocation.StopId.<init>|<init>(kotlin.String){}[0]
+    final class Stop : cz.davidkurzica.client/Location { // cz.davidkurzica.client/Location.Stop|null[0]
+        constructor <init>(kotlin/String) // cz.davidkurzica.client/Location.Stop.<init>|<init>(kotlin.String){}[0]
 
-        final val id // cz.davidkurzica.client/RouteLocation.StopId.id|{}id[0]
-            final fun <get-id>(): kotlin/String // cz.davidkurzica.client/RouteLocation.StopId.id.<get-id>|<get-id>(){}[0]
+        final val id // cz.davidkurzica.client/Location.Stop.id|{}id[0]
+            final fun <get-id>(): kotlin/String // cz.davidkurzica.client/Location.Stop.id.<get-id>|<get-id>(){}[0]
 
-        final fun component1(): kotlin/String // cz.davidkurzica.client/RouteLocation.StopId.component1|component1(){}[0]
-        final fun copy(kotlin/String = ...): cz.davidkurzica.client/RouteLocation.StopId // cz.davidkurzica.client/RouteLocation.StopId.copy|copy(kotlin.String){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // cz.davidkurzica.client/RouteLocation.StopId.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // cz.davidkurzica.client/RouteLocation.StopId.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // cz.davidkurzica.client/RouteLocation.StopId.toString|toString(){}[0]
+        final fun component1(): kotlin/String // cz.davidkurzica.client/Location.Stop.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): cz.davidkurzica.client/Location.Stop // cz.davidkurzica.client/Location.Stop.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // cz.davidkurzica.client/Location.Stop.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // cz.davidkurzica.client/Location.Stop.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // cz.davidkurzica.client/Location.Stop.toString|toString(){}[0]
     }
 }
 
@@ -322,16 +322,16 @@ sealed interface cz.davidkurzica.client/ViaLocation { // cz.davidkurzica.client/
     }
 
     final class Visit : cz.davidkurzica.client/ViaLocation { // cz.davidkurzica.client/ViaLocation.Visit|null[0]
-        constructor <init>(cz.davidkurzica.client/RouteLocation, kotlin.time/Duration = ...) // cz.davidkurzica.client/ViaLocation.Visit.<init>|<init>(cz.davidkurzica.client.RouteLocation;kotlin.time.Duration){}[0]
+        constructor <init>(cz.davidkurzica.client/Location, kotlin.time/Duration = ...) // cz.davidkurzica.client/ViaLocation.Visit.<init>|<init>(cz.davidkurzica.client.Location;kotlin.time.Duration){}[0]
 
         final val location // cz.davidkurzica.client/ViaLocation.Visit.location|{}location[0]
-            final fun <get-location>(): cz.davidkurzica.client/RouteLocation // cz.davidkurzica.client/ViaLocation.Visit.location.<get-location>|<get-location>(){}[0]
+            final fun <get-location>(): cz.davidkurzica.client/Location // cz.davidkurzica.client/ViaLocation.Visit.location.<get-location>|<get-location>(){}[0]
         final val minimumWaitTime // cz.davidkurzica.client/ViaLocation.Visit.minimumWaitTime|{}minimumWaitTime[0]
             final fun <get-minimumWaitTime>(): kotlin.time/Duration // cz.davidkurzica.client/ViaLocation.Visit.minimumWaitTime.<get-minimumWaitTime>|<get-minimumWaitTime>(){}[0]
 
-        final fun component1(): cz.davidkurzica.client/RouteLocation // cz.davidkurzica.client/ViaLocation.Visit.component1|component1(){}[0]
+        final fun component1(): cz.davidkurzica.client/Location // cz.davidkurzica.client/ViaLocation.Visit.component1|component1(){}[0]
         final fun component2(): kotlin.time/Duration // cz.davidkurzica.client/ViaLocation.Visit.component2|component2(){}[0]
-        final fun copy(cz.davidkurzica.client/RouteLocation = ..., kotlin.time/Duration = ...): cz.davidkurzica.client/ViaLocation.Visit // cz.davidkurzica.client/ViaLocation.Visit.copy|copy(cz.davidkurzica.client.RouteLocation;kotlin.time.Duration){}[0]
+        final fun copy(cz.davidkurzica.client/Location = ..., kotlin.time/Duration = ...): cz.davidkurzica.client/ViaLocation.Visit // cz.davidkurzica.client/ViaLocation.Visit.copy|copy(cz.davidkurzica.client.Location;kotlin.time.Duration){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // cz.davidkurzica.client/ViaLocation.Visit.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // cz.davidkurzica.client/ViaLocation.Visit.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // cz.davidkurzica.client/ViaLocation.Visit.toString|toString(){}[0]
@@ -722,22 +722,22 @@ final class cz.davidkurzica.client/RoutePageInfo { // cz.davidkurzica.client/Rou
 }
 
 final class cz.davidkurzica.client/RouteRequest { // cz.davidkurzica.client/RouteRequest|null[0]
-    constructor <init>(cz.davidkurzica.client/RouteLocation, cz.davidkurzica.client/RouteLocation, cz.davidkurzica.client/RouteTime, kotlin.collections/List<cz.davidkurzica.client/ViaLocation> = ...) // cz.davidkurzica.client/RouteRequest.<init>|<init>(cz.davidkurzica.client.RouteLocation;cz.davidkurzica.client.RouteLocation;cz.davidkurzica.client.RouteTime;kotlin.collections.List<cz.davidkurzica.client.ViaLocation>){}[0]
+    constructor <init>(cz.davidkurzica.client/Location, cz.davidkurzica.client/Location, cz.davidkurzica.client/RouteTime, kotlin.collections/List<cz.davidkurzica.client/ViaLocation> = ...) // cz.davidkurzica.client/RouteRequest.<init>|<init>(cz.davidkurzica.client.Location;cz.davidkurzica.client.Location;cz.davidkurzica.client.RouteTime;kotlin.collections.List<cz.davidkurzica.client.ViaLocation>){}[0]
 
     final val from // cz.davidkurzica.client/RouteRequest.from|{}from[0]
-        final fun <get-from>(): cz.davidkurzica.client/RouteLocation // cz.davidkurzica.client/RouteRequest.from.<get-from>|<get-from>(){}[0]
+        final fun <get-from>(): cz.davidkurzica.client/Location // cz.davidkurzica.client/RouteRequest.from.<get-from>|<get-from>(){}[0]
     final val time // cz.davidkurzica.client/RouteRequest.time|{}time[0]
         final fun <get-time>(): cz.davidkurzica.client/RouteTime // cz.davidkurzica.client/RouteRequest.time.<get-time>|<get-time>(){}[0]
     final val to // cz.davidkurzica.client/RouteRequest.to|{}to[0]
-        final fun <get-to>(): cz.davidkurzica.client/RouteLocation // cz.davidkurzica.client/RouteRequest.to.<get-to>|<get-to>(){}[0]
+        final fun <get-to>(): cz.davidkurzica.client/Location // cz.davidkurzica.client/RouteRequest.to.<get-to>|<get-to>(){}[0]
     final val via // cz.davidkurzica.client/RouteRequest.via|{}via[0]
         final fun <get-via>(): kotlin.collections/List<cz.davidkurzica.client/ViaLocation> // cz.davidkurzica.client/RouteRequest.via.<get-via>|<get-via>(){}[0]
 
-    final fun component1(): cz.davidkurzica.client/RouteLocation // cz.davidkurzica.client/RouteRequest.component1|component1(){}[0]
-    final fun component2(): cz.davidkurzica.client/RouteLocation // cz.davidkurzica.client/RouteRequest.component2|component2(){}[0]
+    final fun component1(): cz.davidkurzica.client/Location // cz.davidkurzica.client/RouteRequest.component1|component1(){}[0]
+    final fun component2(): cz.davidkurzica.client/Location // cz.davidkurzica.client/RouteRequest.component2|component2(){}[0]
     final fun component3(): cz.davidkurzica.client/RouteTime // cz.davidkurzica.client/RouteRequest.component3|component3(){}[0]
     final fun component4(): kotlin.collections/List<cz.davidkurzica.client/ViaLocation> // cz.davidkurzica.client/RouteRequest.component4|component4(){}[0]
-    final fun copy(cz.davidkurzica.client/RouteLocation = ..., cz.davidkurzica.client/RouteLocation = ..., cz.davidkurzica.client/RouteTime = ..., kotlin.collections/List<cz.davidkurzica.client/ViaLocation> = ...): cz.davidkurzica.client/RouteRequest // cz.davidkurzica.client/RouteRequest.copy|copy(cz.davidkurzica.client.RouteLocation;cz.davidkurzica.client.RouteLocation;cz.davidkurzica.client.RouteTime;kotlin.collections.List<cz.davidkurzica.client.ViaLocation>){}[0]
+    final fun copy(cz.davidkurzica.client/Location = ..., cz.davidkurzica.client/Location = ..., cz.davidkurzica.client/RouteTime = ..., kotlin.collections/List<cz.davidkurzica.client/ViaLocation> = ...): cz.davidkurzica.client/RouteRequest // cz.davidkurzica.client/RouteRequest.copy|copy(cz.davidkurzica.client.Location;cz.davidkurzica.client.Location;cz.davidkurzica.client.RouteTime;kotlin.collections.List<cz.davidkurzica.client.ViaLocation>){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // cz.davidkurzica.client/RouteRequest.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // cz.davidkurzica.client/RouteRequest.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // cz.davidkurzica.client/RouteRequest.toString|toString(){}[0]
@@ -858,7 +858,7 @@ final class cz.davidkurzica.client/SpiderRouting { // cz.davidkurzica.client/Spi
     final suspend fun departures(kotlin/String, kotlin/Int = ..., kotlin.time/Instant? = ..., kotlin.time/Duration = ...): cz.davidkurzica.client/SpiderResult<kotlinx.collections.immutable/ImmutableList<cz.davidkurzica.client/Departure>> // cz.davidkurzica.client/SpiderRouting.departures|departures(kotlin.String;kotlin.Int;kotlin.time.Instant?;kotlin.time.Duration){}[0]
     final suspend fun nextPage(cz.davidkurzica.client/Route, kotlin/Int? = ...): cz.davidkurzica.client/SpiderResult<cz.davidkurzica.client/Route>? // cz.davidkurzica.client/SpiderRouting.nextPage|nextPage(cz.davidkurzica.client.Route;kotlin.Int?){}[0]
     final suspend fun previousPage(cz.davidkurzica.client/Route, kotlin/Int? = ...): cz.davidkurzica.client/SpiderResult<cz.davidkurzica.client/Route>? // cz.davidkurzica.client/SpiderRouting.previousPage|previousPage(cz.davidkurzica.client.Route;kotlin.Int?){}[0]
-    final suspend fun route(cz.davidkurzica.client/RouteLocation, cz.davidkurzica.client/RouteLocation, cz.davidkurzica.client/RouteTime = ..., kotlin/Int? = ..., kotlin.collections/List<cz.davidkurzica.client/ViaLocation> = ...): cz.davidkurzica.client/SpiderResult<cz.davidkurzica.client/Route> // cz.davidkurzica.client/SpiderRouting.route|route(cz.davidkurzica.client.RouteLocation;cz.davidkurzica.client.RouteLocation;cz.davidkurzica.client.RouteTime;kotlin.Int?;kotlin.collections.List<cz.davidkurzica.client.ViaLocation>){}[0]
+    final suspend fun route(cz.davidkurzica.client/Location, cz.davidkurzica.client/Location, cz.davidkurzica.client/RouteTime = ..., kotlin/Int? = ..., kotlin.collections/List<cz.davidkurzica.client/ViaLocation> = ...): cz.davidkurzica.client/SpiderResult<cz.davidkurzica.client/Route> // cz.davidkurzica.client/SpiderRouting.route|route(cz.davidkurzica.client.Location;cz.davidkurzica.client.Location;cz.davidkurzica.client.RouteTime;kotlin.Int?;kotlin.collections.List<cz.davidkurzica.client.ViaLocation>){}[0]
     final suspend fun trip(kotlin/String, kotlin/String? = ...): cz.davidkurzica.client/SpiderResult<cz.davidkurzica.client/TripDetails> // cz.davidkurzica.client/SpiderRouting.trip|trip(kotlin.String;kotlin.String?){}[0]
 }
 
@@ -1300,6 +1300,23 @@ final class cz.davidkurzica.client.js/LiveVehicleUpdate { // cz.davidkurzica.cli
 }
 
 // Targets: [js]
+final class cz.davidkurzica.client.js/Location { // cz.davidkurzica.client.js/Location|null[0]
+    final val kind // cz.davidkurzica.client.js/Location.kind|{}kind[0]
+        final fun <get-kind>(): kotlin/String // cz.davidkurzica.client.js/Location.kind.<get-kind>|<get-kind>(){}[0]
+    final val latitude // cz.davidkurzica.client.js/Location.latitude|{}latitude[0]
+        final fun <get-latitude>(): kotlin/Double? // cz.davidkurzica.client.js/Location.latitude.<get-latitude>|<get-latitude>(){}[0]
+    final val longitude // cz.davidkurzica.client.js/Location.longitude|{}longitude[0]
+        final fun <get-longitude>(): kotlin/Double? // cz.davidkurzica.client.js/Location.longitude.<get-longitude>|<get-longitude>(){}[0]
+    final val stopId // cz.davidkurzica.client.js/Location.stopId|{}stopId[0]
+        final fun <get-stopId>(): kotlin/String? // cz.davidkurzica.client.js/Location.stopId.<get-stopId>|<get-stopId>(){}[0]
+
+    final object Companion { // cz.davidkurzica.client.js/Location.Companion|null[0]
+        final fun coordinate(kotlin/Double, kotlin/Double): cz.davidkurzica.client.js/Location // cz.davidkurzica.client.js/Location.Companion.coordinate|coordinate(kotlin.Double;kotlin.Double){}[0]
+        final fun stop(kotlin/String): cz.davidkurzica.client.js/Location // cz.davidkurzica.client.js/Location.Companion.stop|stop(kotlin.String){}[0]
+    }
+}
+
+// Targets: [js]
 final class cz.davidkurzica.client.js/Route { // cz.davidkurzica.client.js/Route|null[0]
     final val edges // cz.davidkurzica.client.js/Route.edges|{}edges[0]
         final fun <get-edges>(): kotlin/Array<cz.davidkurzica.client.js/RouteEdge> // cz.davidkurzica.client.js/Route.edges.<get-edges>|<get-edges>(){}[0]
@@ -1317,18 +1334,6 @@ final class cz.davidkurzica.client.js/RouteEdge { // cz.davidkurzica.client.js/R
         final fun <get-cursor>(): kotlin/String // cz.davidkurzica.client.js/RouteEdge.cursor.<get-cursor>|<get-cursor>(){}[0]
     final val itinerary // cz.davidkurzica.client.js/RouteEdge.itinerary|{}itinerary[0]
         final fun <get-itinerary>(): cz.davidkurzica.client.js/Itinerary // cz.davidkurzica.client.js/RouteEdge.itinerary.<get-itinerary>|<get-itinerary>(){}[0]
-}
-
-// Targets: [js]
-final class cz.davidkurzica.client.js/RouteLocation { // cz.davidkurzica.client.js/RouteLocation|null[0]
-    final val kind // cz.davidkurzica.client.js/RouteLocation.kind|{}kind[0]
-        final fun <get-kind>(): kotlin/String // cz.davidkurzica.client.js/RouteLocation.kind.<get-kind>|<get-kind>(){}[0]
-    final val lat // cz.davidkurzica.client.js/RouteLocation.lat|{}lat[0]
-        final fun <get-lat>(): kotlin/Double? // cz.davidkurzica.client.js/RouteLocation.lat.<get-lat>|<get-lat>(){}[0]
-    final val lon // cz.davidkurzica.client.js/RouteLocation.lon|{}lon[0]
-        final fun <get-lon>(): kotlin/Double? // cz.davidkurzica.client.js/RouteLocation.lon.<get-lon>|<get-lon>(){}[0]
-    final val stopId // cz.davidkurzica.client.js/RouteLocation.stopId|{}stopId[0]
-        final fun <get-stopId>(): kotlin/String? // cz.davidkurzica.client.js/RouteLocation.stopId.<get-stopId>|<get-stopId>(){}[0]
 }
 
 // Targets: [js]
@@ -1421,8 +1426,8 @@ final class cz.davidkurzica.client.js/SpiderRealtime { // cz.davidkurzica.client
 final class cz.davidkurzica.client.js/SpiderRouting { // cz.davidkurzica.client.js/SpiderRouting|null[0]
     final suspend fun departures(kotlin/String, kotlin/Int = ..., kotlin/Double? = ..., kotlin/Double = ...): cz.davidkurzica.client.js/SpiderResult<kotlin/Array<cz.davidkurzica.client.js/Departure>> // cz.davidkurzica.client.js/SpiderRouting.departures|departures(kotlin.String;kotlin.Int;kotlin.Double?;kotlin.Double){}[0]
     final suspend fun nextPage(cz.davidkurzica.client.js/Route, kotlin/Int = ...): cz.davidkurzica.client.js/SpiderResult<cz.davidkurzica.client.js/Route>? // cz.davidkurzica.client.js/SpiderRouting.nextPage|nextPage(cz.davidkurzica.client.js.Route;kotlin.Int){}[0]
-    final suspend fun plan(cz.davidkurzica.client.js/RouteLocation, cz.davidkurzica.client.js/RouteLocation, kotlin/Double? = ..., kotlin/Int = ...): cz.davidkurzica.client.js/SpiderResult<cz.davidkurzica.client.js/Route> // cz.davidkurzica.client.js/SpiderRouting.plan|plan(cz.davidkurzica.client.js.RouteLocation;cz.davidkurzica.client.js.RouteLocation;kotlin.Double?;kotlin.Int){}[0]
-    final suspend fun planArriveBy(cz.davidkurzica.client.js/RouteLocation, cz.davidkurzica.client.js/RouteLocation, kotlin/Double, kotlin/Int = ...): cz.davidkurzica.client.js/SpiderResult<cz.davidkurzica.client.js/Route> // cz.davidkurzica.client.js/SpiderRouting.planArriveBy|planArriveBy(cz.davidkurzica.client.js.RouteLocation;cz.davidkurzica.client.js.RouteLocation;kotlin.Double;kotlin.Int){}[0]
+    final suspend fun plan(cz.davidkurzica.client.js/Location, cz.davidkurzica.client.js/Location, kotlin/Double? = ..., kotlin/Int = ...): cz.davidkurzica.client.js/SpiderResult<cz.davidkurzica.client.js/Route> // cz.davidkurzica.client.js/SpiderRouting.plan|plan(cz.davidkurzica.client.js.Location;cz.davidkurzica.client.js.Location;kotlin.Double?;kotlin.Int){}[0]
+    final suspend fun planArriveBy(cz.davidkurzica.client.js/Location, cz.davidkurzica.client.js/Location, kotlin/Double, kotlin/Int = ...): cz.davidkurzica.client.js/SpiderResult<cz.davidkurzica.client.js/Route> // cz.davidkurzica.client.js/SpiderRouting.planArriveBy|planArriveBy(cz.davidkurzica.client.js.Location;cz.davidkurzica.client.js.Location;kotlin.Double;kotlin.Int){}[0]
     final suspend fun previousPage(cz.davidkurzica.client.js/Route, kotlin/Int = ...): cz.davidkurzica.client.js/SpiderResult<cz.davidkurzica.client.js/Route>? // cz.davidkurzica.client.js/SpiderRouting.previousPage|previousPage(cz.davidkurzica.client.js.Route;kotlin.Int){}[0]
     final suspend fun trip(kotlin/String, kotlin/String? = ...): cz.davidkurzica.client.js/SpiderResult<cz.davidkurzica.client.js/TripDetails> // cz.davidkurzica.client.js/SpiderRouting.trip|trip(kotlin.String;kotlin.String?){}[0]
 }
@@ -1551,9 +1556,3 @@ final class cz.davidkurzica.client.js/VehiclePositions { // cz.davidkurzica.clie
     final val vehicles // cz.davidkurzica.client.js/VehiclePositions.vehicles|{}vehicles[0]
         final fun <get-vehicles>(): kotlin/Array<cz.davidkurzica.client.js/LiveVehicle> // cz.davidkurzica.client.js/VehiclePositions.vehicles.<get-vehicles>|<get-vehicles>(){}[0]
 }
-
-// Targets: [js]
-final fun cz.davidkurzica.client.js/coordinateLocation(kotlin/Double, kotlin/Double): cz.davidkurzica.client.js/RouteLocation // cz.davidkurzica.client.js/coordinateLocation|coordinateLocation(kotlin.Double;kotlin.Double){}[0]
-
-// Targets: [js]
-final fun cz.davidkurzica.client.js/stopLocation(kotlin/String): cz.davidkurzica.client.js/RouteLocation // cz.davidkurzica.client.js/stopLocation|stopLocation(kotlin.String){}[0]

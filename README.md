@@ -46,21 +46,24 @@ npm install @tiducto/spider-sdk-client
 ```
 
 ```ts
-import { SpiderClient, coordinateLocation } from '@tiducto/spider-sdk-client'
+import { SpiderClient, Location } from '@tiducto/spider-sdk-client'
 
 const client = new SpiderClient('https://brno.api.transitapi.eu', apiKey)
 const res = await client.routing.plan(
-  coordinateLocation(49.19, 16.61),
-  coordinateLocation(49.23, 16.58),
+  Location.Companion.coordinate(49.19, 16.61),
+  Location.Companion.stop('U1146N1'),
 )
 if (res.isSuccess) res.data!.edges.forEach((e) => console.log(e.itinerary))
 ```
 
 The JS surface is an export-safe facade (the `cz.davidkurzica.client.js` package): sealed types become
-factory functions (`stopLocation`/`coordinateLocation`), `SpiderResult` becomes `{ isSuccess, data,
-error }`, times are epoch-millis `number`s, enums are their name strings, and suspend functions return
-Promises. The names match the Kotlin API but the shapes are JS-friendly; the rich Kotlin API is
-unchanged for JVM/Android/Apple consumers.
+factory functions, `SpiderResult` becomes `{ isSuccess, data, error }`, times are epoch-millis
+`number`s, enums are their name strings, and suspend functions return Promises. The names match the
+Kotlin API but the shapes are JS-friendly; the rich Kotlin API is unchanged for JVM/Android/Apple
+consumers. An origin/destination is built with `Location.Companion.coordinate(lat, lon)` or
+`Location.Companion.stop(id)` — the `.Companion.` hop is a Kotlin/JS export artifact (companion members
+can't be hoisted to bare statics on the exported class), the closest single-name shape to the Kotlin
+`Location.Coordinate` / `Location.Stop`.
 
 ## Usage
 
@@ -72,8 +75,8 @@ val client = SpiderClient(baseUrl = "https://brno.api.transitapi.eu", apiKey = "
 }
 
 when (val result = client.routing.route(
-    from = RouteLocation.StopId("U1146N175"),
-    to = RouteLocation.StopId("U1378N2834"),
+    from = Location.Stop("U1146N175"),
+    to = Location.Stop("U1378N2834"),
 )) {
     is SpiderResult.Success -> result.data.edges.forEach { println(it.itinerary) }
     is SpiderResult.Error -> println(result.error)

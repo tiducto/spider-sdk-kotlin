@@ -284,6 +284,33 @@ public final class cz/davidkurzica/client/LiveVehicleUpdate {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract interface class cz/davidkurzica/client/Location {
+}
+
+public final class cz/davidkurzica/client/Location$Coordinate : cz/davidkurzica/client/Location {
+	public fun <init> (DD)V
+	public final fun component1 ()D
+	public final fun component2 ()D
+	public final fun copy (DD)Lcz/davidkurzica/client/Location$Coordinate;
+	public static synthetic fun copy$default (Lcz/davidkurzica/client/Location$Coordinate;DDILjava/lang/Object;)Lcz/davidkurzica/client/Location$Coordinate;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLatitude ()D
+	public final fun getLongitude ()D
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class cz/davidkurzica/client/Location$Stop : cz/davidkurzica/client/Location {
+	public fun <init> (Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;)Lcz/davidkurzica/client/Location$Stop;
+	public static synthetic fun copy$default (Lcz/davidkurzica/client/Location$Stop;Ljava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/Location$Stop;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class cz/davidkurzica/client/OccupancyStatus : java/lang/Enum {
 	public static final field CRUSHED_STANDING_ROOM_ONLY Lcz/davidkurzica/client/OccupancyStatus;
 	public static final field Companion Lcz/davidkurzica/client/OccupancyStatus$Companion;
@@ -348,33 +375,6 @@ public final class cz/davidkurzica/client/RouteEdge {
 	public fun toString ()Ljava/lang/String;
 }
 
-public abstract interface class cz/davidkurzica/client/RouteLocation {
-}
-
-public final class cz/davidkurzica/client/RouteLocation$Coordinates : cz/davidkurzica/client/RouteLocation {
-	public fun <init> (DD)V
-	public final fun component1 ()D
-	public final fun component2 ()D
-	public final fun copy (DD)Lcz/davidkurzica/client/RouteLocation$Coordinates;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteLocation$Coordinates;DDILjava/lang/Object;)Lcz/davidkurzica/client/RouteLocation$Coordinates;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getLat ()D
-	public final fun getLon ()D
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class cz/davidkurzica/client/RouteLocation$StopId : cz/davidkurzica/client/RouteLocation {
-	public fun <init> (Ljava/lang/String;)V
-	public final fun component1 ()Ljava/lang/String;
-	public final fun copy (Ljava/lang/String;)Lcz/davidkurzica/client/RouteLocation$StopId;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteLocation$StopId;Ljava/lang/String;ILjava/lang/Object;)Lcz/davidkurzica/client/RouteLocation$StopId;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getId ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
 public final class cz/davidkurzica/client/RoutePageInfo {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZZLjava/lang/String;)V
 	public final fun component1 ()Ljava/lang/String;
@@ -395,18 +395,18 @@ public final class cz/davidkurzica/client/RoutePageInfo {
 }
 
 public final class cz/davidkurzica/client/RouteRequest {
-	public fun <init> (Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;)V
-	public synthetic fun <init> (Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lcz/davidkurzica/client/RouteLocation;
-	public final fun component2 ()Lcz/davidkurzica/client/RouteLocation;
+	public fun <init> (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;)V
+	public synthetic fun <init> (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcz/davidkurzica/client/Location;
+	public final fun component2 ()Lcz/davidkurzica/client/Location;
 	public final fun component3 ()Lcz/davidkurzica/client/RouteTime;
 	public final fun component4 ()Ljava/util/List;
-	public final fun copy (Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;)Lcz/davidkurzica/client/RouteRequest;
-	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteRequest;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;ILjava/lang/Object;)Lcz/davidkurzica/client/RouteRequest;
+	public final fun copy (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;)Lcz/davidkurzica/client/RouteRequest;
+	public static synthetic fun copy$default (Lcz/davidkurzica/client/RouteRequest;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/util/List;ILjava/lang/Object;)Lcz/davidkurzica/client/RouteRequest;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getFrom ()Lcz/davidkurzica/client/RouteLocation;
+	public final fun getFrom ()Lcz/davidkurzica/client/Location;
 	public final fun getTime ()Lcz/davidkurzica/client/RouteTime;
-	public final fun getTo ()Lcz/davidkurzica/client/RouteLocation;
+	public final fun getTo ()Lcz/davidkurzica/client/Location;
 	public final fun getVia ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -710,8 +710,8 @@ public final class cz/davidkurzica/client/SpiderRouting {
 	public static synthetic fun nextPage$default (Lcz/davidkurzica/client/SpiderRouting;Lcz/davidkurzica/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun previousPage (Lcz/davidkurzica/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun previousPage$default (Lcz/davidkurzica/client/SpiderRouting;Lcz/davidkurzica/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun route (Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun route$default (Lcz/davidkurzica/client/SpiderRouting;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteLocation;Lcz/davidkurzica/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun route (Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun route$default (Lcz/davidkurzica/client/SpiderRouting;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/Location;Lcz/davidkurzica/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun trip (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun trip$default (Lcz/davidkurzica/client/SpiderRouting;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
@@ -937,14 +937,14 @@ public final class cz/davidkurzica/client/ViaLocation$PassThrough : cz/davidkurz
 }
 
 public final class cz/davidkurzica/client/ViaLocation$Visit : cz/davidkurzica/client/ViaLocation {
-	public synthetic fun <init> (Lcz/davidkurzica/client/RouteLocation;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lcz/davidkurzica/client/RouteLocation;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Lcz/davidkurzica/client/RouteLocation;
+	public synthetic fun <init> (Lcz/davidkurzica/client/Location;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lcz/davidkurzica/client/Location;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Lcz/davidkurzica/client/Location;
 	public final fun component2-UwyO8pc ()J
-	public final fun copy-HG0u8IE (Lcz/davidkurzica/client/RouteLocation;J)Lcz/davidkurzica/client/ViaLocation$Visit;
-	public static synthetic fun copy-HG0u8IE$default (Lcz/davidkurzica/client/ViaLocation$Visit;Lcz/davidkurzica/client/RouteLocation;JILjava/lang/Object;)Lcz/davidkurzica/client/ViaLocation$Visit;
+	public final fun copy-HG0u8IE (Lcz/davidkurzica/client/Location;J)Lcz/davidkurzica/client/ViaLocation$Visit;
+	public static synthetic fun copy-HG0u8IE$default (Lcz/davidkurzica/client/ViaLocation$Visit;Lcz/davidkurzica/client/Location;JILjava/lang/Object;)Lcz/davidkurzica/client/ViaLocation$Visit;
 	public fun equals (Ljava/lang/Object;)Z
-	public final fun getLocation ()Lcz/davidkurzica/client/RouteLocation;
+	public final fun getLocation ()Lcz/davidkurzica/client/Location;
 	public final fun getMinimumWaitTime-UwyO8pc ()J
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;

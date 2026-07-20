@@ -16,8 +16,8 @@ class SpiderRouting(
     private val routing = RoutingClient(baseUrl, apiKey)
 
     suspend fun route(
-        from: RouteLocation,
-        to: RouteLocation,
+        from: Location,
+        to: Location,
         time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
         first: Int? = DEFAULT_FIRST,
         via: List<ViaLocation> = emptyList(),
@@ -93,9 +93,9 @@ object Routing : SpiderFeature<RoutingConfig, SpiderRouting> {
         SpiderRouting(baseUrl = baseUrl, apiKey = apiKey)
 }
 
-sealed interface RouteLocation {
-    data class StopId(val id: String) : RouteLocation
-    data class Coordinates(val lat: Double, val lon: Double) : RouteLocation
+sealed interface Location {
+    data class Coordinate(val latitude: Double, val longitude: Double) : Location
+    data class Stop(val id: String) : Location
 }
 
 sealed interface ViaLocation {
@@ -112,7 +112,7 @@ sealed interface ViaLocation {
      * forces at least that dwell between arriving and leaving the via stop.
      */
     data class Visit(
-        val location: RouteLocation,
+        val location: Location,
         val minimumWaitTime: Duration = Duration.ZERO,
     ) : ViaLocation
 }
@@ -124,8 +124,8 @@ sealed interface RouteTime {
 }
 
 data class RouteRequest(
-    val from: RouteLocation,
-    val to: RouteLocation,
+    val from: Location,
+    val to: Location,
     val time: RouteTime,
     val via: List<ViaLocation> = emptyList(),
 )

@@ -293,10 +293,10 @@ private fun bikesAllowedFromWire(raw: String?): BikesAllowed? = when (raw) {
     else -> null
 }
 
-private fun RouteLocation.toInput(): PlanLabeledLocationInput = PlanLabeledLocationInput(
+private fun Location.toInput(): PlanLabeledLocationInput = PlanLabeledLocationInput(
     location = when (this) {
-        is RouteLocation.StopId -> PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = id))
-        is RouteLocation.Coordinates -> PlanLocationInput(coordinate = PlanCoordinateInput(latitude = lat, longitude = lon))
+        is Location.Stop -> PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = id))
+        is Location.Coordinate -> PlanLocationInput(coordinate = PlanCoordinateInput(latitude = latitude, longitude = longitude))
     },
 )
 
@@ -305,9 +305,9 @@ private fun ViaLocation.toInput(): PlanViaLocationInput = when (this) {
     is ViaLocation.Visit -> {
         val wait = minimumWaitTime.takeIf { it > Duration.ZERO }?.toIsoString()
         val visit = when (val loc = location) {
-            is RouteLocation.StopId -> PlanVisitViaLocationInput(stopLocationIds = listOf(loc.id), minimumWaitTime = wait)
-            is RouteLocation.Coordinates -> PlanVisitViaLocationInput(
-                coordinate = PlanCoordinateInput(latitude = loc.lat, longitude = loc.lon),
+            is Location.Stop -> PlanVisitViaLocationInput(stopLocationIds = listOf(loc.id), minimumWaitTime = wait)
+            is Location.Coordinate -> PlanVisitViaLocationInput(
+                coordinate = PlanCoordinateInput(latitude = loc.latitude, longitude = loc.longitude),
                 minimumWaitTime = wait,
             )
         }

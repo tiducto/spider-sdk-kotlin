@@ -3,7 +3,7 @@
 
 package cz.davidkurzica.client.js
 
-import cz.davidkurzica.client.RouteLocation as CoreRouteLocation
+import cz.davidkurzica.client.Location as CoreLocation
 import cz.davidkurzica.client.SpiderError as CoreSpiderError
 import cz.davidkurzica.client.SpiderResult as CoreSpiderResult
 import kotlin.js.ExperimentalJsExport
@@ -12,7 +12,7 @@ import kotlin.js.JsExport
 /**
  * JS/TS-facing facade for the Spider SDK.
  *
- * The rich Kotlin API in commonMain (`cz.davidkurzica.client`: sealed RouteLocation/RouteTime,
+ * The rich Kotlin API in commonMain (`cz.davidkurzica.client`: sealed Location/RouteTime,
  * SpiderResult, immutable collections, `kotlin.time.Instant`/`Duration`, the `search { filter { … } }`
  * DSL) is kept intact for JVM/Android/Apple consumers. This jsMain layer, in the dedicated
  * `cz.davidkurzica.client.js` package, wraps it in export-safe shapes so a Vue/TS app consumes the
@@ -56,25 +56,25 @@ internal fun <D, T> CoreSpiderResult<D>.toJs(map: (D) -> T): SpiderResult<T> = w
 }
 
 /**
- * An origin/destination for [SpiderRouting]. Opaque handle around the sealed core RouteLocation;
- * build one with [stopLocation] or [coordinateLocation].
+ * An origin/destination for [SpiderRouting]. Opaque handle around the sealed core [CoreLocation];
+ * build one with [Location.coordinate] or [Location.stop].
  */
 @JsExport
-class RouteLocation internal constructor(internal val domain: CoreRouteLocation) {
+class Location internal constructor(internal val domain: CoreLocation) {
     val kind: String = when (domain) {
-        is CoreRouteLocation.StopId -> "stop"
-        is CoreRouteLocation.Coordinates -> "coordinates"
+        is CoreLocation.Stop -> "stop"
+        is CoreLocation.Coordinate -> "coordinate"
     }
-    val stopId: String? = (domain as? CoreRouteLocation.StopId)?.id
-    val lat: Double? = (domain as? CoreRouteLocation.Coordinates)?.lat
-    val lon: Double? = (domain as? CoreRouteLocation.Coordinates)?.lon
+    val stopId: String? = (domain as? CoreLocation.Stop)?.id
+    val latitude: Double? = (domain as? CoreLocation.Coordinate)?.latitude
+    val longitude: Double? = (domain as? CoreLocation.Coordinate)?.longitude
+
+    companion object {
+        /** A coordinate location (WGS84 degrees). */
+        fun coordinate(latitude: Double, longitude: Double): Location =
+            Location(CoreLocation.Coordinate(latitude = latitude, longitude = longitude))
+
+        /** A stop-id location (opaque feed-prefixed gtfsId, e.g. "1:U123"). */
+        fun stop(id: String): Location = Location(CoreLocation.Stop(id))
+    }
 }
-
-/** A stop-id location (opaque feed-prefixed gtfsId, e.g. "1:U123"). */
-@JsExport
-fun stopLocation(id: String): RouteLocation = RouteLocation(CoreRouteLocation.StopId(id))
-
-/** A coordinate location (WGS84 degrees). */
-@JsExport
-fun coordinateLocation(lat: Double, lon: Double): RouteLocation =
-    RouteLocation(CoreRouteLocation.Coordinates(lat = lat, lon = lon))

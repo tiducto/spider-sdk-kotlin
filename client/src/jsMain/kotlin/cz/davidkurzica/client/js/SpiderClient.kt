@@ -24,7 +24,7 @@ import kotlin.time.Instant
  *
  * ```ts
  * const client = new SpiderClient("https://brno.api.transitapi.eu", apiKey)
- * const res = await client.routing.plan(coordinateLocation(49.19, 16.61), coordinateLocation(49.23, 16.58))
+ * const res = await client.routing.plan(Location.coordinate(49.19, 16.61), Location.coordinate(49.23, 16.58))
  * if (res.isSuccess) drawItineraries(res.data.edges)
  * ```
  */
@@ -50,8 +50,8 @@ class SpiderRouting internal constructor(private val delegate: CoreSpiderRouting
 
     /** Plan a trip departing at [departAtEpochMs] (null = now). [first] caps the number of itineraries. */
     suspend fun plan(
-        from: RouteLocation,
-        to: RouteLocation,
+        from: Location,
+        to: Location,
         departAtEpochMs: Double? = null,
         first: Int = DEFAULT_FIRST,
     ): SpiderResult<Route> {
@@ -61,8 +61,8 @@ class SpiderRouting internal constructor(private val delegate: CoreSpiderRouting
 
     /** Plan a trip that must arrive by [arriveByEpochMs]. */
     suspend fun planArriveBy(
-        from: RouteLocation,
-        to: RouteLocation,
+        from: Location,
+        to: Location,
         arriveByEpochMs: Double,
         first: Int = DEFAULT_FIRST,
     ): SpiderResult<Route> {
