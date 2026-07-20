@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "eu.tiducto"
-version = "1.0.0-SNAPSHOT"
+version = "0.1.0"
 
 kotlin {
     jvmToolchain(25)
@@ -28,14 +28,32 @@ kotlin {
     macosX64()
 
     js(IR) {
+        // Vue/npm-consumable library artifact (package.json + .mjs + .d.mts) — mirrors how
+        // spider-services' web/shared exposes its KMP module to the Vue dashboard. The JS-only
+        // compiler flags live here (not in a shared compilerOptions block) so the JVM/Apple/Wasm
+        // compilations never receive them and reject the unknown arguments.
+        outputModuleName = "spider-sdk-client"
         browser()
         nodejs()
+        binaries.library()
+        generateTypeScriptDefinitions()
+        compilerOptions {
+            // ES2015 classes for a modern, tree-shakeable bundle. Exported suspend funcs return a
+            // JS Promise by default since Kotlin 2.4. No -Xes-long-as-bigint: the jsMain facade
+            // exposes Double, never Long, so nothing changes the internal transport's Long handling.
+            target = "es2015"
+            freeCompilerArgs.add("-Xes-classes")
+        }
     }
 
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         nodejs()
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)
+    abiValidation {
     }
 
     sourceSets {
@@ -115,3 +133,78 @@ publishing {
         }
     }
 }
+
+// The Kotlin/JS library distribution is the npm-publishable artifact (mirrors the Maven publish
+// above, but for the JS target → GitHub Packages npm registry under the @tiducto scope). This
+// post-processes the generated dist so it can be `npm publish`ed and consumed by a Vite app:
+//   1. Scope the package name + point publishConfig at GitHub Packages npm.
+//   2. Drop sourcemaps — they reference intermediate Kotlin build paths that don't survive, so a
+//      consuming Vite build only warns about missing sources (same reasoning as web/shared).
+// See .github/workflows/publish-npm.yml for the actual publish (uses the built-in GITHUB_TOKEN).
+tasks.named("jsBrowserDevelopmentLibraryDistribution") {
+    val distDir = layout.buildDirectory.dir("dist/js/developmentLibrary")
+    doLast {
+        val dir = distDir.get().asFile
+        dir.listFiles()?.forEach { f ->
+            when {
+                f.name.endsWith(".mjs.map") -> f.delete()
+                f.name.endsWith(".mjs") -> {
+                    val stripped = f.readText().replace(Regex("\n//# sourceMappingURL=\\S+\\.map\\s*$"), "")
+                    f.writeText(stripped)
+                }
+            }
+        }
+
+        val pkg = dir.resolve("package.json")
+        pkg.writeText(
+            pkg.readText().replace(
+                "  \"name\": \"spider-sdk-client\",",
+                """
+                |  "name": "@tiducto/spider-sdk-client",
+                |  "description": "Spider transit API SDK for JS/TS — trip planning, stop search and realtime.",
+                |  "repository": {
+                |    "type": "git",
+                |    "url": "git+https://github.com/tiducto/spider-sdk-kotlin.git"
+                |  },
+                |  "license": "UNLICENSED",
+                |  "publishConfig": {
+                |    "registry": "https://npm.pkg.github.com"
+                |  },
+                """.trimMargin(),
+            ),
+        )
+    }
+}
+
+// Golden snapshot of the exported TypeScript surface (the @JsExport jsMain facade). checkJsApi fails
+// if the generated .d.mts drifts from the committed golden, so any facade change lands as a reviewable
+// diff; run :client:updateJsApi to accept it. Complements checkKotlinAbi (which snapshots the Kotlin
+// ABI): together, a core change and a facade change are each forced into a committed diff, so the
+// facade can't silently fall out of parity with the commonMain client. Type/surface only — no runtime
+// response data is parsed or fetched.
+val generatedJsDts = layout.buildDirectory.file("dist/js/developmentLibrary/spider-sdk-client.d.mts")
+val jsApiGolden = layout.projectDirectory.file("api/spider-sdk-client.d.mts")
+
+tasks.register("updateJsApi") {
+    dependsOn("jsBrowserDevelopmentLibraryDistribution")
+    doLast {
+        jsApiGolden.asFile.parentFile.mkdirs()
+        generatedJsDts.get().asFile.copyTo(jsApiGolden.asFile, overwrite = true)
+    }
+}
+
+val checkJsApi = tasks.register("checkJsApi") {
+    dependsOn("jsBrowserDevelopmentLibraryDistribution")
+    doLast {
+        val generated = generatedJsDts.get().asFile
+        val golden = jsApiGolden.asFile
+        if (!golden.exists() || generated.readText() != golden.readText()) {
+            throw GradleException(
+                "JS API drift: generated spider-sdk-client.d.mts differs from api/spider-sdk-client.d.mts. " +
+                    "Review the change, then run ':client:updateJsApi' to accept it.",
+            )
+        }
+    }
+}
+
+tasks.named("check") { dependsOn(checkJsApi) }

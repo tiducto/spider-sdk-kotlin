@@ -13,7 +13,7 @@ Kotlin Multiplatform SDK for the Spider transit API — trip planning, stop sear
 
 ## Install
 
-Published to GitHub Packages. Add the repository and dependency:
+### Kotlin (Gradle, GitHub Packages Maven)
 
 ```kotlin
 repositories {
@@ -26,14 +26,46 @@ repositories {
 }
 
 dependencies {
-    implementation("eu.tiducto:spider-sdk-kotlin-client:1.0.0-SNAPSHOT")
+    implementation("eu.tiducto:spider-sdk-kotlin-client:0.1.0")
 }
 ```
+
+### JavaScript / TypeScript (GitHub Packages npm)
+
+The JS target ships as a typed npm package, `@tiducto/spider-sdk-client`, published by the
+**publish npm** workflow (manual dispatch). Point npm at GitHub Packages for the `@tiducto` scope:
+
+```
+# .npmrc
+@tiducto:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN} # a PAT with read:packages
+```
+
+```
+npm install @tiducto/spider-sdk-client
+```
+
+```ts
+import { SpiderClient, coordinateLocation } from '@tiducto/spider-sdk-client'
+
+const client = new SpiderClient('https://brno.api.transitapi.eu', apiKey)
+const res = await client.routing.plan(
+  coordinateLocation(49.19, 16.61),
+  coordinateLocation(49.23, 16.58),
+)
+if (res.isSuccess) res.data!.edges.forEach((e) => console.log(e.itinerary))
+```
+
+The JS surface is an export-safe facade (the `cz.davidkurzica.client.js` package): sealed types become
+factory functions (`stopLocation`/`coordinateLocation`), `SpiderResult` becomes `{ isSuccess, data,
+error }`, times are epoch-millis `number`s, enums are their name strings, and suspend functions return
+Promises. The names match the Kotlin API but the shapes are JS-friendly; the rich Kotlin API is
+unchanged for JVM/Android/Apple consumers.
 
 ## Usage
 
 ```kotlin
-val client = SpiderClient(baseUrl = "https://api.example.eu/{project}/{env}", apiKey = "spk_…") {
+val client = SpiderClient(baseUrl = "https://brno.api.transitapi.eu", apiKey = "spk_…") {
     install(Routing)
     install(Stops)
     install(Realtime)
