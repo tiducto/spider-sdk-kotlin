@@ -127,34 +127,34 @@ abstract interface <#A: kotlin/Any, #B: kotlin/Any> eu.tiducto.spider.client/Spi
     abstract fun newConfig(): #A // eu.tiducto.spider.client/SpiderFeature.newConfig|newConfig(){}[0]
 }
 
-sealed interface eu.tiducto.spider.client/RouteLocation { // eu.tiducto.spider.client/RouteLocation|null[0]
-    final class Coordinates : eu.tiducto.spider.client/RouteLocation { // eu.tiducto.spider.client/RouteLocation.Coordinates|null[0]
-        constructor <init>(kotlin/Double, kotlin/Double) // eu.tiducto.spider.client/RouteLocation.Coordinates.<init>|<init>(kotlin.Double;kotlin.Double){}[0]
+sealed interface eu.tiducto.spider.client/Location { // eu.tiducto.spider.client/Location|null[0]
+    final class Coordinate : eu.tiducto.spider.client/Location { // eu.tiducto.spider.client/Location.Coordinate|null[0]
+        constructor <init>(kotlin/Double, kotlin/Double) // eu.tiducto.spider.client/Location.Coordinate.<init>|<init>(kotlin.Double;kotlin.Double){}[0]
 
-        final val lat // eu.tiducto.spider.client/RouteLocation.Coordinates.lat|{}lat[0]
-            final fun <get-lat>(): kotlin/Double // eu.tiducto.spider.client/RouteLocation.Coordinates.lat.<get-lat>|<get-lat>(){}[0]
-        final val lon // eu.tiducto.spider.client/RouteLocation.Coordinates.lon|{}lon[0]
-            final fun <get-lon>(): kotlin/Double // eu.tiducto.spider.client/RouteLocation.Coordinates.lon.<get-lon>|<get-lon>(){}[0]
+        final val latitude // eu.tiducto.spider.client/Location.Coordinate.latitude|{}latitude[0]
+            final fun <get-latitude>(): kotlin/Double // eu.tiducto.spider.client/Location.Coordinate.latitude.<get-latitude>|<get-latitude>(){}[0]
+        final val longitude // eu.tiducto.spider.client/Location.Coordinate.longitude|{}longitude[0]
+            final fun <get-longitude>(): kotlin/Double // eu.tiducto.spider.client/Location.Coordinate.longitude.<get-longitude>|<get-longitude>(){}[0]
 
-        final fun component1(): kotlin/Double // eu.tiducto.spider.client/RouteLocation.Coordinates.component1|component1(){}[0]
-        final fun component2(): kotlin/Double // eu.tiducto.spider.client/RouteLocation.Coordinates.component2|component2(){}[0]
-        final fun copy(kotlin/Double = ..., kotlin/Double = ...): eu.tiducto.spider.client/RouteLocation.Coordinates // eu.tiducto.spider.client/RouteLocation.Coordinates.copy|copy(kotlin.Double;kotlin.Double){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/RouteLocation.Coordinates.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/RouteLocation.Coordinates.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // eu.tiducto.spider.client/RouteLocation.Coordinates.toString|toString(){}[0]
+        final fun component1(): kotlin/Double // eu.tiducto.spider.client/Location.Coordinate.component1|component1(){}[0]
+        final fun component2(): kotlin/Double // eu.tiducto.spider.client/Location.Coordinate.component2|component2(){}[0]
+        final fun copy(kotlin/Double = ..., kotlin/Double = ...): eu.tiducto.spider.client/Location.Coordinate // eu.tiducto.spider.client/Location.Coordinate.copy|copy(kotlin.Double;kotlin.Double){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/Location.Coordinate.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/Location.Coordinate.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/Location.Coordinate.toString|toString(){}[0]
     }
 
-    final class StopId : eu.tiducto.spider.client/RouteLocation { // eu.tiducto.spider.client/RouteLocation.StopId|null[0]
-        constructor <init>(kotlin/String) // eu.tiducto.spider.client/RouteLocation.StopId.<init>|<init>(kotlin.String){}[0]
+    final class Stop : eu.tiducto.spider.client/Location { // eu.tiducto.spider.client/Location.Stop|null[0]
+        constructor <init>(kotlin/String) // eu.tiducto.spider.client/Location.Stop.<init>|<init>(kotlin.String){}[0]
 
-        final val id // eu.tiducto.spider.client/RouteLocation.StopId.id|{}id[0]
-            final fun <get-id>(): kotlin/String // eu.tiducto.spider.client/RouteLocation.StopId.id.<get-id>|<get-id>(){}[0]
+        final val id // eu.tiducto.spider.client/Location.Stop.id|{}id[0]
+            final fun <get-id>(): kotlin/String // eu.tiducto.spider.client/Location.Stop.id.<get-id>|<get-id>(){}[0]
 
-        final fun component1(): kotlin/String // eu.tiducto.spider.client/RouteLocation.StopId.component1|component1(){}[0]
-        final fun copy(kotlin/String = ...): eu.tiducto.spider.client/RouteLocation.StopId // eu.tiducto.spider.client/RouteLocation.StopId.copy|copy(kotlin.String){}[0]
-        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/RouteLocation.StopId.equals|equals(kotlin.Any?){}[0]
-        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/RouteLocation.StopId.hashCode|hashCode(){}[0]
-        final fun toString(): kotlin/String // eu.tiducto.spider.client/RouteLocation.StopId.toString|toString(){}[0]
+        final fun component1(): kotlin/String // eu.tiducto.spider.client/Location.Stop.component1|component1(){}[0]
+        final fun copy(kotlin/String = ...): eu.tiducto.spider.client/Location.Stop // eu.tiducto.spider.client/Location.Stop.copy|copy(kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/Location.Stop.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/Location.Stop.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/Location.Stop.toString|toString(){}[0]
     }
 }
 
@@ -322,16 +322,16 @@ sealed interface eu.tiducto.spider.client/ViaLocation { // eu.tiducto.spider.cli
     }
 
     final class Visit : eu.tiducto.spider.client/ViaLocation { // eu.tiducto.spider.client/ViaLocation.Visit|null[0]
-        constructor <init>(eu.tiducto.spider.client/RouteLocation, kotlin.time/Duration = ...) // eu.tiducto.spider.client/ViaLocation.Visit.<init>|<init>(eu.tiducto.spider.client.RouteLocation;kotlin.time.Duration){}[0]
+        constructor <init>(eu.tiducto.spider.client/Location, kotlin.time/Duration = ...) // eu.tiducto.spider.client/ViaLocation.Visit.<init>|<init>(eu.tiducto.spider.client.Location;kotlin.time.Duration){}[0]
 
         final val location // eu.tiducto.spider.client/ViaLocation.Visit.location|{}location[0]
-            final fun <get-location>(): eu.tiducto.spider.client/RouteLocation // eu.tiducto.spider.client/ViaLocation.Visit.location.<get-location>|<get-location>(){}[0]
+            final fun <get-location>(): eu.tiducto.spider.client/Location // eu.tiducto.spider.client/ViaLocation.Visit.location.<get-location>|<get-location>(){}[0]
         final val minimumWaitTime // eu.tiducto.spider.client/ViaLocation.Visit.minimumWaitTime|{}minimumWaitTime[0]
             final fun <get-minimumWaitTime>(): kotlin.time/Duration // eu.tiducto.spider.client/ViaLocation.Visit.minimumWaitTime.<get-minimumWaitTime>|<get-minimumWaitTime>(){}[0]
 
-        final fun component1(): eu.tiducto.spider.client/RouteLocation // eu.tiducto.spider.client/ViaLocation.Visit.component1|component1(){}[0]
+        final fun component1(): eu.tiducto.spider.client/Location // eu.tiducto.spider.client/ViaLocation.Visit.component1|component1(){}[0]
         final fun component2(): kotlin.time/Duration // eu.tiducto.spider.client/ViaLocation.Visit.component2|component2(){}[0]
-        final fun copy(eu.tiducto.spider.client/RouteLocation = ..., kotlin.time/Duration = ...): eu.tiducto.spider.client/ViaLocation.Visit // eu.tiducto.spider.client/ViaLocation.Visit.copy|copy(eu.tiducto.spider.client.RouteLocation;kotlin.time.Duration){}[0]
+        final fun copy(eu.tiducto.spider.client/Location = ..., kotlin.time/Duration = ...): eu.tiducto.spider.client/ViaLocation.Visit // eu.tiducto.spider.client/ViaLocation.Visit.copy|copy(eu.tiducto.spider.client.Location;kotlin.time.Duration){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/ViaLocation.Visit.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/ViaLocation.Visit.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // eu.tiducto.spider.client/ViaLocation.Visit.toString|toString(){}[0]
@@ -722,22 +722,22 @@ final class eu.tiducto.spider.client/RoutePageInfo { // eu.tiducto.spider.client
 }
 
 final class eu.tiducto.spider.client/RouteRequest { // eu.tiducto.spider.client/RouteRequest|null[0]
-    constructor <init>(eu.tiducto.spider.client/RouteLocation, eu.tiducto.spider.client/RouteLocation, eu.tiducto.spider.client/RouteTime, kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ...) // eu.tiducto.spider.client/RouteRequest.<init>|<init>(eu.tiducto.spider.client.RouteLocation;eu.tiducto.spider.client.RouteLocation;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>){}[0]
+    constructor <init>(eu.tiducto.spider.client/Location, eu.tiducto.spider.client/Location, eu.tiducto.spider.client/RouteTime, kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ...) // eu.tiducto.spider.client/RouteRequest.<init>|<init>(eu.tiducto.spider.client.Location;eu.tiducto.spider.client.Location;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>){}[0]
 
-    final val from // eu.tiducto.spider.client/RouteRequest.from|{}from[0]
-        final fun <get-from>(): eu.tiducto.spider.client/RouteLocation // eu.tiducto.spider.client/RouteRequest.from.<get-from>|<get-from>(){}[0]
+    final val destination // eu.tiducto.spider.client/RouteRequest.destination|{}destination[0]
+        final fun <get-destination>(): eu.tiducto.spider.client/Location // eu.tiducto.spider.client/RouteRequest.destination.<get-destination>|<get-destination>(){}[0]
+    final val origin // eu.tiducto.spider.client/RouteRequest.origin|{}origin[0]
+        final fun <get-origin>(): eu.tiducto.spider.client/Location // eu.tiducto.spider.client/RouteRequest.origin.<get-origin>|<get-origin>(){}[0]
     final val time // eu.tiducto.spider.client/RouteRequest.time|{}time[0]
         final fun <get-time>(): eu.tiducto.spider.client/RouteTime // eu.tiducto.spider.client/RouteRequest.time.<get-time>|<get-time>(){}[0]
-    final val to // eu.tiducto.spider.client/RouteRequest.to|{}to[0]
-        final fun <get-to>(): eu.tiducto.spider.client/RouteLocation // eu.tiducto.spider.client/RouteRequest.to.<get-to>|<get-to>(){}[0]
     final val via // eu.tiducto.spider.client/RouteRequest.via|{}via[0]
         final fun <get-via>(): kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> // eu.tiducto.spider.client/RouteRequest.via.<get-via>|<get-via>(){}[0]
 
-    final fun component1(): eu.tiducto.spider.client/RouteLocation // eu.tiducto.spider.client/RouteRequest.component1|component1(){}[0]
-    final fun component2(): eu.tiducto.spider.client/RouteLocation // eu.tiducto.spider.client/RouteRequest.component2|component2(){}[0]
+    final fun component1(): eu.tiducto.spider.client/Location // eu.tiducto.spider.client/RouteRequest.component1|component1(){}[0]
+    final fun component2(): eu.tiducto.spider.client/Location // eu.tiducto.spider.client/RouteRequest.component2|component2(){}[0]
     final fun component3(): eu.tiducto.spider.client/RouteTime // eu.tiducto.spider.client/RouteRequest.component3|component3(){}[0]
     final fun component4(): kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> // eu.tiducto.spider.client/RouteRequest.component4|component4(){}[0]
-    final fun copy(eu.tiducto.spider.client/RouteLocation = ..., eu.tiducto.spider.client/RouteLocation = ..., eu.tiducto.spider.client/RouteTime = ..., kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ...): eu.tiducto.spider.client/RouteRequest // eu.tiducto.spider.client/RouteRequest.copy|copy(eu.tiducto.spider.client.RouteLocation;eu.tiducto.spider.client.RouteLocation;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>){}[0]
+    final fun copy(eu.tiducto.spider.client/Location = ..., eu.tiducto.spider.client/Location = ..., eu.tiducto.spider.client/RouteTime = ..., kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ...): eu.tiducto.spider.client/RouteRequest // eu.tiducto.spider.client/RouteRequest.copy|copy(eu.tiducto.spider.client.Location;eu.tiducto.spider.client.Location;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/RouteRequest.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/RouteRequest.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // eu.tiducto.spider.client/RouteRequest.toString|toString(){}[0]
@@ -857,8 +857,8 @@ final class eu.tiducto.spider.client/SpiderRouting { // eu.tiducto.spider.client
 
     final suspend fun departures(kotlin/String, kotlin/Int = ..., kotlin.time/Instant? = ..., kotlin.time/Duration = ...): eu.tiducto.spider.client/SpiderResult<kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Departure>> // eu.tiducto.spider.client/SpiderRouting.departures|departures(kotlin.String;kotlin.Int;kotlin.time.Instant?;kotlin.time.Duration){}[0]
     final suspend fun nextPage(eu.tiducto.spider.client/Route, kotlin/Int? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route>? // eu.tiducto.spider.client/SpiderRouting.nextPage|nextPage(eu.tiducto.spider.client.Route;kotlin.Int?){}[0]
+    final suspend fun plan(eu.tiducto.spider.client/Location, eu.tiducto.spider.client/Location, eu.tiducto.spider.client/RouteTime = ..., kotlin/Int? = ..., kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route> // eu.tiducto.spider.client/SpiderRouting.plan|plan(eu.tiducto.spider.client.Location;eu.tiducto.spider.client.Location;eu.tiducto.spider.client.RouteTime;kotlin.Int?;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>){}[0]
     final suspend fun previousPage(eu.tiducto.spider.client/Route, kotlin/Int? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route>? // eu.tiducto.spider.client/SpiderRouting.previousPage|previousPage(eu.tiducto.spider.client.Route;kotlin.Int?){}[0]
-    final suspend fun route(eu.tiducto.spider.client/RouteLocation, eu.tiducto.spider.client/RouteLocation, eu.tiducto.spider.client/RouteTime = ..., kotlin/Int? = ..., kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route> // eu.tiducto.spider.client/SpiderRouting.route|route(eu.tiducto.spider.client.RouteLocation;eu.tiducto.spider.client.RouteLocation;eu.tiducto.spider.client.RouteTime;kotlin.Int?;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>){}[0]
     final suspend fun trip(kotlin/String, kotlin/String? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/TripDetails> // eu.tiducto.spider.client/SpiderRouting.trip|trip(kotlin.String;kotlin.String?){}[0]
 }
 
@@ -1320,18 +1320,6 @@ final class eu.tiducto.spider.client.js/RouteEdge { // eu.tiducto.spider.client.
 }
 
 // Targets: [js]
-final class eu.tiducto.spider.client.js/RouteLocation { // eu.tiducto.spider.client.js/RouteLocation|null[0]
-    final val kind // eu.tiducto.spider.client.js/RouteLocation.kind|{}kind[0]
-        final fun <get-kind>(): kotlin/String // eu.tiducto.spider.client.js/RouteLocation.kind.<get-kind>|<get-kind>(){}[0]
-    final val lat // eu.tiducto.spider.client.js/RouteLocation.lat|{}lat[0]
-        final fun <get-lat>(): kotlin/Double? // eu.tiducto.spider.client.js/RouteLocation.lat.<get-lat>|<get-lat>(){}[0]
-    final val lon // eu.tiducto.spider.client.js/RouteLocation.lon|{}lon[0]
-        final fun <get-lon>(): kotlin/Double? // eu.tiducto.spider.client.js/RouteLocation.lon.<get-lon>|<get-lon>(){}[0]
-    final val stopId // eu.tiducto.spider.client.js/RouteLocation.stopId|{}stopId[0]
-        final fun <get-stopId>(): kotlin/String? // eu.tiducto.spider.client.js/RouteLocation.stopId.<get-stopId>|<get-stopId>(){}[0]
-}
-
-// Targets: [js]
 final class eu.tiducto.spider.client.js/RoutePageInfo { // eu.tiducto.spider.client.js/RoutePageInfo|null[0]
     final val endCursor // eu.tiducto.spider.client.js/RoutePageInfo.endCursor|{}endCursor[0]
         final fun <get-endCursor>(): kotlin/String? // eu.tiducto.spider.client.js/RoutePageInfo.endCursor.<get-endCursor>|<get-endCursor>(){}[0]
@@ -1410,6 +1398,23 @@ final class eu.tiducto.spider.client.js/SpiderError { // eu.tiducto.spider.clien
 }
 
 // Targets: [js]
+final class eu.tiducto.spider.client.js/SpiderLocation { // eu.tiducto.spider.client.js/SpiderLocation|null[0]
+    final val kind // eu.tiducto.spider.client.js/SpiderLocation.kind|{}kind[0]
+        final fun <get-kind>(): kotlin/String // eu.tiducto.spider.client.js/SpiderLocation.kind.<get-kind>|<get-kind>(){}[0]
+    final val latitude // eu.tiducto.spider.client.js/SpiderLocation.latitude|{}latitude[0]
+        final fun <get-latitude>(): kotlin/Double? // eu.tiducto.spider.client.js/SpiderLocation.latitude.<get-latitude>|<get-latitude>(){}[0]
+    final val longitude // eu.tiducto.spider.client.js/SpiderLocation.longitude|{}longitude[0]
+        final fun <get-longitude>(): kotlin/Double? // eu.tiducto.spider.client.js/SpiderLocation.longitude.<get-longitude>|<get-longitude>(){}[0]
+    final val stopId // eu.tiducto.spider.client.js/SpiderLocation.stopId|{}stopId[0]
+        final fun <get-stopId>(): kotlin/String? // eu.tiducto.spider.client.js/SpiderLocation.stopId.<get-stopId>|<get-stopId>(){}[0]
+
+    final object Companion { // eu.tiducto.spider.client.js/SpiderLocation.Companion|null[0]
+        final fun coordinate(kotlin/Double, kotlin/Double): eu.tiducto.spider.client.js/SpiderLocation // eu.tiducto.spider.client.js/SpiderLocation.Companion.coordinate|coordinate(kotlin.Double;kotlin.Double){}[0]
+        final fun stop(kotlin/String): eu.tiducto.spider.client.js/SpiderLocation // eu.tiducto.spider.client.js/SpiderLocation.Companion.stop|stop(kotlin.String){}[0]
+    }
+}
+
+// Targets: [js]
 final class eu.tiducto.spider.client.js/SpiderRealtime { // eu.tiducto.spider.client.js/SpiderRealtime|null[0]
     final suspend fun alerts(): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/ServiceAlerts> // eu.tiducto.spider.client.js/SpiderRealtime.alerts|alerts(){}[0]
     final suspend fun delays(kotlin/Array<kotlin/String>): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/TripDelays> // eu.tiducto.spider.client.js/SpiderRealtime.delays|delays(kotlin.Array<kotlin.String>){}[0]
@@ -1421,8 +1426,8 @@ final class eu.tiducto.spider.client.js/SpiderRealtime { // eu.tiducto.spider.cl
 final class eu.tiducto.spider.client.js/SpiderRouting { // eu.tiducto.spider.client.js/SpiderRouting|null[0]
     final suspend fun departures(kotlin/String, kotlin/Int = ..., kotlin/Double? = ..., kotlin/Double = ...): eu.tiducto.spider.client.js/SpiderResult<kotlin/Array<eu.tiducto.spider.client.js/Departure>> // eu.tiducto.spider.client.js/SpiderRouting.departures|departures(kotlin.String;kotlin.Int;kotlin.Double?;kotlin.Double){}[0]
     final suspend fun nextPage(eu.tiducto.spider.client.js/Route, kotlin/Int = ...): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/Route>? // eu.tiducto.spider.client.js/SpiderRouting.nextPage|nextPage(eu.tiducto.spider.client.js.Route;kotlin.Int){}[0]
-    final suspend fun plan(eu.tiducto.spider.client.js/RouteLocation, eu.tiducto.spider.client.js/RouteLocation, kotlin/Double? = ..., kotlin/Int = ...): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/Route> // eu.tiducto.spider.client.js/SpiderRouting.plan|plan(eu.tiducto.spider.client.js.RouteLocation;eu.tiducto.spider.client.js.RouteLocation;kotlin.Double?;kotlin.Int){}[0]
-    final suspend fun planArriveBy(eu.tiducto.spider.client.js/RouteLocation, eu.tiducto.spider.client.js/RouteLocation, kotlin/Double, kotlin/Int = ...): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/Route> // eu.tiducto.spider.client.js/SpiderRouting.planArriveBy|planArriveBy(eu.tiducto.spider.client.js.RouteLocation;eu.tiducto.spider.client.js.RouteLocation;kotlin.Double;kotlin.Int){}[0]
+    final suspend fun plan(eu.tiducto.spider.client.js/SpiderLocation, eu.tiducto.spider.client.js/SpiderLocation, kotlin/Double? = ..., kotlin/Int = ...): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/Route> // eu.tiducto.spider.client.js/SpiderRouting.plan|plan(eu.tiducto.spider.client.js.SpiderLocation;eu.tiducto.spider.client.js.SpiderLocation;kotlin.Double?;kotlin.Int){}[0]
+    final suspend fun planArriveBy(eu.tiducto.spider.client.js/SpiderLocation, eu.tiducto.spider.client.js/SpiderLocation, kotlin/Double, kotlin/Int = ...): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/Route> // eu.tiducto.spider.client.js/SpiderRouting.planArriveBy|planArriveBy(eu.tiducto.spider.client.js.SpiderLocation;eu.tiducto.spider.client.js.SpiderLocation;kotlin.Double;kotlin.Int){}[0]
     final suspend fun previousPage(eu.tiducto.spider.client.js/Route, kotlin/Int = ...): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/Route>? // eu.tiducto.spider.client.js/SpiderRouting.previousPage|previousPage(eu.tiducto.spider.client.js.Route;kotlin.Int){}[0]
     final suspend fun trip(kotlin/String, kotlin/String? = ...): eu.tiducto.spider.client.js/SpiderResult<eu.tiducto.spider.client.js/TripDetails> // eu.tiducto.spider.client.js/SpiderRouting.trip|trip(kotlin.String;kotlin.String?){}[0]
 }
@@ -1551,9 +1556,3 @@ final class eu.tiducto.spider.client.js/VehiclePositions { // eu.tiducto.spider.
     final val vehicles // eu.tiducto.spider.client.js/VehiclePositions.vehicles|{}vehicles[0]
         final fun <get-vehicles>(): kotlin/Array<eu.tiducto.spider.client.js/LiveVehicle> // eu.tiducto.spider.client.js/VehiclePositions.vehicles.<get-vehicles>|<get-vehicles>(){}[0]
 }
-
-// Targets: [js]
-final fun eu.tiducto.spider.client.js/coordinateLocation(kotlin/Double, kotlin/Double): eu.tiducto.spider.client.js/RouteLocation // eu.tiducto.spider.client.js/coordinateLocation|coordinateLocation(kotlin.Double;kotlin.Double){}[0]
-
-// Targets: [js]
-final fun eu.tiducto.spider.client.js/stopLocation(kotlin/String): eu.tiducto.spider.client.js/RouteLocation // eu.tiducto.spider.client.js/stopLocation|stopLocation(kotlin.String){}[0]

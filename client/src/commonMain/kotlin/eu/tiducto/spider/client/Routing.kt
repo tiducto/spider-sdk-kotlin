@@ -15,13 +15,13 @@ class SpiderRouting(
 ) {
     private val routing = RoutingClient(baseUrl, apiKey)
 
-    suspend fun route(
-        from: RouteLocation,
-        to: RouteLocation,
+    suspend fun plan(
+        origin: Location,
+        destination: Location,
         time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
         first: Int? = DEFAULT_FIRST,
         via: List<ViaLocation> = emptyList(),
-    ): SpiderResult<Route> = page(RouteRequest(from, to, time, via), first = first)
+    ): SpiderResult<Route> = page(RouteRequest(origin, destination, time, via), first = first)
 
     /**
      * Loads the next page of itineraries (later departures). Returns null if no next page is available.
@@ -48,7 +48,7 @@ class SpiderRouting(
         throw e
     } catch (e: Exception) {
         Logger.e(throwable = e, tag = "SpiderRouting") {
-            "route failed against $baseUrl (from=${request.from} to=${request.to} first=$first before=$before after=$after)"
+            "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} first=$first before=$before after=$after)"
         }
         SpiderResult.Error(e.toSpiderError())
     }
@@ -93,9 +93,9 @@ object Routing : SpiderFeature<RoutingConfig, SpiderRouting> {
         SpiderRouting(baseUrl = baseUrl, apiKey = apiKey)
 }
 
-sealed interface RouteLocation {
-    data class StopId(val id: String) : RouteLocation
-    data class Coordinates(val lat: Double, val lon: Double) : RouteLocation
+sealed interface Location {
+    data class Coordinate(val latitude: Double, val longitude: Double) : Location
+    data class Stop(val id: String) : Location
 }
 
 sealed interface ViaLocation {
@@ -112,7 +112,7 @@ sealed interface ViaLocation {
      * forces at least that dwell between arriving and leaving the via stop.
      */
     data class Visit(
-        val location: RouteLocation,
+        val location: Location,
         val minimumWaitTime: Duration = Duration.ZERO,
     ) : ViaLocation
 }
@@ -124,8 +124,8 @@ sealed interface RouteTime {
 }
 
 data class RouteRequest(
-    val from: RouteLocation,
-    val to: RouteLocation,
+    val origin: Location,
+    val destination: Location,
     val time: RouteTime,
     val via: List<ViaLocation> = emptyList(),
 )

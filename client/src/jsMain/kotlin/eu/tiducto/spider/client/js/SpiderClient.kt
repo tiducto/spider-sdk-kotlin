@@ -24,7 +24,7 @@ import kotlin.time.Instant
  *
  * ```ts
  * const client = new SpiderClient("https://brno.api.transitapi.eu", apiKey)
- * const res = await client.routing.plan(coordinateLocation(49.19, 16.61), coordinateLocation(49.23, 16.58))
+ * const res = await client.routing.plan(Location.coordinate(49.19, 16.61), Location.stop("U1146N1"))
  * if (res.isSuccess) drawItineraries(res.data.edges)
  * ```
  */
@@ -50,24 +50,26 @@ class SpiderRouting internal constructor(private val delegate: CoreSpiderRouting
 
     /** Plan a trip departing at [departAtEpochMs] (null = now). [first] caps the number of itineraries. */
     suspend fun plan(
-        from: RouteLocation,
-        to: RouteLocation,
+        origin: SpiderLocation,
+        destination: SpiderLocation,
         departAtEpochMs: Double? = null,
         first: Int = DEFAULT_FIRST,
     ): SpiderResult<Route> {
         val time = RouteTime.DepartAt(departAtEpochMs?.toInstant() ?: Clock.System.now())
-        return delegate.route(from = from.domain, to = to.domain, time = time, first = first).toJs { Route(it) }
+        return delegate.plan(origin = origin.domain, destination = destination.domain, time = time, first = first)
+            .toJs { Route(it) }
     }
 
     /** Plan a trip that must arrive by [arriveByEpochMs]. */
     suspend fun planArriveBy(
-        from: RouteLocation,
-        to: RouteLocation,
+        origin: SpiderLocation,
+        destination: SpiderLocation,
         arriveByEpochMs: Double,
         first: Int = DEFAULT_FIRST,
     ): SpiderResult<Route> {
         val time = RouteTime.ArriveBy(arriveByEpochMs.toInstant())
-        return delegate.route(from = from.domain, to = to.domain, time = time, first = first).toJs { Route(it) }
+        return delegate.plan(origin = origin.domain, destination = destination.domain, time = time, first = first)
+            .toJs { Route(it) }
     }
 
     /** Next page of itineraries (later departures), or null if there is none. */

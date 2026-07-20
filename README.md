@@ -46,21 +46,24 @@ npm install @tiducto/spider-sdk-client
 ```
 
 ```ts
-import { SpiderClient, coordinateLocation } from '@tiducto/spider-sdk-client'
+import { SpiderClient, Location } from '@tiducto/spider-sdk-client'
 
 const client = new SpiderClient('https://brno.api.transitapi.eu', apiKey)
 const res = await client.routing.plan(
-  coordinateLocation(49.19, 16.61),
-  coordinateLocation(49.23, 16.58),
+  Location.coordinate(49.19, 16.61),
+  Location.stop('U1146N1'),
 )
 if (res.isSuccess) res.data!.edges.forEach((e) => console.log(e.itinerary))
 ```
 
 The JS surface is an export-safe facade (the `eu.tiducto.spider.client.js` package): sealed types become
-factory functions (`stopLocation`/`coordinateLocation`), `SpiderResult` becomes `{ isSuccess, data,
-error }`, times are epoch-millis `number`s, enums are their name strings, and suspend functions return
-Promises. The names match the Kotlin API but the shapes are JS-friendly; the rich Kotlin API is
-unchanged for JVM/Android/Apple consumers.
+factory functions, `SpiderResult` becomes `{ isSuccess, data, error }`, times are epoch-millis
+`number`s, enums are their name strings, and suspend functions return Promises. The names match the
+Kotlin API but the shapes are JS-friendly; the rich Kotlin API is unchanged for JVM/Android/Apple
+consumers. An origin/destination is built with `Location.coordinate(lat, lon)` or `Location.stop(id)`,
+mirroring the Kotlin `Location.Coordinate` / `Location.Stop`. (`Location` is exposed by a small
+hand-written facade shim in the npm package — `npm/index.mjs` — because Kotlin/JS `@JsExport` can't
+hoist companion factories to bare statics on the exported class.)
 
 ## Usage
 
@@ -71,9 +74,9 @@ val client = SpiderClient(baseUrl = "https://brno.api.transitapi.eu", apiKey = "
     install(Realtime)
 }
 
-when (val result = client.routing.route(
-    from = RouteLocation.StopId("U1146N175"),
-    to = RouteLocation.StopId("U1378N2834"),
+when (val result = client.routing.plan(
+    origin = Location.Stop("U1146N175"),
+    destination = Location.Stop("U1378N2834"),
 )) {
     is SpiderResult.Success -> result.data.edges.forEach { println(it.itinerary) }
     is SpiderResult.Error -> println(result.error)
