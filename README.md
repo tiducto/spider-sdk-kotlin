@@ -56,7 +56,7 @@ const res = await client.routing.plan(
 if (res.isSuccess) res.data!.edges.forEach((e) => console.log(e.itinerary))
 ```
 
-The JS surface is an export-safe facade (the `cz.davidkurzica.client.js` package): sealed types become
+The JS surface is an export-safe facade (the `eu.tiducto.spider.client.js` package): sealed types become
 factory functions (`stopLocation`/`coordinateLocation`), `SpiderResult` becomes `{ isSuccess, data,
 error }`, times are epoch-millis `number`s, enums are their name strings, and suspend functions return
 Promises. The names match the Kotlin API but the shapes are JS-friendly; the rich Kotlin API is
