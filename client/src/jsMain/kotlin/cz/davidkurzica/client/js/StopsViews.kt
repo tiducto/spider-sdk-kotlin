@@ -1,18 +1,20 @@
 @file:OptIn(ExperimentalJsExport::class)
 @file:Suppress("unused")
 
-package cz.davidkurzica.client
+package cz.davidkurzica.client.js
 
+import cz.davidkurzica.client.AdminLevel
+import cz.davidkurzica.client.Stop as CoreStop
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 
 /**
- * A stop returned by [SpiderStopsJs.search]. The administrative geography (Kotlin `Map<AdminLevel,
+ * A stop returned by [SpiderStops.search]. The administrative geography (Kotlin `Map<AdminLevel,
  * String>`) is flattened into one nullable property per level; a level the deployment wasn't
  * enriched with is null.
  */
 @JsExport
-class StopJs internal constructor(domain: Stop) {
+class Stop internal constructor(domain: CoreStop) {
     val gtfsId: String = domain.gtfsId
     val name: String = domain.name
     val lat: Double? = domain.lat

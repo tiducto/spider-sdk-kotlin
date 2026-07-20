@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "eu.tiducto"
-version = "1.0.0-SNAPSHOT"
+version = "0.1.0"
 
 kotlin {
     jvmToolchain(25)
@@ -50,6 +50,10 @@ kotlin {
     wasmJs {
         browser()
         nodejs()
+    }
+
+    @OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)
+    abiValidation {
     }
 
     sourceSets {
@@ -171,3 +175,36 @@ tasks.named("jsBrowserDevelopmentLibraryDistribution") {
         )
     }
 }
+
+// Golden snapshot of the exported TypeScript surface (the @JsExport jsMain facade). checkJsApi fails
+// if the generated .d.mts drifts from the committed golden, so any facade change lands as a reviewable
+// diff; run :client:updateJsApi to accept it. Complements checkKotlinAbi (which snapshots the Kotlin
+// ABI): together, a core change and a facade change are each forced into a committed diff, so the
+// facade can't silently fall out of parity with the commonMain client. Type/surface only — no runtime
+// response data is parsed or fetched.
+val generatedJsDts = layout.buildDirectory.file("dist/js/developmentLibrary/spider-sdk-client.d.mts")
+val jsApiGolden = layout.projectDirectory.file("api/spider-sdk-client.d.mts")
+
+tasks.register("updateJsApi") {
+    dependsOn("jsBrowserDevelopmentLibraryDistribution")
+    doLast {
+        jsApiGolden.asFile.parentFile.mkdirs()
+        generatedJsDts.get().asFile.copyTo(jsApiGolden.asFile, overwrite = true)
+    }
+}
+
+val checkJsApi = tasks.register("checkJsApi") {
+    dependsOn("jsBrowserDevelopmentLibraryDistribution")
+    doLast {
+        val generated = generatedJsDts.get().asFile
+        val golden = jsApiGolden.asFile
+        if (!golden.exists() || generated.readText() != golden.readText()) {
+            throw GradleException(
+                "JS API drift: generated spider-sdk-client.d.mts differs from api/spider-sdk-client.d.mts. " +
+                    "Review the change, then run ':client:updateJsApi' to accept it.",
+            )
+        }
+    }
+}
+
+tasks.named("check") { dependsOn(checkJsApi) }

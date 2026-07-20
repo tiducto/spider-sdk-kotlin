@@ -1,18 +1,27 @@
 @file:OptIn(ExperimentalJsExport::class)
 @file:Suppress("unused")
 
-package cz.davidkurzica.client
+package cz.davidkurzica.client.js
 
+import cz.davidkurzica.client.Departure as CoreDeparture
+import cz.davidkurzica.client.Itinerary as CoreItinerary
+import cz.davidkurzica.client.Leg as CoreLeg
+import cz.davidkurzica.client.Route as CoreRoute
+import cz.davidkurzica.client.RouteEdge as CoreRouteEdge
+import cz.davidkurzica.client.RoutePageInfo as CoreRoutePageInfo
+import cz.davidkurzica.client.RoutingError as CoreRoutingError
+import cz.davidkurzica.client.TripDetails as CoreTripDetails
+import cz.davidkurzica.client.TripStop as CoreTripStop
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 
 /** A single geographic point (WGS84 degrees). */
 @JsExport
-class LatLonJs internal constructor(val lat: Double, val lon: Double)
+class LatLon internal constructor(val lat: Double, val lon: Double)
 
 /** One transit/walk leg of an itinerary. Enum fields are the upstream name (e.g. "BUS"), or null. */
 @JsExport
-class LegJs internal constructor(domain: Leg) {
+class Leg internal constructor(domain: CoreLeg) {
     val mode: String? = domain.mode?.name
     val startScheduled: String = domain.startScheduled
     val endScheduled: String = domain.endScheduled
@@ -30,30 +39,30 @@ class LegJs internal constructor(domain: Leg) {
     val toWheelchair: String? = domain.toWheelchair?.name
 
     /** Decoded leg geometry — the SDK already decodes the wire polyline, so consumers draw directly. */
-    val geometry: Array<LatLonJs> = domain.geometry.map { LatLonJs(it.lat, it.lon) }.toTypedArray()
+    val geometry: Array<LatLon> = domain.geometry.map { LatLon(it.lat, it.lon) }.toTypedArray()
 }
 
 /** One itinerary (a full origin→destination option). */
 @JsExport
-class ItineraryJs internal constructor(domain: Itinerary) {
+class Itinerary internal constructor(domain: CoreItinerary) {
     val start: String? = domain.start
     val end: String? = domain.end
     val durationSeconds: Double = domain.durationSeconds.toDouble()
     val waitingTimeSeconds: Double? = domain.waitingTimeSeconds?.toDouble()
     val numberOfTransfers: Int = domain.numberOfTransfers
     val accessibilityScore: Double? = domain.accessibilityScore
-    val legs: Array<LegJs> = domain.legs.map { LegJs(it) }.toTypedArray()
+    val legs: Array<Leg> = domain.legs.map { Leg(it) }.toTypedArray()
 }
 
 /** An itinerary plus its pagination cursor. */
 @JsExport
-class RouteEdgeJs internal constructor(domain: RouteEdge) {
+class RouteEdge internal constructor(domain: CoreRouteEdge) {
     val cursor: String = domain.cursor
-    val itinerary: ItineraryJs = ItineraryJs(domain.itinerary)
+    val itinerary: Itinerary = Itinerary(domain.itinerary)
 }
 
 @JsExport
-class RoutePageInfoJs internal constructor(domain: RoutePageInfo) {
+class RoutePageInfo internal constructor(domain: CoreRoutePageInfo) {
     val startCursor: String? = domain.startCursor
     val endCursor: String? = domain.endCursor
     val hasNextPage: Boolean = domain.hasNextPage
@@ -62,7 +71,7 @@ class RoutePageInfoJs internal constructor(domain: RoutePageInfo) {
 }
 
 @JsExport
-class RoutingErrorJs internal constructor(domain: RoutingError) {
+class RoutingError internal constructor(domain: CoreRoutingError) {
     val code: String = domain.code
     val description: String = domain.description
     val inputField: String? = domain.inputField
@@ -70,19 +79,19 @@ class RoutingErrorJs internal constructor(domain: RoutingError) {
 
 /**
  * A page of trip-planning results. Retains the underlying domain route so
- * [SpiderRoutingJs.nextPage]/[SpiderRoutingJs.previousPage] can page from it.
+ * [SpiderRouting.nextPage]/[SpiderRouting.previousPage] can page from it.
  */
 @JsExport
-class RouteJs internal constructor(internal val domain: Route) {
-    val edges: Array<RouteEdgeJs> = domain.edges.map { RouteEdgeJs(it) }.toTypedArray()
-    val pageInfo: RoutePageInfoJs = RoutePageInfoJs(domain.pageInfo)
-    val routingErrors: Array<RoutingErrorJs> = domain.routingErrors.map { RoutingErrorJs(it) }.toTypedArray()
+class Route internal constructor(internal val domain: CoreRoute) {
+    val edges: Array<RouteEdge> = domain.edges.map { RouteEdge(it) }.toTypedArray()
+    val pageInfo: RoutePageInfo = RoutePageInfo(domain.pageInfo)
+    val routingErrors: Array<RoutingError> = domain.routingErrors.map { RoutingError(it) }.toTypedArray()
     val searchDateTime: String? = domain.searchDateTime
 }
 
 /** One upcoming departure from a stop. Times are epoch milliseconds. */
 @JsExport
-class DepartureJs internal constructor(domain: Departure) {
+class Departure internal constructor(domain: CoreDeparture) {
     val scheduledTimeEpochMs: Double = domain.scheduledTime.toEpochMilliseconds().toDouble()
     val realtimeTimeEpochMs: Double? = domain.realtimeTime?.toEpochMilliseconds()?.toDouble()
     val isRealtime: Boolean = domain.isRealtime
@@ -96,7 +105,7 @@ class DepartureJs internal constructor(domain: Departure) {
 
 /** A stop on a trip's schedule. Times are epoch milliseconds. */
 @JsExport
-class TripStopJs internal constructor(domain: TripStop) {
+class TripStop internal constructor(domain: CoreTripStop) {
     val gtfsId: String = domain.gtfsId
     val name: String = domain.name
     val lat: Double? = domain.lat
@@ -111,7 +120,7 @@ class TripStopJs internal constructor(domain: TripStop) {
 
 /** Full detail for a single trip. */
 @JsExport
-class TripDetailsJs internal constructor(domain: TripDetails) {
+class TripDetails internal constructor(domain: CoreTripDetails) {
     val gtfsId: String = domain.gtfsId
     val routeShortName: String? = domain.routeShortName
     val routeLongName: String? = domain.routeLongName
@@ -119,6 +128,6 @@ class TripDetailsJs internal constructor(domain: TripDetails) {
     val headsign: String? = domain.headsign
     val directionId: String? = domain.directionId
     val bikesAllowed: String? = domain.bikesAllowed?.name
-    val stops: Array<TripStopJs> = domain.stops.map { TripStopJs(it) }.toTypedArray()
-    val geometry: Array<LatLonJs> = domain.geometry.map { LatLonJs(it.lat, it.lon) }.toTypedArray()
+    val stops: Array<TripStop> = domain.stops.map { TripStop(it) }.toTypedArray()
+    val geometry: Array<LatLon> = domain.geometry.map { LatLon(it.lat, it.lon) }.toTypedArray()
 }

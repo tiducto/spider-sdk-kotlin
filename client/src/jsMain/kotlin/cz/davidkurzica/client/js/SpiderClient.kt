@@ -1,8 +1,17 @@
 @file:OptIn(ExperimentalJsExport::class)
 @file:Suppress("unused")
 
-package cz.davidkurzica.client
+package cz.davidkurzica.client.js
 
+import cz.davidkurzica.client.AdminLevel
+import cz.davidkurzica.client.Realtime
+import cz.davidkurzica.client.RouteTime
+import cz.davidkurzica.client.Routing
+import cz.davidkurzica.client.Stops
+import cz.davidkurzica.client.SpiderClient as CoreSpiderClient
+import cz.davidkurzica.client.SpiderRealtime as CoreSpiderRealtime
+import cz.davidkurzica.client.SpiderRouting as CoreSpiderRouting
+import cz.davidkurzica.client.SpiderStops as CoreSpiderStops
 import kotlin.js.ExperimentalJsExport
 import kotlin.js.JsExport
 import kotlin.time.Clock
@@ -10,26 +19,26 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 /**
- * JS/TS entry point for the Spider SDK. Constructs the full Kotlin [SpiderClient] with routing, stop
- * search and realtime installed, and exposes each surface through an export-safe facade.
+ * JS/TS entry point for the Spider SDK. Constructs the full Kotlin client with routing, stop search
+ * and realtime installed, and exposes each surface through an export-safe facade.
  *
  * ```ts
- * const client = new SpiderClientJs("https://brno.api.transitapi.eu", apiKey)
+ * const client = new SpiderClient("https://brno.api.transitapi.eu", apiKey)
  * const res = await client.routing.plan(coordinateLocation(49.19, 16.61), coordinateLocation(49.23, 16.58))
  * if (res.isSuccess) drawItineraries(res.data.edges)
  * ```
  */
 @JsExport
-class SpiderClientJs(baseUrl: String, apiKey: String) {
-    private val delegate = SpiderClient(baseUrl = baseUrl, apiKey = apiKey) {
+class SpiderClient(baseUrl: String, apiKey: String) {
+    private val delegate = CoreSpiderClient(baseUrl = baseUrl, apiKey = apiKey) {
         install(Routing)
         install(Stops)
         install(Realtime)
     }
 
-    val routing: SpiderRoutingJs = SpiderRoutingJs(delegate.routing)
-    val stops: SpiderStopsJs = SpiderStopsJs(delegate.stops)
-    val realtime: SpiderRealtimeJs = SpiderRealtimeJs(delegate.realtime)
+    val routing: SpiderRouting = SpiderRouting(delegate.routing)
+    val stops: SpiderStops = SpiderStops(delegate.stops)
+    val realtime: SpiderRealtime = SpiderRealtime(delegate.realtime)
 
     /** The wire-contract version this SDK speaks; sent on every request. */
     val contractVersion: String get() = delegate.contractVersion
@@ -37,37 +46,37 @@ class SpiderClientJs(baseUrl: String, apiKey: String) {
 
 /** Trip planning, departures and trip detail. Times are epoch milliseconds; durations are seconds. */
 @JsExport
-class SpiderRoutingJs internal constructor(private val delegate: SpiderRouting) {
+class SpiderRouting internal constructor(private val delegate: CoreSpiderRouting) {
 
     /** Plan a trip departing at [departAtEpochMs] (null = now). [first] caps the number of itineraries. */
     suspend fun plan(
-        from: RouteLocationJs,
-        to: RouteLocationJs,
+        from: RouteLocation,
+        to: RouteLocation,
         departAtEpochMs: Double? = null,
         first: Int = DEFAULT_FIRST,
-    ): SpiderResultJs<RouteJs> {
+    ): SpiderResult<Route> {
         val time = RouteTime.DepartAt(departAtEpochMs?.toInstant() ?: Clock.System.now())
-        return delegate.route(from = from.domain, to = to.domain, time = time, first = first).toJs { RouteJs(it) }
+        return delegate.route(from = from.domain, to = to.domain, time = time, first = first).toJs { Route(it) }
     }
 
     /** Plan a trip that must arrive by [arriveByEpochMs]. */
     suspend fun planArriveBy(
-        from: RouteLocationJs,
-        to: RouteLocationJs,
+        from: RouteLocation,
+        to: RouteLocation,
         arriveByEpochMs: Double,
         first: Int = DEFAULT_FIRST,
-    ): SpiderResultJs<RouteJs> {
+    ): SpiderResult<Route> {
         val time = RouteTime.ArriveBy(arriveByEpochMs.toInstant())
-        return delegate.route(from = from.domain, to = to.domain, time = time, first = first).toJs { RouteJs(it) }
+        return delegate.route(from = from.domain, to = to.domain, time = time, first = first).toJs { Route(it) }
     }
 
     /** Next page of itineraries (later departures), or null if there is none. */
-    suspend fun nextPage(route: RouteJs, first: Int = DEFAULT_FIRST): SpiderResultJs<RouteJs>? =
-        delegate.nextPage(route.domain, first)?.toJs { RouteJs(it) }
+    suspend fun nextPage(route: Route, first: Int = DEFAULT_FIRST): SpiderResult<Route>? =
+        delegate.nextPage(route.domain, first)?.toJs { Route(it) }
 
     /** Previous page of itineraries (earlier departures), or null if there is none. */
-    suspend fun previousPage(route: RouteJs, first: Int = DEFAULT_FIRST): SpiderResultJs<RouteJs>? =
-        delegate.previousPage(route.domain, first)?.toJs { RouteJs(it) }
+    suspend fun previousPage(route: Route, first: Int = DEFAULT_FIRST): SpiderResult<Route>? =
+        delegate.previousPage(route.domain, first)?.toJs { Route(it) }
 
     /** Upcoming departures from a stop (or station) id. */
     suspend fun departures(
@@ -75,17 +84,17 @@ class SpiderRoutingJs internal constructor(private val delegate: SpiderRouting) 
         numberOfDepartures: Int = DEFAULT_DEPARTURES,
         startTimeEpochMs: Double? = null,
         timeRangeSeconds: Double = DEFAULT_TIME_RANGE_SECONDS,
-    ): SpiderResultJs<Array<DepartureJs>> =
+    ): SpiderResult<Array<Departure>> =
         delegate.departures(
             id = stopId,
             numberOfDepartures = numberOfDepartures,
             startTime = startTimeEpochMs?.toInstant(),
             timeRange = timeRangeSeconds.seconds,
-        ).toJs { list -> list.map { DepartureJs(it) }.toTypedArray() }
+        ).toJs { list -> list.map { Departure(it) }.toTypedArray() }
 
     /** Full detail for a trip. [serviceDate] is a GTFS calendar date "YYYY-MM-DD"; null = today. */
-    suspend fun trip(tripId: String, serviceDate: String? = null): SpiderResultJs<TripDetailsJs> =
-        delegate.trip(tripId, serviceDate).toJs { TripDetailsJs(it) }
+    suspend fun trip(tripId: String, serviceDate: String? = null): SpiderResult<TripDetails> =
+        delegate.trip(tripId, serviceDate).toJs { TripDetails(it) }
 
     private companion object {
         const val DEFAULT_FIRST = 5
@@ -96,7 +105,7 @@ class SpiderRoutingJs internal constructor(private val delegate: SpiderRouting) 
 
 /** Stop text search + administrative-geography filtering. */
 @JsExport
-class SpiderStopsJs internal constructor(private val delegate: SpiderStops) {
+class SpiderStops internal constructor(private val delegate: CoreSpiderStops) {
 
     /**
      * Search stops. [nameQuery] is a fuzzy free-text match; the admin-level params (each an exact
@@ -110,7 +119,7 @@ class SpiderStopsJs internal constructor(private val delegate: SpiderStops) {
         district: String? = null,
         city: String? = null,
         suburb: String? = null,
-    ): SpiderResultJs<Array<StopJs>> =
+    ): SpiderResult<Array<Stop>> =
         delegate.search {
             filter {
                 nameQuery?.let { name eq it }
@@ -120,28 +129,28 @@ class SpiderStopsJs internal constructor(private val delegate: SpiderStops) {
                 city?.let { AdminLevel.CITY eq it }
                 suburb?.let { AdminLevel.SUBURB eq it }
             }
-        }.toJs { list -> list.map { StopJs(it) }.toTypedArray() }
+        }.toJs { list -> list.map { Stop(it) }.toTypedArray() }
 }
 
 /** Live GTFS-RT data — vehicle positions, delays and service alerts. */
 @JsExport
-class SpiderRealtimeJs internal constructor(private val delegate: SpiderRealtime) {
+class SpiderRealtime internal constructor(private val delegate: CoreSpiderRealtime) {
 
     /** Live positions for a batch of trip ids. */
-    suspend fun vehicles(tripIds: Array<String>): SpiderResultJs<VehiclePositionsJs> =
-        delegate.vehicles(tripIds.toList()).toJs { VehiclePositionsJs(it) }
+    suspend fun vehicles(tripIds: Array<String>): SpiderResult<VehiclePositions> =
+        delegate.vehicles(tripIds.toList()).toJs { VehiclePositions(it) }
 
     /** Live position for a single trip (vehicle is null when none is reporting). */
-    suspend fun vehicleForTrip(tripId: String): SpiderResultJs<LiveVehicleUpdateJs> =
-        delegate.vehicleForTrip(tripId).toJs { LiveVehicleUpdateJs(it) }
+    suspend fun vehicleForTrip(tripId: String): SpiderResult<LiveVehicleUpdate> =
+        delegate.vehicleForTrip(tripId).toJs { LiveVehicleUpdate(it) }
 
     /** Live delays for a batch of trip ids. */
-    suspend fun delays(tripIds: Array<String>): SpiderResultJs<TripDelaysJs> =
-        delegate.delays(tripIds.toList()).toJs { TripDelaysJs(it) }
+    suspend fun delays(tripIds: Array<String>): SpiderResult<TripDelays> =
+        delegate.delays(tripIds.toList()).toJs { TripDelays(it) }
 
     /** All active service alerts for the environment. */
-    suspend fun alerts(): SpiderResultJs<ServiceAlertsJs> =
-        delegate.alerts().toJs { ServiceAlertsJs(it) }
+    suspend fun alerts(): SpiderResult<ServiceAlerts> =
+        delegate.alerts().toJs { ServiceAlerts(it) }
 }
 
 private fun Double.toInstant(): Instant = Instant.fromEpochMilliseconds(this.toLong())

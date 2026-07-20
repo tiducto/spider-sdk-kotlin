@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation("eu.tiducto:spider-sdk-kotlin-client:1.0.0-SNAPSHOT")
+    implementation("eu.tiducto:spider-sdk-kotlin-client:0.1.0")
 }
 ```
 
@@ -46,9 +46,9 @@ npm install @tiducto/spider-sdk-client
 ```
 
 ```ts
-import { SpiderClientJs, coordinateLocation } from '@tiducto/spider-sdk-client'
+import { SpiderClient, coordinateLocation } from '@tiducto/spider-sdk-client'
 
-const client = new SpiderClientJs('https://brno.api.transitapi.eu', apiKey)
+const client = new SpiderClient('https://brno.api.transitapi.eu', apiKey)
 const res = await client.routing.plan(
   coordinateLocation(49.19, 16.61),
   coordinateLocation(49.23, 16.58),
@@ -56,10 +56,11 @@ const res = await client.routing.plan(
 if (res.isSuccess) res.data!.edges.forEach((e) => console.log(e.itinerary))
 ```
 
-The JS surface is an export-safe facade (jsMain `*Js` types): sealed types become factory functions
-(`stopLocation`/`coordinateLocation`), `SpiderResult` becomes `SpiderResultJs { isSuccess, data,
+The JS surface is an export-safe facade (the `cz.davidkurzica.client.js` package): sealed types become
+factory functions (`stopLocation`/`coordinateLocation`), `SpiderResult` becomes `{ isSuccess, data,
 error }`, times are epoch-millis `number`s, enums are their name strings, and suspend functions return
-Promises. The rich Kotlin API is unchanged for JVM/Android/Apple consumers.
+Promises. The names match the Kotlin API but the shapes are JS-friendly; the rich Kotlin API is
+unchanged for JVM/Android/Apple consumers.
 
 ## Usage
 
