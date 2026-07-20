@@ -117,7 +117,7 @@ jobs:
           # Only the generated routing classes and the marker — NOT the stops/realtime JSON pin fixtures
           # the script also refreshes under client/src/jvmTest/resources.
           add-paths: |
-            contract/src/commonMain/kotlin/cz/davidkurzica/contract/routing
+            contract/src/commonMain/kotlin/eu/tiducto/spider/contract/routing
             contract/contract-version
           title: "chore(contract): sync SDK to spider-contract v${{ steps.next.outputs.ver }}"
           commit-message: "chore(contract): sync SDK to spider-contract v${{ steps.next.outputs.ver }}"
