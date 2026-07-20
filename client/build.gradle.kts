@@ -33,8 +33,10 @@ kotlin {
         // compiler flags live here (not in a shared compilerOptions block) so the JVM/Apple/Wasm
         // compilations never receive them and reject the unknown arguments.
         outputModuleName = "spider-sdk-client"
+        // browser() only — matches web/shared. The published artifact is the browser development
+        // library distribution; a nodejs() target only adds a parallel jsNode* distribution chain
+        // that nothing consumes and that contends for the same build/js/packages working dir.
         browser()
-        nodejs()
         binaries.library()
         generateTypeScriptDefinitions()
         compilerOptions {
@@ -208,3 +210,13 @@ val checkJsApi = tasks.register("checkJsApi") {
 }
 
 tasks.named("check") { dependsOn(checkJsApi) }
+
+// KMP funnels every JS binary flavor through one npm package dir (build/js/packages/spider-sdk-client
+// /kotlin), so the development and production library chains both read/write it. `./gradlew build`
+// schedules both — the dev distribution (pulled in by checkJsApi above) and the prod distribution
+// (pulled in by assemble) — and Gradle 9 fails the build because they touch that shared dir with no
+// ordering edge. Declare the order Gradle asks for: the production compile-sync runs only after the
+// development distribution has consumed the dev output, serialising the two chains through the dir.
+tasks.named("jsProductionLibraryCompileSync") {
+    mustRunAfter("jsBrowserDevelopmentLibraryDistribution")
+}
