@@ -27,4 +27,6 @@ jobs:
       add-paths: |
         contract/src/commonMain/kotlin/eu/tiducto/spider/contract/routing
         contract/contract-version
+        version.properties
+        client/src/commonMain/kotlin/eu/tiducto/spider/client/ContractVersion.kt
     secrets: inherit
