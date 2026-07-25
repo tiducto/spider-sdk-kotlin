@@ -343,6 +343,17 @@ public final class eu/tiducto/spider/client/RealtimeConfig {
 	public fun <init> ()V
 }
 
+public final class eu/tiducto/spider/client/RealtimePollingKt {
+	public static final fun pollAlerts-HG0u8IE (Leu/tiducto/spider/client/SpiderRealtime;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollAlerts-HG0u8IE$default (Leu/tiducto/spider/client/SpiderRealtime;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun pollDelays-SxA4cEA (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollDelays-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun pollVehicleForTrip-SxA4cEA (Leu/tiducto/spider/client/SpiderRealtime;Ljava/lang/String;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollVehicleForTrip-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/lang/String;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun pollVehicles-SxA4cEA (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollVehicles-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
 public final class eu/tiducto/spider/client/Route {
 	public fun <init> (Leu/tiducto/spider/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)V
 	public final fun component1 ()Leu/tiducto/spider/client/RouteRequest;
