@@ -21,3 +21,4 @@ rootProject.name = "spider-sdk-kotlin"
 
 include(":client")
 include(":contract")
+include(":examples")
