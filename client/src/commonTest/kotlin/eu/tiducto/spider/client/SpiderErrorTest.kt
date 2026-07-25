@@ -46,4 +46,27 @@ class SpiderErrorTest {
         assertEquals(SpiderErrorCode.DECODING, SerializationException("x").toSpiderError().code)
         assertEquals(SpiderErrorCode.NETWORK, IOException("x").toSpiderError().code)
     }
+
+    @Test
+    fun serverCodeComesFromTheHttpCause() {
+        val error = SpiderTransportException.Http(429, "POST /x -> 429: Rate limit exceeded.", "rate_limited").toSpiderError()
+        assertEquals(SpiderErrorCode.RATE_LIMITED, error.code)
+        assertEquals("rate_limited", error.serverCode)
+    }
+
+    @Test
+    fun serverCodeIsNullForNonHttpErrors() {
+        assertNull(IOException("x").toSpiderError().serverCode)
+        assertNull(http(500).serverCode)
+    }
+
+    @Test
+    fun parseErrorEnvelopeReadsCodeAndMessageAndToleratesNonJson() {
+        val envelope = parseErrorEnvelope("""{"code":"forbidden","message":"nope"}""")
+        assertEquals("forbidden", envelope.code)
+        assertEquals("nope", envelope.message)
+        val empty = parseErrorEnvelope("plain text")
+        assertNull(empty.code)
+        assertNull(empty.message)
+    }
 }

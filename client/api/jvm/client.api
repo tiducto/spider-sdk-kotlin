@@ -529,6 +529,7 @@ public abstract interface class eu/tiducto/spider/client/SpiderError {
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public abstract fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/spider/client/SpiderError {
@@ -543,6 +544,7 @@ public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/sp
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -550,6 +552,7 @@ public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/sp
 public final class eu/tiducto/spider/client/SpiderError$DefaultImpls {
 	public static fun getCode (Leu/tiducto/spider/client/SpiderError;)Leu/tiducto/spider/client/SpiderErrorCode;
 	public static fun getMessage (Leu/tiducto/spider/client/SpiderError;)Ljava/lang/String;
+	public static fun getServerCode (Leu/tiducto/spider/client/SpiderError;)Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Network : eu/tiducto/spider/client/SpiderError {
@@ -564,6 +567,7 @@ public final class eu/tiducto/spider/client/SpiderError$Network : eu/tiducto/spi
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -581,6 +585,7 @@ public final class eu/tiducto/spider/client/SpiderError$NotFound : eu/tiducto/sp
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -598,6 +603,7 @@ public final class eu/tiducto/spider/client/SpiderError$RateLimited : eu/tiducto
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -615,6 +621,7 @@ public final class eu/tiducto/spider/client/SpiderError$Server : eu/tiducto/spid
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -632,6 +639,7 @@ public final class eu/tiducto/spider/client/SpiderError$Timeout : eu/tiducto/spi
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -649,6 +657,7 @@ public final class eu/tiducto/spider/client/SpiderError$Unauthorized : eu/tiduct
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -666,6 +675,7 @@ public final class eu/tiducto/spider/client/SpiderError$Unknown : eu/tiducto/spi
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
 	public fun getHttpStatus ()Ljava/lang/Integer;
 	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

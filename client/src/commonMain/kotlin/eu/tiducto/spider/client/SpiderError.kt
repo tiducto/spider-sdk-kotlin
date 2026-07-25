@@ -5,6 +5,9 @@ import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 
 enum class SpiderErrorCode(val wireName: String) {
     NETWORK("network"),
@@ -23,6 +26,9 @@ sealed interface SpiderError {
 
     val message: String
         get() = cause?.message ?: code.wireName
+
+    val serverCode: String?
+        get() = (cause as? SpiderTransportException.Http)?.serverCode
 
     val code: SpiderErrorCode
         get() = when (this) {
@@ -76,7 +82,7 @@ sealed interface SpiderError {
 }
 
 internal sealed class SpiderTransportException(message: String) : RuntimeException(message) {
-    class Http(val status: Int, message: String) : SpiderTransportException(message)
+    class Http(val status: Int, message: String, val serverCode: String? = null) : SpiderTransportException(message)
     class NoData(message: String) : SpiderTransportException(message)
     class Upstream(message: String) : SpiderTransportException(message)
 }
@@ -98,3 +104,11 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
     is IOException -> SpiderError.Network(this)
     else -> SpiderError.Unknown(cause = this)
 }
+
+internal data class ErrorEnvelope(val code: String?, val message: String?)
+
+internal fun parseErrorEnvelope(body: String): ErrorEnvelope = runCatching {
+    val obj = Json.parseToJsonElement(body).jsonObject
+    fun string(key: String) = (obj[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
+    ErrorEnvelope(string("code"), string("message"))
+}.getOrDefault(ErrorEnvelope(null, null))

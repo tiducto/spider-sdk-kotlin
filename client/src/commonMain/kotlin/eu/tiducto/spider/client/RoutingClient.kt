@@ -237,7 +237,9 @@ internal class RoutingClient(
         val text = response.bodyAsText()
         if (!response.status.isSuccess()) {
             // A 403 here means the id isn't allow-listed at the gateway (contract/SDK hash mismatch).
-            throw SpiderTransportException.Http(response.status.value, "routing ${op.path} → ${response.status.value}: ${text.take(300)}")
+            val envelope = parseErrorEnvelope(text)
+            val detail = envelope.message ?: text.take(300)
+            throw SpiderTransportException.Http(response.status.value, "routing ${op.path} → ${response.status.value}: $detail", envelope.code)
         }
         val envelope = json.decodeFromString(GraphQLResponse.serializer(dataSerializer), text)
         envelope.errors?.takeIf { it.isNotEmpty() }?.let { errors ->

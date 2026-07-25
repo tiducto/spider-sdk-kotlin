@@ -120,7 +120,10 @@ internal class RealtimeClient(
 
     private suspend inline fun <reified T> HttpResponse.decodeOrThrow(where: String): T {
         if (!status.isSuccess()) {
-            throw SpiderTransportException.Http(status.value, "GET $where → ${status.value}: ${bodyAsText().take(300)}")
+            val body = bodyAsText()
+            val envelope = parseErrorEnvelope(body)
+            val detail = envelope.message ?: body.take(300)
+            throw SpiderTransportException.Http(status.value, "GET $where → ${status.value}: $detail", envelope.code)
         }
         return body()
     }

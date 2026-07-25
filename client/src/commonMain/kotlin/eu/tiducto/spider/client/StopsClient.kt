@@ -61,9 +61,9 @@ internal class StopsClient(
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
-            val message = runCatching { json.decodeFromString<StopSearchError>(body).message }.getOrNull()
-                ?: body.take(300)
-            throw SpiderTransportException.Http(httpResponse.status.value, "POST $url → ${httpResponse.status.value}: $message")
+            val parsed = runCatching { json.decodeFromString<StopSearchError>(body) }.getOrNull()
+            val detail = parsed?.message ?: body.take(300)
+            throw SpiderTransportException.Http(httpResponse.status.value, "POST $url → ${httpResponse.status.value}: $detail", parsed?.code)
         }
 
         val response: StopSearchResponse<StopHit> = httpResponse.body()
