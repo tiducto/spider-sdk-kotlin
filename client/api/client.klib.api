@@ -192,14 +192,20 @@ sealed interface eu.tiducto.spider.client/RouteTime { // eu.tiducto.spider.clien
 sealed interface eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError|null[0]
     abstract val cause // eu.tiducto.spider.client/SpiderError.cause|{}cause[0]
         abstract fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.cause.<get-cause>|<get-cause>(){}[0]
+    abstract val httpStatus // eu.tiducto.spider.client/SpiderError.httpStatus|{}httpStatus[0]
+        abstract fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
     open val code // eu.tiducto.spider.client/SpiderError.code|{}code[0]
         open fun <get-code>(): eu.tiducto.spider.client/SpiderErrorCode // eu.tiducto.spider.client/SpiderError.code.<get-code>|<get-code>(){}[0]
+    open val message // eu.tiducto.spider.client/SpiderError.message|{}message[0]
+        open fun <get-message>(): kotlin/String // eu.tiducto.spider.client/SpiderError.message.<get-message>|<get-message>(){}[0]
 
     final class Decoding : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.Decoding|null[0]
         constructor <init>(kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.Decoding.<init>|<init>(kotlin.Throwable?){}[0]
 
         final val cause // eu.tiducto.spider.client/SpiderError.Decoding.cause|{}cause[0]
             final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Decoding.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.Decoding.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.Decoding.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
 
         final fun component1(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Decoding.component1|component1(){}[0]
         final fun copy(kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.Decoding // eu.tiducto.spider.client/SpiderError.Decoding.copy|copy(kotlin.Throwable?){}[0]
@@ -213,6 +219,8 @@ sealed interface eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.cli
 
         final val cause // eu.tiducto.spider.client/SpiderError.Network.cause|{}cause[0]
             final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Network.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.Network.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.Network.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
 
         final fun component1(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Network.component1|component1(){}[0]
         final fun copy(kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.Network // eu.tiducto.spider.client/SpiderError.Network.copy|copy(kotlin.Throwable?){}[0]
@@ -222,26 +230,32 @@ sealed interface eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.cli
     }
 
     final class NotFound : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.NotFound|null[0]
-        constructor <init>(kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.NotFound.<init>|<init>(kotlin.Throwable?){}[0]
+        constructor <init>(kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.NotFound.<init>|<init>(kotlin.Int?;kotlin.Throwable?){}[0]
 
         final val cause // eu.tiducto.spider.client/SpiderError.NotFound.cause|{}cause[0]
             final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.NotFound.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.NotFound.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.NotFound.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
 
-        final fun component1(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.NotFound.component1|component1(){}[0]
-        final fun copy(kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.NotFound // eu.tiducto.spider.client/SpiderError.NotFound.copy|copy(kotlin.Throwable?){}[0]
+        final fun component1(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.NotFound.component1|component1(){}[0]
+        final fun component2(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.NotFound.component2|component2(){}[0]
+        final fun copy(kotlin/Int? = ..., kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.NotFound // eu.tiducto.spider.client/SpiderError.NotFound.copy|copy(kotlin.Int?;kotlin.Throwable?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.NotFound.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.NotFound.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.NotFound.toString|toString(){}[0]
     }
 
     final class RateLimited : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.RateLimited|null[0]
-        constructor <init>(kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.RateLimited.<init>|<init>(kotlin.Throwable?){}[0]
+        constructor <init>(kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.RateLimited.<init>|<init>(kotlin.Int?;kotlin.Throwable?){}[0]
 
         final val cause // eu.tiducto.spider.client/SpiderError.RateLimited.cause|{}cause[0]
             final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.RateLimited.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.RateLimited.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.RateLimited.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
 
-        final fun component1(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.RateLimited.component1|component1(){}[0]
-        final fun copy(kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.RateLimited // eu.tiducto.spider.client/SpiderError.RateLimited.copy|copy(kotlin.Throwable?){}[0]
+        final fun component1(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.RateLimited.component1|component1(){}[0]
+        final fun component2(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.RateLimited.component2|component2(){}[0]
+        final fun copy(kotlin/Int? = ..., kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.RateLimited // eu.tiducto.spider.client/SpiderError.RateLimited.copy|copy(kotlin.Int?;kotlin.Throwable?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.RateLimited.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.RateLimited.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.RateLimited.toString|toString(){}[0]
@@ -264,26 +278,32 @@ sealed interface eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.cli
     }
 
     final class Timeout : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.Timeout|null[0]
-        constructor <init>(kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.Timeout.<init>|<init>(kotlin.Throwable?){}[0]
+        constructor <init>(kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.Timeout.<init>|<init>(kotlin.Int?;kotlin.Throwable?){}[0]
 
         final val cause // eu.tiducto.spider.client/SpiderError.Timeout.cause|{}cause[0]
             final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Timeout.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.Timeout.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.Timeout.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
 
-        final fun component1(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Timeout.component1|component1(){}[0]
-        final fun copy(kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.Timeout // eu.tiducto.spider.client/SpiderError.Timeout.copy|copy(kotlin.Throwable?){}[0]
+        final fun component1(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.Timeout.component1|component1(){}[0]
+        final fun component2(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Timeout.component2|component2(){}[0]
+        final fun copy(kotlin/Int? = ..., kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.Timeout // eu.tiducto.spider.client/SpiderError.Timeout.copy|copy(kotlin.Int?;kotlin.Throwable?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.Timeout.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.Timeout.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.Timeout.toString|toString(){}[0]
     }
 
     final class Unauthorized : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.Unauthorized|null[0]
-        constructor <init>(kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.Unauthorized.<init>|<init>(kotlin.Throwable?){}[0]
+        constructor <init>(kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.Unauthorized.<init>|<init>(kotlin.Int?;kotlin.Throwable?){}[0]
 
         final val cause // eu.tiducto.spider.client/SpiderError.Unauthorized.cause|{}cause[0]
             final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Unauthorized.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.Unauthorized.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.Unauthorized.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
 
-        final fun component1(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Unauthorized.component1|component1(){}[0]
-        final fun copy(kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.Unauthorized // eu.tiducto.spider.client/SpiderError.Unauthorized.copy|copy(kotlin.Throwable?){}[0]
+        final fun component1(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.Unauthorized.component1|component1(){}[0]
+        final fun component2(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.Unauthorized.component2|component2(){}[0]
+        final fun copy(kotlin/Int? = ..., kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.Unauthorized // eu.tiducto.spider.client/SpiderError.Unauthorized.copy|copy(kotlin.Int?;kotlin.Throwable?){}[0]
         final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.Unauthorized.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.Unauthorized.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.Unauthorized.toString|toString(){}[0]

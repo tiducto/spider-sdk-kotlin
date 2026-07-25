@@ -527,6 +527,8 @@ public final class eu/tiducto/spider/client/SpiderContractMismatchError : java/l
 public abstract interface class eu/tiducto/spider/client/SpiderError {
 	public abstract fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public abstract fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/spider/client/SpiderError {
@@ -539,12 +541,15 @@ public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/sp
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$DefaultImpls {
 	public static fun getCode (Leu/tiducto/spider/client/SpiderError;)Leu/tiducto/spider/client/SpiderErrorCode;
+	public static fun getMessage (Leu/tiducto/spider/client/SpiderError;)Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Network : eu/tiducto/spider/client/SpiderError {
@@ -557,34 +562,42 @@ public final class eu/tiducto/spider/client/SpiderError$Network : eu/tiducto/spi
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$NotFound : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$NotFound;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$NotFound;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$NotFound;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$NotFound;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$NotFound;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$NotFound;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$RateLimited : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$RateLimited;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$RateLimited;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$RateLimited;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$RateLimited;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$RateLimited;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$RateLimited;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -600,35 +613,42 @@ public final class eu/tiducto/spider/client/SpiderError$Server : eu/tiducto/spid
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
-	public final fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Timeout : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Timeout;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Timeout;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Timeout;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Timeout;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Timeout;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Timeout;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Unauthorized : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Unauthorized;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Unauthorized;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -644,7 +664,8 @@ public final class eu/tiducto/spider/client/SpiderError$Unknown : eu/tiducto/spi
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
-	public final fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
