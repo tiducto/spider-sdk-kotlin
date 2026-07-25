@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     `maven-publish`
-    signing
 }
 
 group = "eu.tiducto"
@@ -147,15 +146,6 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN").orEmpty()
             }
         }
-    }
-}
-
-signing {
-    val signingKey = System.getenv("SIGNING_KEY")
-    val signingPassword = System.getenv("SIGNING_PASSWORD")
-    if (!signingKey.isNullOrBlank()) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications)
     }
 }
 
