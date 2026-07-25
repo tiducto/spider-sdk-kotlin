@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "eu.tiducto"
-version = "0.1.0"
+version = "${rootProject.file("contract.version").readText().trim()}.${rootProject.file("sdk.patch").readText().trim()}"
 
 kotlin {
     jvmToolchain(25)

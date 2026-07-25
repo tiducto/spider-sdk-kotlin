@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "eu.tiducto"
-version = "1.0.0-SNAPSHOT"
+version = "${rootProject.file("contract.version").readText().trim()}.${rootProject.file("sdk.patch").readText().trim()}"
 
 // Package layout, by ownership:
 //   contract/models    — GENERATED from spider-contract's dist/routing-openapi.json (scripts/generate-contract.sh /
