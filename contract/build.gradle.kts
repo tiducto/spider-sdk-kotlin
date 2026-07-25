@@ -6,7 +6,6 @@ plugins {
 }
 
 group = "eu.tiducto"
-version = "1.0.0-SNAPSHOT"
 
 // Package layout, by ownership:
 //   contract/models    — GENERATED from spider-contract's dist/routing-openapi.json (scripts/generate-contract.sh /
@@ -62,6 +61,31 @@ publishing {
     // eu.tiducto:spider-sdk-kotlin-contract(-<target>) rather than the bare module name.
     publications.withType<MavenPublication>().configureEach {
         artifactId = "spider-sdk-kotlin-$artifactId"
+        pom {
+            name.set("Spider SDK for Kotlin — Contract")
+            description.set(
+                "Wire-contract types (generated and hand-written) for the Spider transit API " +
+                    "Kotlin SDK.",
+            )
+            url.set("https://docs.tiducto.eu")
+            licenses {
+                license {
+                    name.set("MIT License")
+                    url.set("https://opensource.org/licenses/MIT")
+                }
+            }
+            developers {
+                developer {
+                    id.set("tiducto")
+                    name.set("Tiducto")
+                }
+            }
+            scm {
+                url.set("https://github.com/tiducto/spider-sdk-kotlin")
+                connection.set("scm:git:https://github.com/tiducto/spider-sdk-kotlin.git")
+                developerConnection.set("scm:git:ssh://git@github.com/tiducto/spider-sdk-kotlin.git")
+            }
+        }
     }
 
     repositories {

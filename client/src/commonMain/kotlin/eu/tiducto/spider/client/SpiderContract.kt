@@ -5,10 +5,10 @@ package eu.tiducto.spider.client
  * stop search, and Realtime — because there is exactly one [SpiderClient]. Bump [VERSION]
  * whenever *any* surface's wire shape changes; every surface moves together.
  *
- * This spine is deliberately hand-written and lives in `:client`, not in the generated `:contract`
- * module: the contract *version* and its *enforcement* are the SDK's own concern, so they stay
- * independent of however the model classes happen to be produced (openapi-generator today, possibly a
- * custom generator later). A generator only ever emits data classes; it never touches this file.
+ * [VERSION] is stamped from the contract itself: `scripts/generate-contract.sh` reads the spec's
+ * `info.version` into [CONTRACT_VERSION] (a generated file), so the wire version this SDK claims always
+ * tracks the contract it was generated from — it cannot drift. The *enforcement* ([ContractGuard]) stays
+ * hand-written here in `:client`, since compatibility is the SDK's own concern.
  *
  * Every request carries [VERSION] in the [HEADER]. [ContractGuard] enforces it against whatever the
  * gateway declares on the way back — see there for the fail-fast philosophy.
@@ -16,12 +16,13 @@ package eu.tiducto.spider.client
 internal object SpiderContract {
 
     /**
-     * The wire-contract version, shared by all three surfaces. Independent of the Maven artifact
-     * version (`1.0.0-SNAPSHOT`) — this tracks the *wire shapes*, not the release. Compatibility is
-     * by MAJOR component (see [ContractGuard]): additive minor/patch changes are tolerated by the
-     * clients' `ignoreUnknownKeys` decoders; a MAJOR bump is a breaking wire change.
+     * The wire-contract version, shared by all three surfaces — [CONTRACT_VERSION], stamped from the
+     * contract's `info.version`. The published artifact version derives from the same value
+     * (`<contract.version>.<sdk.patch>`), so contract, docs, and SDK share one lineage. Compatibility is
+     * by MAJOR component (see [ContractGuard]): additive minor changes are tolerated by the clients'
+     * `ignoreUnknownKeys` decoders; a MAJOR bump is a breaking wire change.
      */
-    const val VERSION: String = "1.0.0"
+    const val VERSION: String = CONTRACT_VERSION
 
     /** Sent on every request; read back off every response once the gateway starts declaring it. */
     const val HEADER: String = "x-spider-contract-version"

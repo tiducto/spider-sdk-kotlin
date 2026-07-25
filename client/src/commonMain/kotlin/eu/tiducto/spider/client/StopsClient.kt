@@ -26,9 +26,11 @@ import kotlinx.serialization.json.Json
 internal class StopsClient(
     private val baseUrl: String,
     private val apiKey: String,
+    retry: RetryConfig? = null,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val http: HttpClient = HttpClient {
+        installAutoRetry(retry)
         install(ContentNegotiation) {
             json(json)
         }
@@ -51,7 +53,6 @@ internal class StopsClient(
         val httpResponse = http.post {
             url(url)
             contentType(ContentType.Application.Json)
-            // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
             headers {
                 append("apikey", apiKey)
                 append(SpiderContract.HEADER, SpiderContract.VERSION)
@@ -62,9 +63,9 @@ internal class StopsClient(
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
-            val message = runCatching { json.decodeFromString<StopSearchError>(body).message }.getOrNull()
-                ?: body.take(300)
-            throw SpiderTransportException.Http(httpResponse.status.value, "POST $url → ${httpResponse.status.value}: $message")
+            val parsed = runCatching { json.decodeFromString<StopSearchError>(body) }.getOrNull()
+            val detail = parsed?.message ?: body.take(300)
+            throw SpiderTransportException.Http(httpResponse.status.value, "POST $url → ${httpResponse.status.value}: $detail", parsed?.code)
         }
 
         val response: StopSearchResponse<StopHit> = httpResponse.body()

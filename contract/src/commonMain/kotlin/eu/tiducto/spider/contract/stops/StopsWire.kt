@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
  * their own package so the generator's `rm -rf` on `routing/` never touches them. The real upstream
  * owner of the [StopHit] document shape is the `stops_env_{envId}` index builder (`seed-stops.sh`,
  * another repo) — this file is the SDK-side mirror of that cross-repo contract, pinned by
- * `StopsWireContractTest`. See `docs/CONTRACT_MAPPING.md`.
+ * `StopsWireContractTest`.
  *
  * `:client` consumes these internally and maps them to the public domain type `Stop`; they must not
  * appear in `:client`'s public API (`:contract` is an `implementation` dependency; `PublicApiLeakTest`

@@ -6,7 +6,6 @@ plugins {
 }
 
 group = "eu.tiducto"
-version = "0.1.0"
 
 kotlin {
     jvmToolchain(25)
@@ -108,6 +107,31 @@ publishing {
     // eu.tiducto:spider-sdk-kotlin-client(-<target>) rather than the bare module name.
     publications.withType<MavenPublication>().configureEach {
         artifactId = "spider-sdk-kotlin-$artifactId"
+        pom {
+            name.set("Spider SDK for Kotlin")
+            description.set(
+                "Kotlin Multiplatform SDK for the Spider transit API: trip planning, stop search, " +
+                    "and live realtime data.",
+            )
+            url.set("https://docs.tiducto.eu")
+            licenses {
+                license {
+                    name.set("MIT License")
+                    url.set("https://opensource.org/licenses/MIT")
+                }
+            }
+            developers {
+                developer {
+                    id.set("tiducto")
+                    name.set("Tiducto")
+                }
+            }
+            scm {
+                url.set("https://github.com/tiducto/spider-sdk-kotlin")
+                connection.set("scm:git:https://github.com/tiducto/spider-sdk-kotlin.git")
+                developerConnection.set("scm:git:ssh://git@github.com/tiducto/spider-sdk-kotlin.git")
+            }
+        }
     }
 
     repositories {

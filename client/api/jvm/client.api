@@ -80,6 +80,12 @@ public final class eu/tiducto/spider/client/Departure {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract class eu/tiducto/spider/client/FeatureConfig {
+	public fun <init> ()V
+	public final fun autoRetry (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun autoRetry$default (Leu/tiducto/spider/client/FeatureConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
 public final class eu/tiducto/spider/client/FeedFreshness {
 	public fun <init> (Lkotlin/time/Instant;Ljava/lang/Integer;)V
 	public final fun component1 ()Lkotlin/time/Instant;
@@ -339,8 +345,25 @@ public final class eu/tiducto/spider/client/Realtime : eu/tiducto/spider/client/
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class eu/tiducto/spider/client/RealtimeConfig {
+public final class eu/tiducto/spider/client/RealtimeConfig : eu/tiducto/spider/client/FeatureConfig {
 	public fun <init> ()V
+}
+
+public final class eu/tiducto/spider/client/RealtimePollingKt {
+	public static final fun pollAlerts-HG0u8IE (Leu/tiducto/spider/client/SpiderRealtime;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollAlerts-HG0u8IE$default (Leu/tiducto/spider/client/SpiderRealtime;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun pollDelays-SxA4cEA (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollDelays-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun pollVehicleForTrip-SxA4cEA (Leu/tiducto/spider/client/SpiderRealtime;Ljava/lang/String;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollVehicleForTrip-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/lang/String;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun pollVehicles-SxA4cEA (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;J)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun pollVehicles-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class eu/tiducto/spider/client/RetryConfig {
+	public fun <init> ()V
+	public final fun getMaxAttempts ()I
+	public final fun setMaxAttempts (I)V
 }
 
 public final class eu/tiducto/spider/client/Route {
@@ -446,7 +469,7 @@ public final class eu/tiducto/spider/client/Routing : eu/tiducto/spider/client/S
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class eu/tiducto/spider/client/RoutingConfig {
+public final class eu/tiducto/spider/client/RoutingConfig : eu/tiducto/spider/client/FeatureConfig {
 	public fun <init> ()V
 }
 
@@ -527,6 +550,9 @@ public final class eu/tiducto/spider/client/SpiderContractMismatchError : java/l
 public abstract interface class eu/tiducto/spider/client/SpiderError {
 	public abstract fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public abstract fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/spider/client/SpiderError {
@@ -539,12 +565,17 @@ public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/sp
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$DefaultImpls {
 	public static fun getCode (Leu/tiducto/spider/client/SpiderError;)Leu/tiducto/spider/client/SpiderErrorCode;
+	public static fun getMessage (Leu/tiducto/spider/client/SpiderError;)Ljava/lang/String;
+	public static fun getServerCode (Leu/tiducto/spider/client/SpiderError;)Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Network : eu/tiducto/spider/client/SpiderError {
@@ -557,34 +588,45 @@ public final class eu/tiducto/spider/client/SpiderError$Network : eu/tiducto/spi
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$NotFound : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$NotFound;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$NotFound;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$NotFound;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$NotFound;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$NotFound;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$NotFound;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$RateLimited : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$RateLimited;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$RateLimited;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$RateLimited;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$RateLimited;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$RateLimited;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$RateLimited;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -600,35 +642,45 @@ public final class eu/tiducto/spider/client/SpiderError$Server : eu/tiducto/spid
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
-	public final fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Timeout : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Timeout;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Timeout;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Timeout;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Timeout;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Timeout;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Timeout;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
 
 public final class eu/tiducto/spider/client/SpiderError$Unauthorized : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
-	public fun <init> (Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Ljava/lang/Throwable;
-	public final fun copy (Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Unauthorized;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
+	public fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/Integer;
+	public final fun component2 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$Unauthorized;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$Unauthorized;
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -644,7 +696,9 @@ public final class eu/tiducto/spider/client/SpiderError$Unknown : eu/tiducto/spi
 	public fun equals (Ljava/lang/Object;)Z
 	public fun getCause ()Ljava/lang/Throwable;
 	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
-	public final fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -670,7 +724,8 @@ public abstract interface class eu/tiducto/spider/client/SpiderFeature {
 }
 
 public final class eu/tiducto/spider/client/SpiderRealtime {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun alerts (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun delays (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun vehicleForTrip (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -703,7 +758,8 @@ public final class eu/tiducto/spider/client/SpiderResult$Success : eu/tiducto/sp
 }
 
 public final class eu/tiducto/spider/client/SpiderRouting {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun departures-zkXUZaI (Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun departures-zkXUZaI$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun nextPage (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -717,7 +773,8 @@ public final class eu/tiducto/spider/client/SpiderRouting {
 }
 
 public final class eu/tiducto/spider/client/SpiderStops {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun search (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -785,7 +842,7 @@ public final class eu/tiducto/spider/client/Stops : eu/tiducto/spider/client/Spi
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class eu/tiducto/spider/client/StopsConfig {
+public final class eu/tiducto/spider/client/StopsConfig : eu/tiducto/spider/client/FeatureConfig {
 	public fun <init> ()V
 }
 

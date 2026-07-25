@@ -43,6 +43,7 @@ import kotlinx.serialization.json.JsonElement
 internal class RoutingClient(
     private val baseUrl: String,
     private val apiKey: String,
+    retry: RetryConfig? = null,
 ) {
     // explicitNulls=false so an omitted optional reads as "unset" upstream. Unknown enum values decode to
     // UNKNOWN via the generated enums' serializers (coercion doesn't — it throws).
@@ -52,6 +53,7 @@ internal class RoutingClient(
     }
 
     private val http = HttpClient {
+        installAutoRetry(retry)
         install(Logging) {
             level = LogLevel.INFO
             logger = object : Logger {
@@ -226,7 +228,6 @@ internal class RoutingClient(
         val response = http.post {
             url("$baseUrl/routing/${op.path}")
             contentType(ContentType.Application.Json)
-            // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
             headers {
                 append("apikey", apiKey)
                 append(SpiderContract.HEADER, SpiderContract.VERSION)
@@ -238,7 +239,9 @@ internal class RoutingClient(
         val text = response.bodyAsText()
         if (!response.status.isSuccess()) {
             // A 403 here means the id isn't allow-listed at the gateway (contract/SDK hash mismatch).
-            throw SpiderTransportException.Http(response.status.value, "routing ${op.path} → ${response.status.value}: ${text.take(300)}")
+            val envelope = parseErrorEnvelope(text)
+            val detail = envelope.message ?: text.take(300)
+            throw SpiderTransportException.Http(response.status.value, "routing ${op.path} → ${response.status.value}: $detail", envelope.code)
         }
         val envelope = json.decodeFromString(GraphQLResponse.serializer(dataSerializer), text)
         envelope.errors?.takeIf { it.isNotEmpty() }?.let { errors ->
@@ -252,7 +255,7 @@ internal class RoutingClient(
  * Each routing operation's persisted-query id and its gateway route suffix. The id is the lowercase hex
  * sha256 of the canonical query document under src/commonMain/graphql/ — the SDK owns these documents
  * (direction is contract ← SDK), and the Spider contract registers the same text so the ids match; a
- * mismatch is a 403 at the gateway. See `docs/CONTRACT_MAPPING.md`.
+ * mismatch is a 403 at the gateway.
  */
 internal object PersistedQueries {
     data class Op(val id: String, val path: String)

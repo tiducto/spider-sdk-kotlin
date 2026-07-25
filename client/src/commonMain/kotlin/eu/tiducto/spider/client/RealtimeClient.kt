@@ -30,15 +30,16 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
 // Live GTFS-RT read API, served from the same gateway as routing/stops under `$baseUrl/realtime/...`.
-// Plain REST GETs with the raw key in the `apikey` header (Kong key-auth), mirroring StopsClient.
 // Ids (tripId/routeId/stopId) are opaque, feed-prefixed and passed through unchanged, exactly like
 // the routing gtfsIds — a tripId from routing departures/plan/trip feeds straight back into these calls.
 internal class RealtimeClient(
     private val baseUrl: String,
     private val apiKey: String,
+    retry: RetryConfig? = null,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val http: HttpClient = HttpClient {
+        installAutoRetry(retry)
         install(ContentNegotiation) {
             json(json)
         }
@@ -104,7 +105,7 @@ internal class RealtimeClient(
         )
     }
 
-    // Every realtime GET goes through here: the raw key in `apikey` (Kong key-auth), the contract
+    // Every realtime GET goes through here: the raw key in `apikey`, the contract
     // version so the gateway can enforce compatibility, and the inbound contract guard — run once per
     // request, before status handling, so even a 404/by-trip miss still checks the declared version.
     private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse {
@@ -121,7 +122,10 @@ internal class RealtimeClient(
 
     private suspend inline fun <reified T> HttpResponse.decodeOrThrow(where: String): T {
         if (!status.isSuccess()) {
-            throw SpiderTransportException.Http(status.value, "GET $where → ${status.value}: ${bodyAsText().take(300)}")
+            val body = bodyAsText()
+            val envelope = parseErrorEnvelope(body)
+            val detail = envelope.message ?: body.take(300)
+            throw SpiderTransportException.Http(status.value, "GET $where → ${status.value}: $detail", envelope.code)
         }
         return body()
     }

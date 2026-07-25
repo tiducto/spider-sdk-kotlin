@@ -27,8 +27,9 @@ import kotlinx.collections.immutable.persistentListOf
 class SpiderRealtime(
     private val baseUrl: String,
     apiKey: String,
+    retry: RetryConfig? = null,
 ) {
-    private val realtime = RealtimeClient(baseUrl, apiKey)
+    private val realtime = RealtimeClient(baseUrl, apiKey, retry)
 
     /** Live positions for the given [tripIds] (comma-batched in one request). Empty input skips the call. */
     suspend fun vehicles(tripIds: List<String>): SpiderResult<VehiclePositions> {
@@ -63,12 +64,12 @@ class SpiderRealtime(
     }
 }
 
-class RealtimeConfig
+class RealtimeConfig : FeatureConfig()
 
 object Realtime : SpiderFeature<RealtimeConfig, SpiderRealtime> {
     override fun newConfig() = RealtimeConfig()
     override fun build(baseUrl: String, apiKey: String, config: RealtimeConfig): SpiderRealtime =
-        SpiderRealtime(baseUrl = baseUrl, apiKey = apiKey)
+        SpiderRealtime(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry)
 }
 
 /**
