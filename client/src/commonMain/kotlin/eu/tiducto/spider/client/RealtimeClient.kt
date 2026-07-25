@@ -30,7 +30,6 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
 // Live GTFS-RT read API, served from the same gateway as routing/stops under `$baseUrl/realtime/...`.
-// Plain REST GETs with the raw key in the `apikey` header (Kong key-auth), mirroring StopsClient.
 // Ids (tripId/routeId/stopId) are opaque, feed-prefixed and passed through unchanged, exactly like
 // the routing gtfsIds — a tripId from routing departures/plan/trip feeds straight back into these calls.
 internal class RealtimeClient(
@@ -104,7 +103,7 @@ internal class RealtimeClient(
         )
     }
 
-    // Every realtime GET goes through here: the raw key in `apikey` (Kong key-auth), the contract
+    // Every realtime GET goes through here: the raw key in `apikey`, the contract
     // version so the gateway can enforce compatibility, and the inbound contract guard — run once per
     // request, before status handling, so even a 404/by-trip miss still checks the declared version.
     private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse {

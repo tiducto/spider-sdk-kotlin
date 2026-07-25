@@ -226,7 +226,6 @@ internal class RoutingClient(
         val response = http.post {
             url("$baseUrl/routing/${op.path}")
             contentType(ContentType.Application.Json)
-            // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
             headers {
                 append("apikey", apiKey)
                 append(SpiderContract.HEADER, SpiderContract.VERSION)
@@ -252,7 +251,7 @@ internal class RoutingClient(
  * Each routing operation's persisted-query id and its gateway route suffix. The id is the lowercase hex
  * sha256 of the canonical query document under src/commonMain/graphql/ — the SDK owns these documents
  * (direction is contract ← SDK), and the Spider contract registers the same text so the ids match; a
- * mismatch is a 403 at the gateway. See `docs/CONTRACT_MAPPING.md`.
+ * mismatch is a 403 at the gateway.
  */
 internal object PersistedQueries {
     data class Op(val id: String, val path: String)

@@ -51,7 +51,6 @@ internal class StopsClient(
         val httpResponse = http.post {
             url(url)
             contentType(ContentType.Application.Json)
-            // Kong key-auth expects the raw key in an `apikey` header (not Authorization: Bearer).
             headers {
                 append("apikey", apiKey)
                 append(SpiderContract.HEADER, SpiderContract.VERSION)
