@@ -34,8 +34,9 @@ import kotlinx.collections.immutable.ImmutableList
 class SpiderStops(
     private val baseUrl: String,
     apiKey: String,
+    retry: RetryConfig? = null,
 ) {
-    private val stops = StopsClient(baseUrl, apiKey)
+    private val stops = StopsClient(baseUrl, apiKey, retry)
 
     suspend fun search(block: StopRequest.() -> Unit): SpiderResult<ImmutableList<Stop>> {
         var name = ""
@@ -56,12 +57,12 @@ class SpiderStops(
     }
 }
 
-class StopsConfig
+class StopsConfig : FeatureConfig()
 
 object Stops : SpiderFeature<StopsConfig, SpiderStops> {
     override fun newConfig() = StopsConfig()
     override fun build(baseUrl: String, apiKey: String, config: StopsConfig): SpiderStops =
-        SpiderStops(baseUrl = baseUrl, apiKey = apiKey)
+        SpiderStops(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry)
 }
 
 /**

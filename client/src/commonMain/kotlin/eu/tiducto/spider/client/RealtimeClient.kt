@@ -35,9 +35,11 @@ import kotlinx.serialization.json.Json
 internal class RealtimeClient(
     private val baseUrl: String,
     private val apiKey: String,
+    retry: RetryConfig? = null,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val http: HttpClient = HttpClient {
+        installAutoRetry(retry)
         install(ContentNegotiation) {
             json(json)
         }

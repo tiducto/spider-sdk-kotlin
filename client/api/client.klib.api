@@ -360,6 +360,12 @@ sealed interface eu.tiducto.spider.client/ViaLocation { // eu.tiducto.spider.cli
     }
 }
 
+abstract class eu.tiducto.spider.client/FeatureConfig { // eu.tiducto.spider.client/FeatureConfig|null[0]
+    constructor <init>() // eu.tiducto.spider.client/FeatureConfig.<init>|<init>(){}[0]
+
+    final fun autoRetry(kotlin/Function1<eu.tiducto.spider.client/RetryConfig, kotlin/Unit> = ...) // eu.tiducto.spider.client/FeatureConfig.autoRetry|autoRetry(kotlin.Function1<eu.tiducto.spider.client.RetryConfig,kotlin.Unit>){}[0]
+}
+
 final class eu.tiducto.spider.client/AlertActivePeriod { // eu.tiducto.spider.client/AlertActivePeriod|null[0]
     constructor <init>(kotlin.time/Instant?, kotlin.time/Instant?) // eu.tiducto.spider.client/AlertActivePeriod.<init>|<init>(kotlin.time.Instant?;kotlin.time.Instant?){}[0]
 
@@ -673,8 +679,16 @@ final class eu.tiducto.spider.client/LiveVehicleUpdate { // eu.tiducto.spider.cl
     final fun toString(): kotlin/String // eu.tiducto.spider.client/LiveVehicleUpdate.toString|toString(){}[0]
 }
 
-final class eu.tiducto.spider.client/RealtimeConfig { // eu.tiducto.spider.client/RealtimeConfig|null[0]
+final class eu.tiducto.spider.client/RealtimeConfig : eu.tiducto.spider.client/FeatureConfig { // eu.tiducto.spider.client/RealtimeConfig|null[0]
     constructor <init>() // eu.tiducto.spider.client/RealtimeConfig.<init>|<init>(){}[0]
+}
+
+final class eu.tiducto.spider.client/RetryConfig { // eu.tiducto.spider.client/RetryConfig|null[0]
+    constructor <init>() // eu.tiducto.spider.client/RetryConfig.<init>|<init>(){}[0]
+
+    final var maxAttempts // eu.tiducto.spider.client/RetryConfig.maxAttempts|{}maxAttempts[0]
+        final fun <get-maxAttempts>(): kotlin/Int // eu.tiducto.spider.client/RetryConfig.maxAttempts.<get-maxAttempts>|<get-maxAttempts>(){}[0]
+        final fun <set-maxAttempts>(kotlin/Int) // eu.tiducto.spider.client/RetryConfig.maxAttempts.<set-maxAttempts>|<set-maxAttempts>(kotlin.Int){}[0]
 }
 
 final class eu.tiducto.spider.client/Route { // eu.tiducto.spider.client/Route|null[0]
@@ -765,7 +779,7 @@ final class eu.tiducto.spider.client/RouteRequest { // eu.tiducto.spider.client/
     final fun toString(): kotlin/String // eu.tiducto.spider.client/RouteRequest.toString|toString(){}[0]
 }
 
-final class eu.tiducto.spider.client/RoutingConfig { // eu.tiducto.spider.client/RoutingConfig|null[0]
+final class eu.tiducto.spider.client/RoutingConfig : eu.tiducto.spider.client/FeatureConfig { // eu.tiducto.spider.client/RoutingConfig|null[0]
     constructor <init>() // eu.tiducto.spider.client/RoutingConfig.<init>|<init>(){}[0]
 }
 
@@ -866,7 +880,7 @@ final class eu.tiducto.spider.client/SpiderContractMismatchError : kotlin/Error 
 }
 
 final class eu.tiducto.spider.client/SpiderRealtime { // eu.tiducto.spider.client/SpiderRealtime|null[0]
-    constructor <init>(kotlin/String, kotlin/String) // eu.tiducto.spider.client/SpiderRealtime.<init>|<init>(kotlin.String;kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/String, eu.tiducto.spider.client/RetryConfig? = ...) // eu.tiducto.spider.client/SpiderRealtime.<init>|<init>(kotlin.String;kotlin.String;eu.tiducto.spider.client.RetryConfig?){}[0]
 
     final suspend fun alerts(): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/ServiceAlerts> // eu.tiducto.spider.client/SpiderRealtime.alerts|alerts(){}[0]
     final suspend fun delays(kotlin.collections/List<kotlin/String>): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/TripDelays> // eu.tiducto.spider.client/SpiderRealtime.delays|delays(kotlin.collections.List<kotlin.String>){}[0]
@@ -875,7 +889,7 @@ final class eu.tiducto.spider.client/SpiderRealtime { // eu.tiducto.spider.clien
 }
 
 final class eu.tiducto.spider.client/SpiderRouting { // eu.tiducto.spider.client/SpiderRouting|null[0]
-    constructor <init>(kotlin/String, kotlin/String) // eu.tiducto.spider.client/SpiderRouting.<init>|<init>(kotlin.String;kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/String, eu.tiducto.spider.client/RetryConfig? = ...) // eu.tiducto.spider.client/SpiderRouting.<init>|<init>(kotlin.String;kotlin.String;eu.tiducto.spider.client.RetryConfig?){}[0]
 
     final suspend fun departures(kotlin/String, kotlin/Int = ..., kotlin.time/Instant? = ..., kotlin.time/Duration = ...): eu.tiducto.spider.client/SpiderResult<kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Departure>> // eu.tiducto.spider.client/SpiderRouting.departures|departures(kotlin.String;kotlin.Int;kotlin.time.Instant?;kotlin.time.Duration){}[0]
     final suspend fun nextPage(eu.tiducto.spider.client/Route, kotlin/Int? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route>? // eu.tiducto.spider.client/SpiderRouting.nextPage|nextPage(eu.tiducto.spider.client.Route;kotlin.Int?){}[0]
@@ -885,7 +899,7 @@ final class eu.tiducto.spider.client/SpiderRouting { // eu.tiducto.spider.client
 }
 
 final class eu.tiducto.spider.client/SpiderStops { // eu.tiducto.spider.client/SpiderStops|null[0]
-    constructor <init>(kotlin/String, kotlin/String) // eu.tiducto.spider.client/SpiderStops.<init>|<init>(kotlin.String;kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/String, eu.tiducto.spider.client/RetryConfig? = ...) // eu.tiducto.spider.client/SpiderStops.<init>|<init>(kotlin.String;kotlin.String;eu.tiducto.spider.client.RetryConfig?){}[0]
 
     final suspend fun search(kotlin/Function1<eu.tiducto.spider.client/StopRequest, kotlin/Unit>): eu.tiducto.spider.client/SpiderResult<kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Stop>> // eu.tiducto.spider.client/SpiderStops.search|search(kotlin.Function1<eu.tiducto.spider.client.StopRequest,kotlin.Unit>){}[0]
 }
@@ -965,7 +979,7 @@ final class eu.tiducto.spider.client/StopTimeUpdate { // eu.tiducto.spider.clien
     final fun toString(): kotlin/String // eu.tiducto.spider.client/StopTimeUpdate.toString|toString(){}[0]
 }
 
-final class eu.tiducto.spider.client/StopsConfig { // eu.tiducto.spider.client/StopsConfig|null[0]
+final class eu.tiducto.spider.client/StopsConfig : eu.tiducto.spider.client/FeatureConfig { // eu.tiducto.spider.client/StopsConfig|null[0]
     constructor <init>() // eu.tiducto.spider.client/StopsConfig.<init>|<init>(){}[0]
 }
 

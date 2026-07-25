@@ -80,6 +80,12 @@ public final class eu/tiducto/spider/client/Departure {
 	public fun toString ()Ljava/lang/String;
 }
 
+public abstract class eu/tiducto/spider/client/FeatureConfig {
+	public fun <init> ()V
+	public final fun autoRetry (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun autoRetry$default (Leu/tiducto/spider/client/FeatureConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+
 public final class eu/tiducto/spider/client/FeedFreshness {
 	public fun <init> (Lkotlin/time/Instant;Ljava/lang/Integer;)V
 	public final fun component1 ()Lkotlin/time/Instant;
@@ -339,7 +345,7 @@ public final class eu/tiducto/spider/client/Realtime : eu/tiducto/spider/client/
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class eu/tiducto/spider/client/RealtimeConfig {
+public final class eu/tiducto/spider/client/RealtimeConfig : eu/tiducto/spider/client/FeatureConfig {
 	public fun <init> ()V
 }
 
@@ -352,6 +358,12 @@ public final class eu/tiducto/spider/client/RealtimePollingKt {
 	public static synthetic fun pollVehicleForTrip-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/lang/String;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public static final fun pollVehicles-SxA4cEA (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;J)Lkotlinx/coroutines/flow/Flow;
 	public static synthetic fun pollVehicles-SxA4cEA$default (Leu/tiducto/spider/client/SpiderRealtime;Ljava/util/List;JILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class eu/tiducto/spider/client/RetryConfig {
+	public fun <init> ()V
+	public final fun getMaxAttempts ()I
+	public final fun setMaxAttempts (I)V
 }
 
 public final class eu/tiducto/spider/client/Route {
@@ -457,7 +469,7 @@ public final class eu/tiducto/spider/client/Routing : eu/tiducto/spider/client/S
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class eu/tiducto/spider/client/RoutingConfig {
+public final class eu/tiducto/spider/client/RoutingConfig : eu/tiducto/spider/client/FeatureConfig {
 	public fun <init> ()V
 }
 
@@ -712,7 +724,8 @@ public abstract interface class eu/tiducto/spider/client/SpiderFeature {
 }
 
 public final class eu/tiducto/spider/client/SpiderRealtime {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun alerts (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun delays (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun vehicleForTrip (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -745,7 +758,8 @@ public final class eu/tiducto/spider/client/SpiderResult$Success : eu/tiducto/sp
 }
 
 public final class eu/tiducto/spider/client/SpiderRouting {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun departures-zkXUZaI (Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun departures-zkXUZaI$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun nextPage (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -759,7 +773,8 @@ public final class eu/tiducto/spider/client/SpiderRouting {
 }
 
 public final class eu/tiducto/spider/client/SpiderStops {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun search (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -827,7 +842,7 @@ public final class eu/tiducto/spider/client/Stops : eu/tiducto/spider/client/Spi
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
 
-public final class eu/tiducto/spider/client/StopsConfig {
+public final class eu/tiducto/spider/client/StopsConfig : eu/tiducto/spider/client/FeatureConfig {
 	public fun <init> ()V
 }
 

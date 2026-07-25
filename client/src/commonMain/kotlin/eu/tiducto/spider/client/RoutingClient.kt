@@ -43,6 +43,7 @@ import kotlinx.serialization.json.JsonElement
 internal class RoutingClient(
     private val baseUrl: String,
     private val apiKey: String,
+    retry: RetryConfig? = null,
 ) {
     // explicitNulls=false so an omitted optional reads as "unset" upstream. Unknown enum values decode to
     // UNKNOWN via the generated enums' serializers (coercion doesn't — it throws).
@@ -52,6 +53,7 @@ internal class RoutingClient(
     }
 
     private val http = HttpClient {
+        installAutoRetry(retry)
         install(Logging) {
             level = LogLevel.INFO
             logger = object : Logger {

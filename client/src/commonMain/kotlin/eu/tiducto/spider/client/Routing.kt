@@ -12,8 +12,9 @@ import kotlinx.serialization.Serializable
 class SpiderRouting(
     private val baseUrl: String,
     apiKey: String,
+    retry: RetryConfig? = null,
 ) {
-    private val routing = RoutingClient(baseUrl, apiKey)
+    private val routing = RoutingClient(baseUrl, apiKey, retry)
 
     suspend fun plan(
         origin: Location,
@@ -85,12 +86,12 @@ class SpiderRouting(
     }
 }
 
-class RoutingConfig
+class RoutingConfig : FeatureConfig()
 
 object Routing : SpiderFeature<RoutingConfig, SpiderRouting> {
     override fun newConfig() = RoutingConfig()
     override fun build(baseUrl: String, apiKey: String, config: RoutingConfig): SpiderRouting =
-        SpiderRouting(baseUrl = baseUrl, apiKey = apiKey)
+        SpiderRouting(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry)
 }
 
 sealed interface Location {
