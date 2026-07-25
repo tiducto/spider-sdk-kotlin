@@ -3,6 +3,7 @@ package examples.realtime
 import eu.tiducto.spider.client.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 
 private fun updateBoard(data: Any?) {}
@@ -18,6 +19,17 @@ fun setup() {
     }
 }
 
+fun setupWithRetry() {
+    val client = SpiderClient(
+        baseUrl = "https://your-env-slug.api.tiducto.eu",
+        apiKey = "your-api-key",
+    ) {
+        install(Realtime) {
+            autoRetry { maxAttempts = 3 }
+        }
+    }
+}
+
 suspend fun CoroutineScope.poll(client: SpiderClient, tripIds: List<String>) {
     while (isActive) {
         when (val result = client.realtime.delays(tripIds)) {
@@ -25,6 +37,15 @@ suspend fun CoroutineScope.poll(client: SpiderClient, tripIds: List<String>) {
             is SpiderResult.Error -> log("realtime poll failed: ${result.error}")
         }
         delay(15_000)
+    }
+}
+
+suspend fun pollHelper(client: SpiderClient, tripIds: List<String>) {
+    client.realtime.pollVehicles(tripIds).collect { result ->
+        when (result) {
+            is SpiderResult.Success -> updateBoard(result.data)
+            is SpiderResult.Error -> log("realtime poll failed: ${result.error}")
+        }
     }
 }
 
