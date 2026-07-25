@@ -48,12 +48,17 @@ else
         | base64 -d > "$WORK_DIR/openapi.json"
 fi
 
-# Stamp the contract version (the spec's info.version) into the version spine. contract.version drives the
-# published artifact version (<contract.version>.<sdk.patch>); ContractVersion.kt is the wire version the
-# client declares. Both are generated from the contract — it is the single source of truth for the number.
+# Stamp the contract version (the spec's info.version) into the version spine. Only the `contract=` field of
+# version.properties is touched — the `patch=` field is owned by the maintainer and left untouched. The
+# artifact version is contract.patch; ContractVersion.kt is the wire version the client declares.
 CONTRACT_VERSION="$(node -e "process.stdout.write(String(require('$WORK_DIR/openapi.json').info.version))")"
 echo "==> Contract version: $CONTRACT_VERSION"
-printf '%s\n' "$CONTRACT_VERSION" > "$REPO_ROOT/contract.version"
+VERSION_FILE="$REPO_ROOT/version.properties"
+if [[ -f "$VERSION_FILE" ]]; then
+    sed -i.bak "s/^contract=.*/contract=$CONTRACT_VERSION/" "$VERSION_FILE" && rm -f "$VERSION_FILE.bak"
+else
+    printf 'contract=%s\npatch=0\n' "$CONTRACT_VERSION" > "$VERSION_FILE"
+fi
 cat > "$REPO_ROOT/client/src/commonMain/kotlin/eu/tiducto/spider/client/ContractVersion.kt" <<EOF
 package eu.tiducto.spider.client
 
