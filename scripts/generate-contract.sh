@@ -48,24 +48,11 @@ else
         | base64 -d > "$WORK_DIR/openapi.json"
 fi
 
-# Stamp the contract version (the spec's info.version) into the version spine. On an actual contract change
-# this updates `contract=` AND resets `patch=` to 0 (a new contract line starts a fresh patch sequence); an
-# unchanged re-run leaves both fields alone, so a maintainer's patch bump is never clobbered. The artifact
-# version is contract.patch; ContractVersion.kt is the wire version the client declares.
+# The wire version the client declares (ContractVersion.kt) is the spec's info.version — the exact
+# protocol version these generated models speak. The artifact version is separate: it lives in
+# version.properties (contract.patch), which the contract-sync workflow bumps — not this script.
 CONTRACT_VERSION="$(node -e "process.stdout.write(String(require('$WORK_DIR/openapi.json').info.version))")"
 echo "==> Contract version: $CONTRACT_VERSION"
-VERSION_FILE="$REPO_ROOT/version.properties"
-if [[ -f "$VERSION_FILE" ]]; then
-    CURRENT_CONTRACT="$(sed -n 's/^contract=//p' "$VERSION_FILE")"
-    if [[ "$CURRENT_CONTRACT" != "$CONTRACT_VERSION" ]]; then
-        sed -i.bak -e "s/^contract=.*/contract=$CONTRACT_VERSION/" -e "s/^patch=.*/patch=0/" "$VERSION_FILE" && rm -f "$VERSION_FILE.bak"
-        echo "==> contract $CURRENT_CONTRACT → $CONTRACT_VERSION; reset patch=0"
-    else
-        echo "==> contract unchanged ($CONTRACT_VERSION); patch left as-is"
-    fi
-else
-    printf 'contract=%s\npatch=0\n' "$CONTRACT_VERSION" > "$VERSION_FILE"
-fi
 cat > "$REPO_ROOT/client/src/commonMain/kotlin/eu/tiducto/spider/client/ContractVersion.kt" <<EOF
 package eu.tiducto.spider.client
 
