@@ -2,7 +2,7 @@
   "$schema": "https://context7.com/schema/context7.json",
   "projectTitle": "Spider SDK for Kotlin",
   "description": "Kotlin Multiplatform SDK for the Spider transit API by Tiducto — trip planning, stop search, and live realtime data behind one typed client. Targets JVM, Android, iOS, macOS, and JS/Wasm.",
-  "folders": ["examples", "client/docs"],
+  "folders": ["examples"],
   "excludeFolders": ["**/build/**", ".gradle", ".idea", ".kotlin", "kotlin-js-store", "gradle", "scripts", ".github", "client/api", "**/*Test/**", "**/spider/contract/**"],
   "excludeFiles": ["LICENSE", "build.gradle.kts", "settings.gradle.kts", "gradle.properties", "version.properties", "gradlew", "gradlew.bat", "examples/build.gradle.kts"],
   "rules": [
