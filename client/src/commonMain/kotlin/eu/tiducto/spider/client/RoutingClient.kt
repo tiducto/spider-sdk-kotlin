@@ -251,20 +251,6 @@ internal class RoutingClient(
     }
 }
 
-/**
- * Each routing operation's persisted-query id and its gateway route suffix. The id is the lowercase hex
- * sha256 of the canonical query document under src/commonMain/graphql/ — the SDK owns these documents
- * (direction is contract ← SDK), and the Spider contract registers the same text so the ids match; a
- * mismatch is a 403 at the gateway.
- */
-internal object PersistedQueries {
-    data class Op(val id: String, val path: String)
-
-    val PLAN = Op("f19608964d423831b485ccc878cb25eff56c720585d4423ee617c864e2b3102e", "plan")
-    val DEPARTURES = Op("70a644fe3c6b2cbf5b2d70cef8230c1428bea6357ae1766772162d86469563d0", "departures")
-    val TRIP = Op("e8959a8d47a8e8437ee3ec740cd9c3e28bd401efdd236dde0502559daea53920", "trip")
-}
-
 private fun transitModeFromWire(raw: String?): TransitMode? = when (raw) {
     null -> null
     "WALK" -> TransitMode.WALK

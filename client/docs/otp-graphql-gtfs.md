@@ -2,7 +2,7 @@
 
 Saved subset of the OTP dev-2.x GTFS GraphQL API, scoped to what this client uses today (planConnection + supporting types). Source: https://docs.opentripplanner.org/api/dev-2.x/graphql-gtfs/
 
-These notes exist so we don't have to re-fetch the upstream docs every time we extend a query or model. Update them whenever we pull new fields into `src/main/graphql/schema.graphqls`.
+These notes exist so we don't have to re-fetch the upstream docs every time we extend a query or model. The queries and the OTP schema live in the contract (`spider-contract/src/routing/`, alongside `otp-schema.graphqls`), not here — update these notes whenever new fields are pulled in there.
 
 ## Endpoint
 

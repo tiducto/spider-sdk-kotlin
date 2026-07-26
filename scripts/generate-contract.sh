@@ -59,6 +59,41 @@ package eu.tiducto.spider.client
 internal const val CONTRACT_VERSION: String = "$CONTRACT_VERSION"
 EOF
 
+# Persisted-query ids come from the contract too (x-persisted-query-id per routing operation). The
+# gateway 403s an id it hasn't registered, so these must never be hand-edited out of step with the spec.
+cat > "$WORK_DIR/persisted-queries.js" <<'NODE'
+const fs = require('fs');
+const [specPath, outPath] = process.argv.slice(2);
+const spec = JSON.parse(fs.readFileSync(specPath, 'utf8'));
+const ops = [];
+for (const [route, methods] of Object.entries(spec.paths || {})) {
+    for (const op of Object.values(methods)) {
+        const id = op && op['x-persisted-query-id'];
+        if (!id) continue;
+        const path = route.replace(/^\/routing\//, '');
+        ops.push({ name: path.toUpperCase().replace(/[^A-Z0-9]/g, '_'), id, path });
+    }
+}
+if (ops.length === 0) {
+    console.error('ERROR: no x-persisted-query-id found in the routing spec');
+    process.exit(1);
+}
+ops.sort((a, b) => a.name.localeCompare(b.name));
+const entries = ops.map((o) => `    val ${o.name} = Op("${o.id}", "${o.path}")`).join('\n');
+fs.writeFileSync(outPath, `package eu.tiducto.spider.client
+
+internal object PersistedQueries {
+    data class Op(val id: String, val path: String)
+
+${entries}
+}
+`);
+process.stdout.write(String(ops.length));
+NODE
+PQ_COUNT="$(node "$WORK_DIR/persisted-queries.js" "$WORK_DIR/openapi.json" \
+    "$REPO_ROOT/client/src/commonMain/kotlin/eu/tiducto/spider/client/PersistedQueries.kt")"
+echo "==> Persisted-query ids: $PQ_COUNT"
+
 # Obtain + build the generator. Set CODEGEN_DIR to a local checkout to skip the clone (local dev).
 if [[ -n "${CODEGEN_DIR:-}" ]]; then
     echo "==> Using local spider-codegen at $CODEGEN_DIR"

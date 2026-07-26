@@ -116,4 +116,23 @@ class RoutingWireContractTest {
         val env = json.decodeFromString(PlanConnectionResponse.serializer(), body)
         assertEquals(Mode.UNKNOWN, env.data!!.planConnection!!.edges!!.single().node.legs.single().mode)
     }
+
+    @Test
+    fun `persisted query ids and route suffixes match the ids registered in the contract`() {
+        assertEquals(
+            "f19608964d423831b485ccc878cb25eff56c720585d4423ee617c864e2b3102e",
+            PersistedQueries.PLAN.id,
+        )
+        assertEquals("plan", PersistedQueries.PLAN.path)
+        assertEquals(
+            "70a644fe3c6b2cbf5b2d70cef8230c1428bea6357ae1766772162d86469563d0",
+            PersistedQueries.DEPARTURES.id,
+        )
+        assertEquals("departures", PersistedQueries.DEPARTURES.path)
+        assertEquals(
+            "e8959a8d47a8e8437ee3ec740cd9c3e28bd401efdd236dde0502559daea53920",
+            PersistedQueries.TRIP.id,
+        )
+        assertEquals("trip", PersistedQueries.TRIP.path)
+    }
 }

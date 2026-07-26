@@ -28,4 +28,5 @@ jobs:
         client/src/commonMain/kotlin/eu/tiducto/spider/contract/routing
         version.properties
         client/src/commonMain/kotlin/eu/tiducto/spider/client/ContractVersion.kt
+        client/src/commonMain/kotlin/eu/tiducto/spider/client/PersistedQueries.kt
     secrets: inherit
