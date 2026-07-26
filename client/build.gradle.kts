@@ -51,9 +51,7 @@ kotlin {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
 
-                // implementation, not api: contract types are used only in the internal transport and
-                // must not leak into the public surface (PublicApiLeakTest enforces this).
-                implementation(project(":contract"))
+                implementation(libs.kotlinx.serialization.json)
 
                 api(libs.ktor.client.core)
                 implementation(libs.ktor.client.content.negotiation)

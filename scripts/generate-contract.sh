@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ROUTING_DIR="$REPO_ROOT/contract/src/commonMain/kotlin/eu/tiducto/spider/contract/routing"
+ROUTING_DIR="$REPO_ROOT/client/src/commonMain/kotlin/eu/tiducto/spider/contract/routing"
 WORK_DIR="$(mktemp -d)"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
@@ -80,6 +80,7 @@ node "$CODEGEN/dist/cli.js" \
     --lang kotlin \
     --package "$PACKAGE" \
     --optional-lists nullable \
+    --visibility internal \
     --out "$WORK_DIR/gen"
 
 GENERATED="$WORK_DIR/gen/$(echo "$PACKAGE" | tr '.' '/')"
