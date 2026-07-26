@@ -26,7 +26,7 @@ repositories {
 }
 
 dependencies {
-    implementation("eu.tiducto:spider-sdk-kotlin-client:0.1.0")
+    implementation("eu.tiducto:spider-sdk-kotlin-client:2.2.0")
 }
 ```
 
@@ -48,7 +48,7 @@ npm install @tiducto/spider-sdk-client
 ```ts
 import { SpiderClient, Location } from '@tiducto/spider-sdk-client'
 
-const client = new SpiderClient('https://brno.api.transitapi.eu', apiKey)
+const client = new SpiderClient('https://your-env-slug.api.tiducto.eu', apiKey)
 const res = await client.routing.plan(
   Location.coordinate(49.19, 16.61),
   Location.stop('U1146N1'),
@@ -68,7 +68,7 @@ hoist companion factories to bare statics on the exported class.)
 ## Usage
 
 ```kotlin
-val client = SpiderClient(baseUrl = "https://brno.api.transitapi.eu", apiKey = "spk_…") {
+val client = SpiderClient(baseUrl = "https://your-env-slug.api.tiducto.eu", apiKey = "your-api-key") {
     install(Routing)
     install(Stops)
     install(Realtime)

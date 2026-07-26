@@ -1,0 +1,19 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "Spider SDK for Kotlin",
+  "description": "Kotlin Multiplatform SDK for the Spider transit API by Tiducto — trip planning, stop search, and live realtime data behind one typed client. Targets JVM, Android, iOS, macOS, and JS/Wasm.",
+  "folders": ["examples", "client/docs"],
+  "excludeFolders": ["**/build/**", ".gradle", ".idea", ".kotlin", "kotlin-js-store", "gradle", "scripts", ".github", "client/api", "**/*Test/**", "**/spider/contract/**"],
+  "excludeFiles": ["LICENSE", "build.gradle.kts", "settings.gradle.kts", "gradle.properties", "version.properties", "gradlew", "gradlew.bat", "examples/build.gradle.kts"],
+  "rules": [
+    "Construction installs each surface in a builder block: `SpiderClient(baseUrl, apiKey) { install(Routing); install(Stops); install(Realtime) }`. Reading a surface you did not install — e.g. `client.stops` without `install(Stops)` — throws at runtime. Install only the surfaces you use. This is the most common mistake. (The TypeScript SDK differs: all surfaces are available eagerly with no install step.)",
+    "The base URL is per-environment and looks like `https://your-env-slug.api.tiducto.eu`. Always use the literal placeholders `your-env-slug` and `your-api-key` in examples — never invent a real environment slug or key.",
+    "The API key travels in the `apikey` header, never a query string. Keys are scoped to a single project and environment.",
+    "Calls return a `SpiderResult`. Branch with `when (result) { is SpiderResult.Success -> result.data; is SpiderResult.Error -> result.error }` instead of relying on exceptions; `error.code` is one of network, timeout, unauthorized, not_found, server, rate_limited, decoding, unknown.",
+    "There are three surfaces, available once installed: `routing` (trip planning via `plan`, `departures`, `trip`, and pagination via `nextPage`/`previousPage`), `stops` (`search { filter { name eq \"...\" } }`), and `realtime` (`vehicles`, `vehicleForTrip`, `delays`, `alerts`).",
+    "Build an origin or destination with `Location.Coordinate(lat, lon)` or `Location.Stop(id)`. A `gtfsId` returned from stops feeds straight into routing and realtime — ids are opaque, never re-prefix them.",
+    "Realtime is poll-based; there are no push connections. Poll on an interval (10–15s is sensible) and read `freshness` on each snapshot. A `vehicleForTrip` result whose `vehicle` is null means nothing is reporting for that trip — a normal state, not an error.",
+    "Routing runs on persisted queries supplied by the SDK from the API contract; never hand-write a query id or send raw GraphQL. Configure retry and backoff per feature inside the install block, e.g. `install(Realtime) { autoRetry { maxAttempts = 3 } }`.",
+    "The dependency is `eu.tiducto:spider-sdk-kotlin-client`. From JavaScript, prefer the native TypeScript SDK `@tiducto/spider-sdk-typescript`; the Kotlin/JS facade (`@tiducto/spider-sdk-client`) exposes the same names with JS-friendly shapes — sealed types become factory functions, `SpiderResult` becomes `{ isSuccess, data, error }`, times are epoch-millis numbers, and suspend functions return Promises."
+  ]
+}
