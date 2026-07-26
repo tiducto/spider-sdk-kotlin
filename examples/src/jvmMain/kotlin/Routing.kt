@@ -41,6 +41,29 @@ suspend fun planForTime(client: SpiderClient) {
     )
 }
 
+suspend fun laterItineraries(client: SpiderClient) {
+    val firstPage = when (val result = client.routing.plan(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        first = 3,
+    )) {
+        is SpiderResult.Success -> result.data
+        is SpiderResult.Error -> {
+            println("Planning failed: ${result.error}")
+            return
+        }
+    }
+
+    when (val later = client.routing.nextPage(firstPage, first = 3)) {
+        null -> println("No later itineraries — that was the last page")
+        is SpiderResult.Success ->
+            later.data.edges.forEach { edge ->
+                println("${edge.itinerary.start} → ${edge.itinerary.end}")
+            }
+        is SpiderResult.Error -> println("Paging failed: ${later.error}")
+    }
+}
+
 suspend fun departures(client: SpiderClient) {
     val result = client.routing.departures(
         id = "U123Z1",
