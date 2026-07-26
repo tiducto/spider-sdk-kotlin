@@ -1,8 +1,8 @@
 name: publish
 
-# Publishes the Spider Kotlin SDK (:client + :contract) to GitHub Packages' Maven registry.
+# Publishes the Spider Kotlin SDK (:client) to GitHub Packages' Maven registry.
 #
-# Manual dispatch only. The published version is each module's `version` in build.gradle.kts — bump it
+# Manual dispatch only. The published version is the module's `version` in build.gradle.kts — bump it
 # before dispatching, since GitHub Packages rejects republishing an existing version. Runs on macOS
 # because the KMP library declares Apple targets (iosArm64/macos*), which can't compile on Linux. Auth
 # uses the built-in GITHUB_TOKEN (packages: write), so no PAT/secret is needed.

@@ -25,7 +25,7 @@ jobs:
     uses: tiducto/.github/.github/workflows/generate-contract.yml@main
     with:
       add-paths: |
-        contract/src/commonMain/kotlin/eu/tiducto/spider/contract/routing
+        client/src/commonMain/kotlin/eu/tiducto/spider/contract/routing
         version.properties
         client/src/commonMain/kotlin/eu/tiducto/spider/client/ContractVersion.kt
     secrets: inherit

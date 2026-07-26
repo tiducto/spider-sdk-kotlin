@@ -1,7 +1,7 @@
 name: Build SDK
 
 # Builds the whole KMP library. Runs on macOS because the repo declares Apple
-# targets (iosArm64/macos*), which can't compile on a Linux runner. :contract's
+# targets (iosArm64/macos*), which can't compile on a Linux runner. The wire
 # models are committed Kotlin (generated out-of-band by scripts/generate-contract.sh),
 # so this just compiles them like any other source — no codegen step in the build.
 

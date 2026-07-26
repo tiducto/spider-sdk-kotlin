@@ -90,9 +90,9 @@ Also available once installed: `client.stops.search { filter { name eq "Hlavní"
 
 The wire contract (persisted GraphQL queries, routes, response shapes) is owned by
 [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract). Its `dist/routing-openapi.json` is compiled
-into typed Kotlin models in the **`:contract`** module — the generated classes are committed (the module
-carries the classes, not the spec, and has no codegen in its build). `:client` consumes them internally
-and maps them to its domain types.
+into typed Kotlin models that live inside **`:client`** — the generated classes are committed (the repo
+carries the classes, not the spec, and has no codegen in its build). They are `internal` wire types, so
+they stay off the public ABI; `:client` maps them to its domain types.
 
 To refresh the models after the contract changes, run the **Generate contract module** GitHub workflow
 (manual dispatch) — it pulls the spec, regenerates, and opens a PR. Locally: `scripts/generate-contract.sh`

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Regenerate the :contract module's Kotlin models from the wire contract.
+# Regenerate :client's internal wire models from the wire contract.
 #
 # Single source of truth for contract codegen — the generate-contract workflow just calls this, so local
-# and CI runs produce the same output. The generated classes are committed on purpose (contract/build.gradle.kts):
-# the module carries the classes, not the spec, and has no codegen in its build.
+# and CI runs produce the same output. The generated classes are committed on purpose: the repo carries
+# the classes, not the spec, and has no codegen in its build.
 #
 # Models come from spider-codegen (tiducto/spider-codegen) — our own generator — NOT Docker openapi-generator.
 # Routing optional lists are emitted as `List<X>? = null` (--optional-lists nullable) to preserve the exact wire
@@ -96,7 +96,7 @@ cp -R "$GENERATED/." "$ROUTING_DIR/"
 
 echo "==> Done. $(find "$ROUTING_DIR" -name '*.kt' | wc -l | tr -d ' ') model files."
 
-# The stops + realtime wire types are hand-written (:contract/stops + :contract/realtime), NOT generated.
+# The stops + realtime wire types are hand-written (contract/stops + contract/realtime), NOT generated.
 # stops-openapi.json + realtime-openapi.json are their published contracts; keep them as jvmTest pin
 # fixtures so SDK-type drift from the contract fails the build (OpenApiPinTest). Repo-sourced only —
 # a --spec local run leaves them.
