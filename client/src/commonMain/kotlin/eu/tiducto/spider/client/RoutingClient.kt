@@ -36,7 +36,6 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
 
 // gtfsIds are opaque and feed-prefixed ("1:U…"); the SDK never re-prefixes them — a stop id from search
 // feeds straight into route()/departures()/trip() (re-prefixing is what once 404'd).
@@ -222,8 +221,8 @@ internal class RoutingClient(
         dataSerializer: KSerializer<D>,
     ): D {
         val payload = json.encodeToString(
-            PersistedRequest.serializer(),
-            PersistedRequest(id = op.id, variables = json.encodeToJsonElement(variablesSerializer, variables)),
+            PersistedRequest.serializer(variablesSerializer),
+            PersistedRequest(id = op.id, variables = variables),
         )
         val response = http.post {
             url("$baseUrl/routing/${op.path}")
@@ -305,7 +304,7 @@ private fun ViaLocation.toInput(): PlanViaLocationInput = when (this) {
 }
 
 @Serializable
-private data class PersistedRequest(val id: String, val variables: JsonElement)
+private data class PersistedRequest<V>(val id: String, val variables: V)
 
 @Serializable
 private data class GraphQLResponse<T>(val data: T? = null, val errors: List<GraphQLError>? = null)
