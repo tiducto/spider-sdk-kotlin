@@ -33,8 +33,9 @@ import kotlin.time.Instant
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 // gtfsIds are opaque and feed-prefixed ("1:U…"); the SDK never re-prefixes them — a stop id from search
@@ -82,7 +83,7 @@ internal class RoutingClient(
             before = before,
             after = after,
         )
-        val data = execute(PersistedQueries.PLAN, PlanConnectionVariables.serializer(), variables, PlanConnectionData.serializer())
+        val data: PlanConnectionData = execute(PersistedQueries.PLAN, variables)
         val plan = data.planConnection ?: throw SpiderTransportException.NoData("routing returned no plan data")
 
         return Route(
@@ -148,7 +149,7 @@ internal class RoutingClient(
             startTime = startTime?.epochSeconds,
             timeRange = timeRange.inWholeSeconds.coerceIn(0L, Int.MAX_VALUE.toLong()).toInt(),
         )
-        val data = execute(PersistedQueries.DEPARTURES, StopDeparturesVariables.serializer(), variables, StopDeparturesData.serializer())
+        val data: StopDeparturesData = execute(PersistedQueries.DEPARTURES, variables)
         val stop = data.asStop ?: data.asStation
             ?: throw SpiderTransportException.NoData("routing returned no stop or station for id=$id")
 
@@ -178,7 +179,7 @@ internal class RoutingClient(
     /** [serviceDate] is GTFS calendar date, formatted "YYYY-MM-DD". Null defaults to today. */
     suspend fun trip(tripId: String, serviceDate: String? = null): TripDetails {
         val variables = TripVariables(id = tripId, serviceDate = serviceDate)
-        val data = execute(PersistedQueries.TRIP, TripVariables.serializer(), variables, TripData.serializer())
+        val data: TripData = execute(PersistedQueries.TRIP, variables)
         val trip = data.trip ?: throw SpiderTransportException.NoData("routing returned no trip for id=$tripId")
 
         val stops = trip.stoptimesForDate.orEmpty().mapNotNull { st ->
@@ -214,16 +215,11 @@ internal class RoutingClient(
         )
     }
 
-    private suspend fun <V, D> execute(
+    private suspend inline fun <reified V, reified D> execute(
         op: PersistedQueries.Op,
-        variablesSerializer: KSerializer<V>,
         variables: V,
-        dataSerializer: KSerializer<D>,
     ): D {
-        val payload = json.encodeToString(
-            PersistedRequest.serializer(variablesSerializer),
-            PersistedRequest(id = op.id, variables = variables),
-        )
+        val payload = json.encodeToString(PersistedRequest(id = op.id, variables = variables))
         val response = http.post {
             url("$baseUrl/routing/${op.path}")
             contentType(ContentType.Application.Json)
@@ -242,7 +238,7 @@ internal class RoutingClient(
             val detail = envelope.message ?: text.take(300)
             throw SpiderTransportException.Http(response.status.value, "routing ${op.path} → ${response.status.value}: $detail", envelope.code)
         }
-        val envelope = json.decodeFromString(GraphQLResponse.serializer(dataSerializer), text)
+        val envelope = json.decodeFromString<GraphQLResponse<D>>(text)
         envelope.errors?.takeIf { it.isNotEmpty() }?.let { errors ->
             throw SpiderTransportException.Upstream("routing ${op.path} errors: ${errors.map { it.message }}")
         }
