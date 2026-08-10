@@ -1,3 +1,3 @@
 package eu.tiducto.spider.client
 
-internal const val CONTRACT_VERSION: String = "2.2"
+internal const val CONTRACT_VERSION: String = "3.0"
