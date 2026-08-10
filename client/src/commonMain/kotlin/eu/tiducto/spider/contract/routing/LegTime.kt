@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class LegTime(
-    val scheduledTime: String
+    val scheduledTime: String,
+    val estimated: RealTimeEstimate? = null
 )

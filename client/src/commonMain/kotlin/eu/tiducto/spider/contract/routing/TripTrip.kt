@@ -10,5 +10,5 @@ internal data class TripTrip(
     val tripHeadsign: String? = null,
     val bikesAllowed: BikesAllowed? = null,
     val stoptimesForDate: List<TripStoptime>? = null,
-    val tripGeometry: Geometry? = null
+    val tripGeometry: TripGeometry? = null
 )
