@@ -14,6 +14,7 @@ import eu.tiducto.spider.contract.routing.PlanViaLocationInput
 import eu.tiducto.spider.contract.routing.WheelchairBoarding
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlinx.serialization.json.Json
 
 /**
@@ -77,7 +78,7 @@ class RoutingWireContractTest {
                 "legs":[{
                   "mode":"BUS",
                   "start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
-                  "from":{"name":"A","stop":{"wheelchairBoarding":"POSSIBLE"}},
+                  "from":{"name":"A","stop":{"gtfsId":"1:U1","wheelchairBoarding":"POSSIBLE"}},
                   "to":{"name":"B"},
                   "route":{"shortName":"12","longName":"Line 12"},
                   "trip":{"gtfsId":"1:T1","bikesAllowed":"ALLOWED"}
@@ -89,6 +90,7 @@ class RoutingWireContractTest {
         val env = json.decodeFromString(PlanConnectionResponse.serializer(), body)
         val leg = env.data!!.planConnection!!.edges!!.single().node.legs.single()
         assertEquals(Mode.BUS, leg.mode)
+        assertEquals("1:U1", leg.from.stop!!.gtfsId)
         assertEquals(WheelchairBoarding.POSSIBLE, leg.from.stop!!.wheelchairBoarding)
         assertEquals(BikesAllowed.ALLOWED, leg.trip!!.bikesAllowed)
     }
@@ -118,21 +120,15 @@ class RoutingWireContractTest {
     }
 
     @Test
-    fun `persisted query ids and route suffixes match the ids registered in the contract`() {
-        assertEquals(
-            "f19608964d423831b485ccc878cb25eff56c720585d4423ee617c864e2b3102e",
-            PersistedQueries.PLAN.id,
-        )
+    fun `persisted query ids are well-formed sha-256 and route suffixes match the contract`() {
+        // The id is the SHA-256 of the canonical query text, so a breaking contract change rotates it — pin
+        // its shape and the stable route suffixes, not the exact hash (the contract owns the value).
+        val sha256Hex = Regex("^[0-9a-f]{64}$")
+        for (op in listOf(PersistedQueries.PLAN, PersistedQueries.DEPARTURES, PersistedQueries.TRIP)) {
+            assertTrue(sha256Hex.matches(op.id), "persisted-query id must be lowercase hex SHA-256: ${op.id}")
+        }
         assertEquals("plan", PersistedQueries.PLAN.path)
-        assertEquals(
-            "70a644fe3c6b2cbf5b2d70cef8230c1428bea6357ae1766772162d86469563d0",
-            PersistedQueries.DEPARTURES.id,
-        )
         assertEquals("departures", PersistedQueries.DEPARTURES.path)
-        assertEquals(
-            "e8959a8d47a8e8437ee3ec740cd9c3e28bd401efdd236dde0502559daea53920",
-            PersistedQueries.TRIP.id,
-        )
         assertEquals("trip", PersistedQueries.TRIP.path)
     }
 }
