@@ -7,9 +7,6 @@ import eu.tiducto.spider.contract.stops.StopSearchResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -27,6 +24,7 @@ internal class StopsClient(
     private val baseUrl: String,
     private val apiKey: String,
     retry: RetryConfig? = null,
+    log: SpiderLog,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val http: HttpClient = HttpClient {
@@ -34,14 +32,7 @@ internal class StopsClient(
         install(ContentNegotiation) {
             json(json)
         }
-        install(Logging) {
-            level = LogLevel.INFO
-            logger = object : Logger {
-                override fun log(message: String) {
-                    co.touchlab.kermit.Logger.d(tag = "StopsClient") { message }
-                }
-            }
-        }
+        installSpiderLogging(log, "SpiderStops")
     }
 
     suspend fun searchStops(

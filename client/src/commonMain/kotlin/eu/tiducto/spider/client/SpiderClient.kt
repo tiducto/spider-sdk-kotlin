@@ -1,17 +1,16 @@
 package eu.tiducto.spider.client
 
-import co.touchlab.kermit.Logger
-
 class SpiderClient(
     baseUrl: String,
     apiKey: String,
     block: SpiderClientBuilder.() -> Unit = {},
 ) {
-    private val features: Map<SpiderFeature<*, *>, Any> =
-        SpiderClientBuilder(baseUrl, apiKey).apply(block).installed.toMap()
+    private val features: Map<SpiderFeature<*, *>, Any>
 
     init {
-        Logger.i(tag = "SpiderClient") {
+        val builder = SpiderClientBuilder(baseUrl, apiKey).apply(block)
+        features = builder.buildInstalled()
+        builder.logging.buildLog().i(tag = "SpiderClient") {
             "Initialized baseUrl=$baseUrl apiKey=set contract=${SpiderContract.VERSION} " +
                 "features=${features.keys.joinToString { it::class.simpleName ?: "?" }}"
         }
@@ -36,17 +35,24 @@ class SpiderClient(
 
 interface SpiderFeature<TConfig : Any, TClient : Any> {
     fun newConfig(): TConfig
-    fun build(baseUrl: String, apiKey: String, config: TConfig): TClient
+    fun build(baseUrl: String, apiKey: String, config: TConfig, logging: LoggingConfig): TClient
 }
 
 class SpiderClientBuilder internal constructor(
     private val baseUrl: String,
     private val apiKey: String,
 ) {
-    internal val installed = mutableMapOf<SpiderFeature<*, *>, Any>()
+    internal var logging: LoggingConfig = LoggingConfig()
+    private val pending = mutableListOf<() -> Pair<SpiderFeature<*, *>, Any>>()
+
+    fun logging(block: LoggingConfig.() -> Unit = {}) {
+        logging = LoggingConfig().apply(block)
+    }
 
     fun <C : Any, T : Any> install(feature: SpiderFeature<C, T>, block: C.() -> Unit = {}) {
         val config = feature.newConfig().apply(block)
-        installed[feature] = feature.build(baseUrl, apiKey, config)
+        pending += { feature to feature.build(baseUrl, apiKey, config, logging) }
     }
+
+    internal fun buildInstalled(): Map<SpiderFeature<*, *>, Any> = pending.associate { it() }
 }

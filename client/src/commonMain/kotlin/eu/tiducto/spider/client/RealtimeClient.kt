@@ -11,9 +11,6 @@ import eu.tiducto.spider.contract.realtime.VehiclesResponseDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -36,6 +33,7 @@ internal class RealtimeClient(
     private val baseUrl: String,
     private val apiKey: String,
     retry: RetryConfig? = null,
+    log: SpiderLog,
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val http: HttpClient = HttpClient {
@@ -43,14 +41,7 @@ internal class RealtimeClient(
         install(ContentNegotiation) {
             json(json)
         }
-        install(Logging) {
-            level = LogLevel.INFO
-            logger = object : Logger {
-                override fun log(message: String) {
-                    co.touchlab.kermit.Logger.d(tag = "RealtimeClient") { message }
-                }
-            }
-        }
+        installSpiderLogging(log, "SpiderRealtime")
     }
 
     suspend fun vehicles(tripIds: List<String>): VehiclePositions {
