@@ -29,6 +29,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -104,8 +105,16 @@ internal class RoutingClient(
                                 mode = transitModeFromWire(leg.mode?.value),
                                 startScheduled = leg.start.scheduledTime,
                                 endScheduled = leg.end.scheduledTime,
+                                startEstimated = leg.start.estimated?.time,
+                                endEstimated = leg.end.estimated?.time,
+                                startDelay = durationFromWire(leg.start.estimated?.delay),
+                                endDelay = durationFromWire(leg.end.estimated?.delay),
+                                isRealtime = leg.realTime ?: false,
+                                realtimeState = leg.realtimeState?.value,
                                 fromName = leg.from.name,
                                 toName = leg.to.name,
+                                fromGtfsId = leg.from.stop?.gtfsId,
+                                toGtfsId = leg.to.stop?.gtfsId,
                                 routeShortName = leg.route?.shortName,
                                 routeLongName = leg.route?.longName,
                                 headsign = leg.headsign,
@@ -275,6 +284,12 @@ private fun bikesAllowedFromWire(raw: String?): BikesAllowed? = when (raw) {
     "ALLOWED" -> BikesAllowed.Allowed
     "NOT_ALLOWED" -> BikesAllowed.NotAllowed
     else -> null
+}
+
+private fun durationFromWire(raw: String?): Duration? {
+    if (raw.isNullOrBlank()) return null
+    return runCatching { Duration.parseIsoString(raw) }.getOrNull()
+        ?: raw.toLongOrNull()?.seconds
 }
 
 private fun Location.toInput(): PlanLabeledLocationInput = PlanLabeledLocationInput(

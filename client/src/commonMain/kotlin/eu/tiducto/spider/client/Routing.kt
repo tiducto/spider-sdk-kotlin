@@ -154,15 +154,32 @@ data class Itinerary(
     val accessibilityScore: Double? = null,
     @Serializable(with = LegListSerializer::class)
     val legs: ImmutableList<Leg>,
-)
+) {
+    val stableKey by lazy {
+        val legs = legs.joinToString("|") { leg ->
+            "${leg.mode}:${leg.tripGtfsId.orEmpty()}:${leg.startScheduled}:${leg.endScheduled}"
+        }
+        "$start/$end/$legs"
+    }
+    fun isSameTripAs(other: Itinerary?): Boolean =
+        other != null && stableKey == other.stableKey
+}
 
 @Serializable
 data class Leg(
     val mode: TransitMode?,
     val startScheduled: String,
     val endScheduled: String,
+    val startEstimated: String? = null,
+    val endEstimated: String? = null,
+    val startDelay: Duration? = null,
+    val endDelay: Duration? = null,
+    val isRealtime: Boolean = false,
+    val realtimeState: String? = null,
     val fromName: String?,
     val toName: String?,
+    val fromGtfsId: String? = null,
+    val toGtfsId: String? = null,
     val routeShortName: String?,
     val routeLongName: String?,
     val headsign: String?,
