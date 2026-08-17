@@ -28,7 +28,7 @@ class SpiderRouting(
         searchWindow: Duration = 1.hours,
         wheelchairAccessible: Boolean = false,
     ): SpiderResult<Route> = page(
-        RouteRequest(
+        PlanRequest(
             origin, destination, time, via,
             allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible,
         ),
@@ -36,22 +36,22 @@ class SpiderRouting(
     )
 
     /**
-     * Loads the next page of itineraries (later departures). Returns null if no next page is available.
+     * Plans the next page of itineraries (later departures). Returns null if no next page is available.
      */
-    suspend fun nextPage(prev: Route, first: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
+    suspend fun planNext(prev: Route, first: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
         if (!prev.pageInfo.hasNextPage) null
         else page(prev.request, first = first, after = prev.pageInfo.endCursor)
 
     /**
-     * Loads the previous page of itineraries (earlier departures). Returns null if no previous page is available.
+     * Plans the previous page of itineraries (earlier departures). Returns null if no previous page is available.
      */
-    suspend fun previousPage(prev: Route, last: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
+    suspend fun planPrevious(prev: Route, last: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
         // Relay backward paging = last + before (not first + before) — earlier itineraries, correct page size.
         if (!prev.pageInfo.hasPreviousPage) null
         else page(prev.request, last = last, before = prev.pageInfo.startCursor)
 
     private suspend fun page(
-        request: RouteRequest,
+        request: PlanRequest,
         first: Int? = null,
         last: Int? = null,
         before: String? = null,
@@ -131,7 +131,7 @@ sealed interface RouteTime {
     data class ArriveBy(override val time: Instant) : RouteTime
 }
 
-data class RouteRequest(
+data class PlanRequest(
     val origin: Location,
     val destination: Location,
     val time: RouteTime,
@@ -147,7 +147,7 @@ data class RouteRequest(
 )
 
 data class Route(
-    val request: RouteRequest,
+    val request: PlanRequest,
     val edges: ImmutableList<RouteEdge>,
     val pageInfo: RoutePageInfo,
     val routingErrors: ImmutableList<RoutingError>,

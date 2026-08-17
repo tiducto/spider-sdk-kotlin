@@ -72,8 +72,8 @@ class RoutingWireContractTest {
     }
 
     @Test
-    fun `RouteRequest maps modes, transfers, wheelchair, and search window to OTP inputs`() {
-        val request = RouteRequest(
+    fun `PlanRequest maps modes, transfers, wheelchair, and search window to OTP inputs`() {
+        val request = PlanRequest(
             origin = Location.Stop("1:U123"),
             destination = Location.Coordinate(49.2, 16.6),
             time = RouteTime.DepartAt(Instant.parse("2026-07-19T10:00:00Z")),
@@ -127,8 +127,8 @@ class RoutingWireContractTest {
     }
 
     @Test
-    fun `RouteRequest with no filters omits modes and preferences`() {
-        val request = RouteRequest(
+    fun `PlanRequest with no filters omits modes and preferences`() {
+        val request = PlanRequest(
             origin = Location.Stop("1:U1"),
             destination = Location.Stop("1:U2"),
             time = RouteTime.DepartAt(Instant.parse("2026-07-19T10:00:00Z")),

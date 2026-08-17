@@ -65,7 +65,7 @@ internal class RoutingClient(
     }
 
     suspend fun planConnection(
-        request: RouteRequest,
+        request: PlanRequest,
         first: Int? = null,
         last: Int? = null,
         before: String? = null,
@@ -293,9 +293,9 @@ private fun durationFromWire(raw: String?): Duration? {
         ?: raw.toLongOrNull()?.seconds
 }
 
-// Curated RouteRequest → OTP's nested modes/preferences inputs. Only the fields the SDK exposes are set;
+// Curated PlanRequest → OTP's nested modes/preferences inputs. Only the fields the SDK exposes are set;
 // everything else stays null so OTP applies its own defaults.
-internal fun RouteRequest.toModesInput(): PlanModesInput? {
+internal fun PlanRequest.toModesInput(): PlanModesInput? {
     // WALK/UNKNOWN have no transit-mode wire value (WALK is a street mode) and drop out; empty ⇒ no filter.
     val transit = allowedTransitModes
         ?.mapNotNull { it.toWireTransitMode() }
@@ -305,7 +305,7 @@ internal fun RouteRequest.toModesInput(): PlanModesInput? {
     return PlanModesInput(transit = PlanTransitModesInput(transit = transit))
 }
 
-internal fun RouteRequest.toPreferencesInput(): PlanPreferencesInput? {
+internal fun PlanRequest.toPreferencesInput(): PlanPreferencesInput? {
     val transit = maxTransfers?.let {
         TransitPreferencesInput(transfer = TransferPreferencesInput(maximumTransfers = it))
     }
