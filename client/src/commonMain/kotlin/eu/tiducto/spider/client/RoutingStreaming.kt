@@ -8,75 +8,95 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 
+private const val DEFAULT_TARGET_RESULTS = 10
+
+// High enough to pull a whole time-step's itinerary options in one search, so OTP's next cursor advances by
+// the FULL search window (verified: nextEdt = currentEdt + searchWindow only when this cap didn't crop the
+// window). A small cap makes the cursor sub-step by results instead of by time — which is NOT what we want:
+// each step should be one search window. `first` is a per-search cap, not cursor-locked, so it can be high.
+private const val MAX_RESULTS_PER_STEP = 50
+
 /**
- * Streams itineraries page by page, extending the search forward (later departures) until [maxSearchWindow]
- * of time has been searched or OTP runs out of pages. Cold and lazy: it only fetches as far as the collector
- * consumes, so `.take(n)` stops paging after n pages and never runs the extra OTP searches. Each emission is
- * one page's [SpiderResult] — a terminal [SpiderResult.Error] ends the stream — mirroring the non-throwing
- * poll helpers in [pollVehicles]. For a plain big batch, prefer one [SpiderRouting.plan] with a wider
- * [searchWindow]; reach for this only when you want the pages as they arrive.
+ * Streams itineraries by stepping the search forward one [searchWindow] at a time, until [targetResults]
+ * itineraries have been collected or [maxTraversal] of time has been traversed. Each step pulls a whole
+ * window in one search, so a busy window yields more — [targetResults] is a soft floor, the window that
+ * reaches it is emitted whole. Cold and lazy: cancel/`take` stops stepping and skips the remaining OTP
+ * searches. Each emission is one step's [SpiderResult] (a terminal Error ends the stream), mirroring the
+ * non-throwing poll helpers in [pollVehicles].
+ *
+ * The step is [searchWindow] and it is fixed for the whole walk — OTP locks the window into the paging
+ * cursor after the first search and ignores it thereafter, so a wider step means a wider [searchWindow]
+ * here, not on a continuation. For a plain one-shot batch, a single [SpiderRouting.plan] is the primitive.
  */
 fun SpiderRouting.planUntil(
     origin: Location,
     destination: Location,
     time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
-    maxSearchWindow: Duration = 4.hours,
-    pageSize: Int = SpiderRouting.DEFAULT_FIRST,
+    targetResults: Int = DEFAULT_TARGET_RESULTS,
+    searchWindow: Duration = 1.hours,
+    maxTraversal: Duration = 6.hours,
     via: List<ViaLocation> = emptyList(),
     allowedTransitModes: Set<TransitMode>? = null,
     maxTransfers: Int? = null,
-    searchWindow: Duration = 1.hours,
     wheelchairAccessible: Boolean = false,
 ): Flow<SpiderResult<Route>> {
     val routing = this
     return flow {
         val first = routing.plan(
-            origin = origin, destination = destination, time = time, first = pageSize, via = via,
+            origin = origin, destination = destination, time = time, first = MAX_RESULTS_PER_STEP, via = via,
             allowedTransitModes = allowedTransitModes, maxTransfers = maxTransfers,
             searchWindow = searchWindow, wheelchairAccessible = wheelchairAccessible,
         )
         emit(first)
         val page = (first as? SpiderResult.Success)?.data ?: return@flow
-        pageThrough(routing, page, forward = true, extraPages = pageBudget(maxSearchWindow, searchWindow) - 1, pageSize)
+        stepThrough(routing, page, forward = true, stepCount(maxTraversal, searchWindow) - 1, targetResults, page.edges.size)
     }
 }
 
-/** Streaming form of [SpiderRouting.planNext]: later departures continuing after [prev], page by page. */
+/** Streaming form of [SpiderRouting.planNext]: steps forward from [prev], one (fixed) search window per step. */
 fun SpiderRouting.planNextUntil(
     prev: Route,
-    maxSearchWindow: Duration = 4.hours,
-    pageSize: Int = SpiderRouting.DEFAULT_FIRST,
+    targetResults: Int = DEFAULT_TARGET_RESULTS,
+    maxTraversal: Duration = 6.hours,
 ): Flow<SpiderResult<Route>> {
     val routing = this
-    return flow { pageThrough(routing, prev, forward = true, pageBudget(maxSearchWindow, prev.request.searchWindow), pageSize) }
+    return flow { stepThrough(routing, prev, forward = true, stepCount(maxTraversal, prev.request.searchWindow), targetResults, 0) }
 }
 
-/** Streaming form of [SpiderRouting.planPrevious]: earlier departures before [prev], page by page. */
+/** Streaming form of [SpiderRouting.planPrevious]: steps backward from [prev], one (fixed) search window per step. */
 fun SpiderRouting.planPreviousUntil(
     prev: Route,
-    maxSearchWindow: Duration = 4.hours,
-    pageSize: Int = SpiderRouting.DEFAULT_FIRST,
+    targetResults: Int = DEFAULT_TARGET_RESULTS,
+    maxTraversal: Duration = 6.hours,
 ): Flow<SpiderResult<Route>> {
     val routing = this
-    return flow { pageThrough(routing, prev, forward = false, pageBudget(maxSearchWindow, prev.request.searchWindow), pageSize) }
+    return flow { stepThrough(routing, prev, forward = false, stepCount(maxTraversal, prev.request.searchWindow), targetResults, 0) }
 }
 
-// Emit successive pages from [start] in one direction. A null page (nothing more) or an Error ends the stream.
-private suspend fun FlowCollector<SpiderResult<Route>>.pageThrough(
+// Step from [start] one search window at a time, accumulating itinerary count. Stop at [targetResults], when
+// a step has no next page, or on an Error. [collectedSoFar] seeds the count (planUntil already emitted step 1).
+private suspend fun FlowCollector<SpiderResult<Route>>.stepThrough(
     routing: SpiderRouting,
     start: Route,
     forward: Boolean,
-    extraPages: Int,
-    pageSize: Int,
+    remainingSteps: Int,
+    targetResults: Int,
+    collectedSoFar: Int,
 ) {
+    if (collectedSoFar >= targetResults) return
     var prev = start
-    repeat(extraPages.coerceAtLeast(0)) {
-        val res = (if (forward) routing.planNext(prev, pageSize) else routing.planPrevious(prev, pageSize)) ?: return
+    var collected = collectedSoFar
+    repeat(remainingSteps.coerceAtLeast(0)) {
+        val res = (if (forward) routing.planNext(prev, MAX_RESULTS_PER_STEP) else routing.planPrevious(prev, MAX_RESULTS_PER_STEP)) ?: return
         emit(res)
-        prev = (res as? SpiderResult.Success)?.data ?: return
+        val page = (res as? SpiderResult.Success)?.data ?: return
+        collected += page.edges.size
+        if (collected >= targetResults) return
+        prev = page
     }
 }
 
-// The fixed per-page window makes the max-window bound a deterministic page count — no searchWindowUsed parsing.
-private fun pageBudget(maxSearchWindow: Duration, perPage: Duration): Int =
-    (maxSearchWindow / perPage.coerceAtLeast(1.minutes)).toInt().coerceAtLeast(1)
+// Each cursor step advances a full search window (MAX_RESULTS_PER_STEP consumes the window), so the number of
+// steps to traverse [maxTraversal] is a plain division by the (fixed) step — no searchWindowUsed parsing.
+private fun stepCount(maxTraversal: Duration, step: Duration): Int =
+    (maxTraversal / step.coerceAtLeast(1.minutes)).toInt().coerceAtLeast(1)

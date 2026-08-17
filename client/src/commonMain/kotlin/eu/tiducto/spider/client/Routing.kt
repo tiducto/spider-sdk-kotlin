@@ -67,7 +67,7 @@ class SpiderRouting(
         }
     }
 
-    internal companion object {
+    private companion object {
         const val DEFAULT_FIRST = 5
     }
 
