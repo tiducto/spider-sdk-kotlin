@@ -16,7 +16,6 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
-import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -111,10 +110,7 @@ internal class RealtimeClient(
     private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse {
         val response = http.get {
             block()
-            headers {
-                append("apikey", apiKey)
-                append(SpiderContract.HEADER, SpiderContract.VERSION)
-            }
+            spiderHeaders(apiKey)
         }
         ContractGuard.check(response.headers[SpiderContract.HEADER])
         return response
