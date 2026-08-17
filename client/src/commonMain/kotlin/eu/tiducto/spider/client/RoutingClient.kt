@@ -1,6 +1,7 @@
 package eu.tiducto.spider.client
 
 import eu.tiducto.spider.client.util.decodePolyline
+import eu.tiducto.spider.contract.routing.AccessibilityPreferencesInput
 import eu.tiducto.spider.contract.routing.GraphQLError
 import eu.tiducto.spider.contract.routing.PlanConnectionData
 import eu.tiducto.spider.contract.routing.PlanConnectionVariables
@@ -8,14 +9,22 @@ import eu.tiducto.spider.contract.routing.PlanCoordinateInput
 import eu.tiducto.spider.contract.routing.PlanDateTimeInput
 import eu.tiducto.spider.contract.routing.PlanLabeledLocationInput
 import eu.tiducto.spider.contract.routing.PlanLocationInput
+import eu.tiducto.spider.contract.routing.PlanModesInput
 import eu.tiducto.spider.contract.routing.PlanPassThroughViaLocationInput
+import eu.tiducto.spider.contract.routing.PlanPreferencesInput
 import eu.tiducto.spider.contract.routing.PlanStopLocationInput
+import eu.tiducto.spider.contract.routing.PlanTransitModePreferenceInput
+import eu.tiducto.spider.contract.routing.PlanTransitModesInput
 import eu.tiducto.spider.contract.routing.PlanViaLocationInput
 import eu.tiducto.spider.contract.routing.PlanVisitViaLocationInput
 import eu.tiducto.spider.contract.routing.StopDeparturesData
 import eu.tiducto.spider.contract.routing.StopDeparturesVariables
+import eu.tiducto.spider.contract.routing.TransferPreferencesInput
+import eu.tiducto.spider.contract.routing.TransitMode as WireTransitMode
+import eu.tiducto.spider.contract.routing.TransitPreferencesInput
 import eu.tiducto.spider.contract.routing.TripData
 import eu.tiducto.spider.contract.routing.TripVariables
+import eu.tiducto.spider.contract.routing.WheelchairPreferencesInput
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -58,6 +67,7 @@ internal class RoutingClient(
     suspend fun planConnection(
         request: RouteRequest,
         first: Int? = null,
+        last: Int? = null,
         before: String? = null,
         after: String? = null,
     ): Route {
@@ -70,7 +80,11 @@ internal class RoutingClient(
             origin = request.origin.toInput(),
             destination = request.destination.toInput(),
             via = request.via.takeIf { it.isNotEmpty() }?.map { it.toInput() },
+            modes = request.toModesInput(),
+            preferences = request.toPreferencesInput(),
+            searchWindow = request.searchWindow.toIsoString(),
             first = first,
+            last = last,
             before = before,
             after = after,
         )
@@ -278,6 +292,34 @@ private fun durationFromWire(raw: String?): Duration? {
     return runCatching { Duration.parseIsoString(raw) }.getOrNull()
         ?: raw.toLongOrNull()?.seconds
 }
+
+// Curated RouteRequest → OTP's nested modes/preferences inputs. Only the fields the SDK exposes are set;
+// everything else stays null so OTP applies its own defaults.
+internal fun RouteRequest.toModesInput(): PlanModesInput? {
+    // WALK/UNKNOWN have no transit-mode wire value (WALK is a street mode) and drop out; empty ⇒ no filter.
+    val transit = allowedTransitModes
+        ?.mapNotNull { it.toWireTransitMode() }
+        ?.map { PlanTransitModePreferenceInput(mode = it) }
+        ?.takeIf { it.isNotEmpty() }
+        ?: return null
+    return PlanModesInput(transit = PlanTransitModesInput(transit = transit))
+}
+
+internal fun RouteRequest.toPreferencesInput(): PlanPreferencesInput? {
+    val transit = maxTransfers?.let {
+        TransitPreferencesInput(transfer = TransferPreferencesInput(maximumTransfers = it))
+    }
+    val accessibility = if (wheelchairAccessible) {
+        AccessibilityPreferencesInput(wheelchair = WheelchairPreferencesInput(enabled = true))
+    } else {
+        null
+    }
+    return if (transit == null && accessibility == null) null
+    else PlanPreferencesInput(transit = transit, accessibility = accessibility)
+}
+
+private fun TransitMode.toWireTransitMode(): WireTransitMode? =
+    WireTransitMode.entries.firstOrNull { it.name == name && it != WireTransitMode.UNKNOWN }
 
 private fun Location.toInput(): PlanLabeledLocationInput = PlanLabeledLocationInput(
     location = when (this) {
