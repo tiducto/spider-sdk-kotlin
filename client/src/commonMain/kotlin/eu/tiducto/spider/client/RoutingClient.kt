@@ -17,7 +17,6 @@ import eu.tiducto.spider.contract.routing.StopDeparturesVariables
 import eu.tiducto.spider.contract.routing.TripData
 import eu.tiducto.spider.contract.routing.TripVariables
 import io.ktor.client.HttpClient
-import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -223,10 +222,7 @@ internal class RoutingClient(
         val response = http.post {
             url("$baseUrl/routing/${op.path}")
             contentType(ContentType.Application.Json)
-            headers {
-                append("apikey", apiKey)
-                append(SpiderContract.HEADER, SpiderContract.VERSION)
-            }
+            spiderHeaders(apiKey)
             setBody(payload)
         }
         // Crash on an incompatible contract before we try to parse a shape we may no longer understand.

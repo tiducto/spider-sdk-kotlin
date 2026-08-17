@@ -7,7 +7,6 @@ import eu.tiducto.spider.contract.stops.StopSearchResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -44,10 +43,7 @@ internal class StopsClient(
         val httpResponse = http.post {
             url(url)
             contentType(ContentType.Application.Json)
-            headers {
-                append("apikey", apiKey)
-                append(SpiderContract.HEADER, SpiderContract.VERSION)
-            }
+            spiderHeaders(apiKey)
             setBody(StopSearchRequest(q = query, filter = filterExpr))
         }
         ContractGuard.check(httpResponse.headers[SpiderContract.HEADER])
