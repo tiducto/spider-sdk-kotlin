@@ -72,7 +72,7 @@ class RoutingWireContractTest {
     }
 
     @Test
-    fun `PlanRequest maps modes, transfers, wheelchair, and search window to OTP inputs`() {
+    fun `PlanRequest maps modes transfers wheelchair and search window to OTP inputs`() {
         val request = PlanRequest(
             origin = Location.Stop("1:U123"),
             destination = Location.Coordinate(49.2, 16.6),
