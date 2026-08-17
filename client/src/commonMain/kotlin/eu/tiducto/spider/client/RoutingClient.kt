@@ -17,9 +17,6 @@ import eu.tiducto.spider.contract.routing.StopDeparturesVariables
 import eu.tiducto.spider.contract.routing.TripData
 import eu.tiducto.spider.contract.routing.TripVariables
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -44,6 +41,7 @@ internal class RoutingClient(
     private val baseUrl: String,
     private val apiKey: String,
     retry: RetryConfig? = null,
+    log: SpiderLog,
 ) {
     // explicitNulls=false so an omitted optional reads as "unset" upstream. Unknown enum values decode to
     // UNKNOWN via the generated enums' serializers (coercion doesn't — it throws).
@@ -54,14 +52,7 @@ internal class RoutingClient(
 
     private val http = HttpClient {
         installAutoRetry(retry)
-        install(Logging) {
-            level = LogLevel.INFO
-            logger = object : Logger {
-                override fun log(message: String) {
-                    co.touchlab.kermit.Logger.d(tag = "RoutingClient") { message }
-                }
-            }
-        }
+        installSpiderLogging(log, "SpiderRouting")
     }
 
     suspend fun planConnection(

@@ -1,6 +1,5 @@
 package eu.tiducto.spider.client
 
-import co.touchlab.kermit.Logger
 import kotlin.time.Instant
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -28,8 +27,10 @@ class SpiderRealtime(
     private val baseUrl: String,
     apiKey: String,
     retry: RetryConfig? = null,
+    logging: LoggingConfig = LoggingConfig(),
 ) {
-    private val realtime = RealtimeClient(baseUrl, apiKey, retry)
+    private val log = logging.buildLog()
+    private val realtime = RealtimeClient(baseUrl, apiKey, retry, log)
 
     /** Live positions for the given [tripIds] (comma-batched in one request). Empty input skips the call. */
     suspend fun vehicles(tripIds: List<String>): SpiderResult<VehiclePositions> {
@@ -54,22 +55,18 @@ class SpiderRealtime(
     suspend fun alerts(): SpiderResult<ServiceAlerts> =
         runCatchingRealtime("alerts") { realtime.alerts() }
 
-    private inline fun <T> runCatchingRealtime(op: String, block: () -> T): SpiderResult<T> = try {
-        SpiderResult.Success(block())
-    } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Logger.e(throwable = e, tag = "SpiderRealtime") { "$op failed against $baseUrl" }
-        SpiderResult.Error(e.toSpiderError())
-    }
+    private inline fun <T> runCatchingRealtime(op: String, block: () -> T): SpiderResult<T> =
+        context(log) {
+            spiderCatch(tag = "SpiderRealtime", message = { "$op failed against $baseUrl" }, block = block)
+        }
 }
 
 class RealtimeConfig : FeatureConfig()
 
 object Realtime : SpiderFeature<RealtimeConfig, SpiderRealtime> {
     override fun newConfig() = RealtimeConfig()
-    override fun build(baseUrl: String, apiKey: String, config: RealtimeConfig): SpiderRealtime =
-        SpiderRealtime(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry)
+    override fun build(baseUrl: String, apiKey: String, config: RealtimeConfig, logging: LoggingConfig): SpiderRealtime =
+        SpiderRealtime(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry, logging = logging)
 }
 
 /**

@@ -335,6 +335,12 @@ public final class eu/tiducto/spider/client/Location$Stop : eu/tiducto/spider/cl
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class eu/tiducto/spider/client/LoggingConfig {
+	public fun <init> ()V
+	public final fun getLevel ()Leu/tiducto/spider/client/SpiderLogLevel;
+	public final fun setLevel (Leu/tiducto/spider/client/SpiderLogLevel;)V
+}
+
 public final class eu/tiducto/spider/client/OccupancyStatus : java/lang/Enum {
 	public static final field CRUSHED_STANDING_ROOM_ONLY Leu/tiducto/spider/client/OccupancyStatus;
 	public static final field Companion Leu/tiducto/spider/client/OccupancyStatus$Companion;
@@ -357,8 +363,8 @@ public final class eu/tiducto/spider/client/OccupancyStatus$Companion {
 
 public final class eu/tiducto/spider/client/Realtime : eu/tiducto/spider/client/SpiderFeature {
 	public static final field INSTANCE Leu/tiducto/spider/client/Realtime;
-	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RealtimeConfig;)Leu/tiducto/spider/client/SpiderRealtime;
-	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RealtimeConfig;Leu/tiducto/spider/client/LoggingConfig;)Leu/tiducto/spider/client/SpiderRealtime;
+	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;Leu/tiducto/spider/client/LoggingConfig;)Ljava/lang/Object;
 	public fun newConfig ()Leu/tiducto/spider/client/RealtimeConfig;
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
@@ -481,8 +487,8 @@ public final class eu/tiducto/spider/client/RouteTime$DepartAt : eu/tiducto/spid
 
 public final class eu/tiducto/spider/client/Routing : eu/tiducto/spider/client/SpiderFeature {
 	public static final field INSTANCE Leu/tiducto/spider/client/Routing;
-	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RoutingConfig;)Leu/tiducto/spider/client/SpiderRouting;
-	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RoutingConfig;Leu/tiducto/spider/client/LoggingConfig;)Leu/tiducto/spider/client/SpiderRouting;
+	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;Leu/tiducto/spider/client/LoggingConfig;)Ljava/lang/Object;
 	public fun newConfig ()Leu/tiducto/spider/client/RoutingConfig;
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }
@@ -558,6 +564,8 @@ public final class eu/tiducto/spider/client/SpiderClient {
 public final class eu/tiducto/spider/client/SpiderClientBuilder {
 	public final fun install (Leu/tiducto/spider/client/SpiderFeature;Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun install$default (Leu/tiducto/spider/client/SpiderClientBuilder;Leu/tiducto/spider/client/SpiderFeature;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun logging (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun logging$default (Leu/tiducto/spider/client/SpiderClientBuilder;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 }
 
 public final class eu/tiducto/spider/client/SpiderContractMismatchError : java/lang/Error {
@@ -737,13 +745,24 @@ public final class eu/tiducto/spider/client/SpiderErrorCode : java/lang/Enum {
 }
 
 public abstract interface class eu/tiducto/spider/client/SpiderFeature {
-	public abstract fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+	public abstract fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;Leu/tiducto/spider/client/LoggingConfig;)Ljava/lang/Object;
 	public abstract fun newConfig ()Ljava/lang/Object;
 }
 
+public final class eu/tiducto/spider/client/SpiderLogLevel : java/lang/Enum {
+	public static final field Body Leu/tiducto/spider/client/SpiderLogLevel;
+	public static final field Error Leu/tiducto/spider/client/SpiderLogLevel;
+	public static final field Headers Leu/tiducto/spider/client/SpiderLogLevel;
+	public static final field Info Leu/tiducto/spider/client/SpiderLogLevel;
+	public static final field None Leu/tiducto/spider/client/SpiderLogLevel;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/SpiderLogLevel;
+	public static fun values ()[Leu/tiducto/spider/client/SpiderLogLevel;
+}
+
 public final class eu/tiducto/spider/client/SpiderRealtime {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun alerts (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun delays (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun vehicleForTrip (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -776,8 +795,8 @@ public final class eu/tiducto/spider/client/SpiderResult$Success : eu/tiducto/sp
 }
 
 public final class eu/tiducto/spider/client/SpiderRouting {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun departures-zkXUZaI (Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun departures-zkXUZaI$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun nextPage (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -791,8 +810,8 @@ public final class eu/tiducto/spider/client/SpiderRouting {
 }
 
 public final class eu/tiducto/spider/client/SpiderStops {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun search (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
@@ -854,8 +873,8 @@ public final class eu/tiducto/spider/client/StopTimeUpdate {
 
 public final class eu/tiducto/spider/client/Stops : eu/tiducto/spider/client/SpiderFeature {
 	public static final field INSTANCE Leu/tiducto/spider/client/Stops;
-	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/StopsConfig;)Leu/tiducto/spider/client/SpiderStops;
-	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/StopsConfig;Leu/tiducto/spider/client/LoggingConfig;)Leu/tiducto/spider/client/SpiderStops;
+	public synthetic fun build (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;Leu/tiducto/spider/client/LoggingConfig;)Ljava/lang/Object;
 	public fun newConfig ()Leu/tiducto/spider/client/StopsConfig;
 	public synthetic fun newConfig ()Ljava/lang/Object;
 }

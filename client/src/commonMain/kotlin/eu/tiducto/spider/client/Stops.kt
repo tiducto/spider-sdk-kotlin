@@ -1,6 +1,5 @@
 package eu.tiducto.spider.client
 
-import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 
 /**
@@ -35,24 +34,24 @@ class SpiderStops(
     private val baseUrl: String,
     apiKey: String,
     retry: RetryConfig? = null,
+    logging: LoggingConfig = LoggingConfig(),
 ) {
-    private val stops = StopsClient(baseUrl, apiKey, retry)
+    private val log = logging.buildLog()
+    private val stops = StopsClient(baseUrl, apiKey, retry, log)
 
     suspend fun search(block: StopRequest.() -> Unit): SpiderResult<ImmutableList<Stop>> {
         var name = ""
         var filters: Set<Filter> = emptySet()
-        return try {
-            val request = StopRequest().apply(block)
-            name = request.nameQuery.orEmpty()
-            filters = request.nonNameFilters
-            SpiderResult.Success(stops.searchStops(query = name, filters = filters))
-        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Logger.e(throwable = e, tag = "SpiderStops") {
-                "search failed against $baseUrl (q=$name, filters=${filters.size})"
+        return context(log) {
+            spiderCatch(
+                tag = "SpiderStops",
+                message = { "search failed against $baseUrl (q=$name, filters=${filters.size})" },
+            ) {
+                val request = StopRequest().apply(block)
+                name = request.nameQuery.orEmpty()
+                filters = request.nonNameFilters
+                stops.searchStops(query = name, filters = filters)
             }
-            SpiderResult.Error(e.toSpiderError())
         }
     }
 }
@@ -61,8 +60,8 @@ class StopsConfig : FeatureConfig()
 
 object Stops : SpiderFeature<StopsConfig, SpiderStops> {
     override fun newConfig() = StopsConfig()
-    override fun build(baseUrl: String, apiKey: String, config: StopsConfig): SpiderStops =
-        SpiderStops(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry)
+    override fun build(baseUrl: String, apiKey: String, config: StopsConfig, logging: LoggingConfig): SpiderStops =
+        SpiderStops(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry, logging = logging)
 }
 
 /**

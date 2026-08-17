@@ -1,6 +1,5 @@
 package eu.tiducto.spider.client
 
-import co.touchlab.kermit.Logger
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -13,8 +12,10 @@ class SpiderRouting(
     private val baseUrl: String,
     apiKey: String,
     retry: RetryConfig? = null,
+    logging: LoggingConfig = LoggingConfig(),
 ) {
-    private val routing = RoutingClient(baseUrl, apiKey, retry)
+    private val log = logging.buildLog()
+    private val routing = RoutingClient(baseUrl, apiKey, retry, log)
 
     suspend fun plan(
         origin: Location,
@@ -43,15 +44,15 @@ class SpiderRouting(
         first: Int? = null,
         before: String? = null,
         after: String? = null,
-    ): SpiderResult<Route> = try {
-        SpiderResult.Success(routing.planConnection(request, first = first, before = before, after = after))
-    } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Logger.e(throwable = e, tag = "SpiderRouting") {
-            "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} first=$first before=$before after=$after)"
+    ): SpiderResult<Route> = context(log) {
+        spiderCatch(
+            tag = "SpiderRouting",
+            message = {
+                "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} first=$first before=$before after=$after)"
+            },
+        ) {
+            routing.planConnection(request, first = first, before = before, after = after)
         }
-        SpiderResult.Error(e.toSpiderError())
     }
 
     private companion object {
@@ -63,26 +64,20 @@ class SpiderRouting(
         numberOfDepartures: Int = 30,
         startTime: Instant? = null,
         timeRange: Duration = 24.hours,
-    ): SpiderResult<ImmutableList<Departure>> = try {
-        SpiderResult.Success(routing.stopDepartures(id, numberOfDepartures, startTime, timeRange))
-    } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Logger.e(throwable = e, tag = "SpiderRouting") { "departures failed against $baseUrl (stopId=$id)" }
-        SpiderResult.Error(e.toSpiderError())
+    ): SpiderResult<ImmutableList<Departure>> = context(log) {
+        spiderCatch(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
+            routing.stopDepartures(id, numberOfDepartures, startTime, timeRange)
+        }
     }
 
     /** [serviceDate] is GTFS calendar date, formatted "YYYY-MM-DD". Null defaults to today. */
     suspend fun trip(
         tripId: String,
         serviceDate: String? = null,
-    ): SpiderResult<TripDetails> = try {
-        SpiderResult.Success(routing.trip(tripId, serviceDate))
-    } catch (e: kotlin.coroutines.cancellation.CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Logger.e(throwable = e, tag = "SpiderRouting") { "trip failed against $baseUrl (tripId=$tripId)" }
-        SpiderResult.Error(e.toSpiderError())
+    ): SpiderResult<TripDetails> = context(log) {
+        spiderCatch(tag = "SpiderRouting", message = { "trip failed against $baseUrl (tripId=$tripId)" }) {
+            routing.trip(tripId, serviceDate)
+        }
     }
 }
 
@@ -90,8 +85,8 @@ class RoutingConfig : FeatureConfig()
 
 object Routing : SpiderFeature<RoutingConfig, SpiderRouting> {
     override fun newConfig() = RoutingConfig()
-    override fun build(baseUrl: String, apiKey: String, config: RoutingConfig): SpiderRouting =
-        SpiderRouting(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry)
+    override fun build(baseUrl: String, apiKey: String, config: RoutingConfig, logging: LoggingConfig): SpiderRouting =
+        SpiderRouting(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry, logging = logging)
 }
 
 sealed interface Location {
