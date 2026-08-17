@@ -82,7 +82,7 @@ internal class RoutingClient(
             via = request.via.takeIf { it.isNotEmpty() }?.map { it.toInput() },
             modes = request.toModesInput(),
             preferences = request.toPreferencesInput(),
-            searchWindow = request.searchWindow.toIsoString(),
+            searchWindow = request.searchWindow.toSearchWindowIso(),
             first = first,
             last = last,
             before = before,
@@ -320,6 +320,12 @@ internal fun RouteRequest.toPreferencesInput(): PlanPreferencesInput? {
 
 private fun TransitMode.toWireTransitMode(): WireTransitMode? =
     WireTransitMode.entries.firstOrNull { it.name == name && it != WireTransitMode.UNKNOWN }
+
+// The wire unit is whole minutes — the scale a search window is actually reasoned about, and what the TS
+// SDK enforces by type. Floor to whole minutes, at least one, so a sub-minute Duration (5.seconds, ZERO)
+// can't collapse to a near-empty search or OTP's dynamic window.
+internal fun Duration.toSearchWindowIso(): String =
+    "PT${inWholeMinutes.coerceAtLeast(1L)}M"
 
 private fun Location.toInput(): PlanLabeledLocationInput = PlanLabeledLocationInput(
     location = when (this) {

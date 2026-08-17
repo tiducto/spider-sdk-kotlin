@@ -141,6 +141,7 @@ data class RouteRequest(
     val allowedTransitModes: Set<TransitMode>? = null,
     val maxTransfers: Int? = null,
     // Always sent (default 1h) so OTP never uses its dynamic, route-dependent window — predictable cost + paging.
+    // Normalized to whole minutes on the wire (floored, min 1m): sub-minute windows return almost nothing.
     val searchWindow: Duration = 1.hours,
     val wheelchairAccessible: Boolean = false,
 )
