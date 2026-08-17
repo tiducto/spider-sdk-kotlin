@@ -7,6 +7,24 @@ plugins {
 
 group = "eu.tiducto"
 
+// Stamp the published artifact version (version.properties → project.version, `<contract>.<patch>`) into
+// a generated constant so the SDK-identity header (`x-spider-sdk: kotlin/<version>`) can never drift from
+// what was released. Generated, not committed — the same treatment as the contract version, and the
+// public-API leak test already skips build/generated.
+val generateSdkVersion by tasks.registering {
+    val sdkVersion = project.version.toString()
+    val outputDir = layout.buildDirectory.dir("generated/sdkVersion/kotlin")
+    inputs.property("sdkVersion", sdkVersion)
+    outputs.dir(outputDir)
+    doLast {
+        val pkgDir = outputDir.get().dir("eu/tiducto/spider/client").asFile
+        pkgDir.mkdirs()
+        pkgDir.resolve("SdkVersion.kt").writeText(
+            "package eu.tiducto.spider.client\n\ninternal const val SDK_VERSION: String = \"$sdkVersion\"\n",
+        )
+    }
+}
+
 kotlin {
     jvmToolchain(25)
 
@@ -47,6 +65,7 @@ kotlin {
 
     sourceSets {
         val commonMain by getting {
+            kotlin.srcDir(generateSdkVersion)
             dependencies {
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
