@@ -361,6 +361,32 @@ public final class eu/tiducto/spider/client/OccupancyStatus$Companion {
 	public final fun fromWire (Ljava/lang/String;)Leu/tiducto/spider/client/OccupancyStatus;
 }
 
+public final class eu/tiducto/spider/client/PlanRequest {
+	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Leu/tiducto/spider/client/Location;
+	public final fun component2 ()Leu/tiducto/spider/client/Location;
+	public final fun component3 ()Leu/tiducto/spider/client/RouteTime;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/Set;
+	public final fun component6 ()Ljava/lang/Integer;
+	public final fun component7-UwyO8pc ()J
+	public final fun component8 ()Z
+	public final fun copy-GajXJrc (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZ)Leu/tiducto/spider/client/PlanRequest;
+	public static synthetic fun copy-GajXJrc$default (Leu/tiducto/spider/client/PlanRequest;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZILjava/lang/Object;)Leu/tiducto/spider/client/PlanRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAllowedTransitModes ()Ljava/util/Set;
+	public final fun getDestination ()Leu/tiducto/spider/client/Location;
+	public final fun getMaxTransfers ()Ljava/lang/Integer;
+	public final fun getOrigin ()Leu/tiducto/spider/client/Location;
+	public final fun getSearchWindow-UwyO8pc ()J
+	public final fun getTime ()Leu/tiducto/spider/client/RouteTime;
+	public final fun getVia ()Ljava/util/List;
+	public final fun getWheelchairAccessible ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class eu/tiducto/spider/client/Realtime : eu/tiducto/spider/client/SpiderFeature {
 	public static final field INSTANCE Leu/tiducto/spider/client/Realtime;
 	public fun build (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RealtimeConfig;Leu/tiducto/spider/client/LoggingConfig;)Leu/tiducto/spider/client/SpiderRealtime;
@@ -391,18 +417,18 @@ public final class eu/tiducto/spider/client/RetryConfig {
 }
 
 public final class eu/tiducto/spider/client/Route {
-	public fun <init> (Leu/tiducto/spider/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)V
-	public final fun component1 ()Leu/tiducto/spider/client/RouteRequest;
+	public fun <init> (Leu/tiducto/spider/client/PlanRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)V
+	public final fun component1 ()Leu/tiducto/spider/client/PlanRequest;
 	public final fun component2 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component3 ()Leu/tiducto/spider/client/RoutePageInfo;
 	public final fun component4 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component5 ()Ljava/lang/String;
-	public final fun copy (Leu/tiducto/spider/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)Leu/tiducto/spider/client/Route;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/Route;Leu/tiducto/spider/client/RouteRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/Route;
+	public final fun copy (Leu/tiducto/spider/client/PlanRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)Leu/tiducto/spider/client/Route;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Route;Leu/tiducto/spider/client/PlanRequest;Lkotlinx/collections/immutable/ImmutableList;Leu/tiducto/spider/client/RoutePageInfo;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/Route;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getEdges ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getPageInfo ()Leu/tiducto/spider/client/RoutePageInfo;
-	public final fun getRequest ()Leu/tiducto/spider/client/RouteRequest;
+	public final fun getRequest ()Leu/tiducto/spider/client/PlanRequest;
 	public final fun getRoutingErrors ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getSearchDateTime ()Ljava/lang/String;
 	public fun hashCode ()I
@@ -437,24 +463,6 @@ public final class eu/tiducto/spider/client/RoutePageInfo {
 	public final fun getHasPreviousPage ()Z
 	public final fun getSearchWindowUsed ()Ljava/lang/String;
 	public final fun getStartCursor ()Ljava/lang/String;
-	public fun hashCode ()I
-	public fun toString ()Ljava/lang/String;
-}
-
-public final class eu/tiducto/spider/client/RouteRequest {
-	public fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;)V
-	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun component1 ()Leu/tiducto/spider/client/Location;
-	public final fun component2 ()Leu/tiducto/spider/client/Location;
-	public final fun component3 ()Leu/tiducto/spider/client/RouteTime;
-	public final fun component4 ()Ljava/util/List;
-	public final fun copy (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;)Leu/tiducto/spider/client/RouteRequest;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/RouteRequest;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;ILjava/lang/Object;)Leu/tiducto/spider/client/RouteRequest;
-	public fun equals (Ljava/lang/Object;)Z
-	public final fun getDestination ()Leu/tiducto/spider/client/Location;
-	public final fun getOrigin ()Leu/tiducto/spider/client/Location;
-	public final fun getTime ()Leu/tiducto/spider/client/RouteTime;
-	public final fun getVia ()Ljava/util/List;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }
@@ -510,6 +518,15 @@ public final class eu/tiducto/spider/client/RoutingError {
 	public final fun getInputField ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class eu/tiducto/spider/client/RoutingStreamingKt {
+	public static final fun planNextUntil-Wn2Vu4Y (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;IJ)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun planNextUntil-Wn2Vu4Y$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;IJILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun planPreviousUntil-Wn2Vu4Y (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;IJ)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun planPreviousUntil-Wn2Vu4Y$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;IJILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public static final fun planUntil-dmiutzI (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;IJJLjava/util/List;Ljava/util/Set;Ljava/lang/Integer;Z)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun planUntil-dmiutzI$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;IJJLjava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 }
 
 public final class eu/tiducto/spider/client/ServiceAlert {
@@ -799,12 +816,12 @@ public final class eu/tiducto/spider/client/SpiderRouting {
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun departures-zkXUZaI (Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun departures-zkXUZaI$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun nextPage (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun nextPage$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun plan (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun plan$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
-	public final fun previousPage (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun previousPage$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun plan-u4uj9nY (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun plan-u4uj9nY$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/lang/Integer;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun planNext (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun planNext$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun planPrevious (Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun planPrevious$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Route;Ljava/lang/Integer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun trip (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun trip$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }

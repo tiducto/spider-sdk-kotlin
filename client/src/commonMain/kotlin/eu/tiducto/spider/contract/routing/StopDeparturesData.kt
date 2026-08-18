@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class StopDeparturesData(
-    val asStop: Stop? = null,
-    val asStation: Stop? = null
+    val asStop: StopDeparturesStop? = null,
+    val asStation: StopDeparturesStop? = null
 )

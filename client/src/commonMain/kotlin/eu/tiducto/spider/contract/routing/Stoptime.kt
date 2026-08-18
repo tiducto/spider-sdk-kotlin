@@ -10,5 +10,5 @@ internal data class Stoptime(
     val realtime: Boolean? = null,
     val realtimeState: RealtimeState? = null,
     val headsign: String? = null,
-    val trip: Trip? = null
+    val trip: StopDeparturesTrip? = null
 )

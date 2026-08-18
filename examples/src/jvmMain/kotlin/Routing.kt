@@ -54,7 +54,7 @@ suspend fun laterItineraries(client: SpiderClient) {
         }
     }
 
-    when (val later = client.routing.nextPage(firstPage, first = 3)) {
+    when (val later = client.routing.planNext(firstPage, first = 3)) {
         null -> println("No later itineraries — that was the last page")
         is SpiderResult.Success ->
             later.data.edges.forEach { edge ->

@@ -15,6 +15,11 @@ import eu.tiducto.spider.contract.routing.WheelchairBoarding
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 
 /**
@@ -64,6 +69,72 @@ class RoutingWireContractTest {
 
         val actual = json.encodeToJsonElement(PlanConnectionVariables.serializer(), variables)
         assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `PlanRequest maps modes transfers wheelchair and search window to OTP inputs`() {
+        val request = PlanRequest(
+            origin = Location.Stop("1:U123"),
+            destination = Location.Coordinate(49.2, 16.6),
+            time = RouteTime.DepartAt(Instant.parse("2026-07-19T10:00:00Z")),
+            // WALK is a street mode, not a transit filter — it must drop out, leaving BUS + TRAM.
+            allowedTransitModes = setOf(TransitMode.BUS, TransitMode.TRAM, TransitMode.WALK),
+            maxTransfers = 2,
+            wheelchairAccessible = true,
+            searchWindow = 30.minutes,
+        )
+        val variables = PlanConnectionVariables(
+            dateTime = PlanDateTimeInput(earliestDeparture = "2026-07-19T10:00:00Z"),
+            origin = PlanLabeledLocationInput(
+                location = PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = "1:U123")),
+            ),
+            destination = PlanLabeledLocationInput(
+                location = PlanLocationInput(coordinate = PlanCoordinateInput(latitude = 49.2, longitude = 16.6)),
+            ),
+            modes = request.toModesInput(),
+            preferences = request.toPreferencesInput(),
+            searchWindow = request.searchWindow.toSearchWindowIso(),
+        )
+
+        val expected = json.parseToJsonElement(
+            """
+            {
+              "dateTime": { "earliestDeparture": "2026-07-19T10:00:00Z" },
+              "origin": { "location": { "stopLocation": { "stopLocationId": "1:U123" } } },
+              "destination": { "location": { "coordinate": { "latitude": 49.2, "longitude": 16.6 } } },
+              "modes": { "transit": { "transit": [ { "mode": "BUS" }, { "mode": "TRAM" } ] } },
+              "preferences": {
+                "accessibility": { "wheelchair": { "enabled": true } },
+                "transit": { "transfer": { "maximumTransfers": 2 } }
+              },
+              "searchWindow": "PT30M"
+            }
+            """.trimIndent(),
+        )
+
+        val actual = json.encodeToJsonElement(PlanConnectionVariables.serializer(), variables)
+        assertEquals(expected, actual)
+    }
+
+    @Test
+    fun `search window floors to whole minutes with a one-minute floor`() {
+        // A sub-minute window would search almost nothing on OTP; floor it to a usable PT1M instead.
+        assertEquals("PT1M", Duration.ZERO.toSearchWindowIso())
+        assertEquals("PT1M", 5.seconds.toSearchWindowIso())
+        assertEquals("PT1M", 90.seconds.toSearchWindowIso())
+        assertEquals("PT30M", 30.minutes.toSearchWindowIso())
+        assertEquals("PT60M", 1.hours.toSearchWindowIso())
+    }
+
+    @Test
+    fun `PlanRequest with no filters omits modes and preferences`() {
+        val request = PlanRequest(
+            origin = Location.Stop("1:U1"),
+            destination = Location.Stop("1:U2"),
+            time = RouteTime.DepartAt(Instant.parse("2026-07-19T10:00:00Z")),
+        )
+        assertEquals(null, request.toModesInput(), "no allowedTransitModes ⇒ modes omitted")
+        assertEquals(null, request.toPreferencesInput(), "no maxTransfers/wheelchair ⇒ preferences omitted")
     }
 
     @Test

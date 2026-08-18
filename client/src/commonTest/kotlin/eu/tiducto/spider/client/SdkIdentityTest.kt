@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 class SdkIdentityTest {
 
     @Test
-    fun `spiderHeaders stamps apikey, contract version, and sdk identity`() {
+    fun `spiderHeaders stamps apikey and contract version and sdk identity`() {
         val builder = HttpRequestBuilder().apply { spiderHeaders("test-key") }
 
         assertEquals("test-key", builder.headers["apikey"])

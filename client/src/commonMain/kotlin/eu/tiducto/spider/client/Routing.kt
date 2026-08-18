@@ -23,35 +23,47 @@ class SpiderRouting(
         time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
         first: Int? = DEFAULT_FIRST,
         via: List<ViaLocation> = emptyList(),
-    ): SpiderResult<Route> = page(RouteRequest(origin, destination, time, via), first = first)
+        allowedTransitModes: Set<TransitMode>? = null,
+        maxTransfers: Int? = null,
+        searchWindow: Duration = 1.hours,
+        wheelchairAccessible: Boolean = false,
+    ): SpiderResult<Route> = page(
+        PlanRequest(
+            origin, destination, time, via,
+            allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible,
+        ),
+        first = first,
+    )
 
     /**
-     * Loads the next page of itineraries (later departures). Returns null if no next page is available.
+     * Plans the next page of itineraries (later departures). Returns null if no next page is available.
      */
-    suspend fun nextPage(prev: Route, first: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
+    suspend fun planNext(prev: Route, first: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
         if (!prev.pageInfo.hasNextPage) null
         else page(prev.request, first = first, after = prev.pageInfo.endCursor)
 
     /**
-     * Loads the previous page of itineraries (earlier departures). Returns null if no previous page is available.
+     * Plans the previous page of itineraries (earlier departures). Returns null if no previous page is available.
      */
-    suspend fun previousPage(prev: Route, first: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
+    suspend fun planPrevious(prev: Route, last: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
+        // Relay backward paging = last + before (not first + before) — earlier itineraries, correct page size.
         if (!prev.pageInfo.hasPreviousPage) null
-        else page(prev.request, first = first, before = prev.pageInfo.startCursor)
+        else page(prev.request, last = last, before = prev.pageInfo.startCursor)
 
     private suspend fun page(
-        request: RouteRequest,
+        request: PlanRequest,
         first: Int? = null,
+        last: Int? = null,
         before: String? = null,
         after: String? = null,
     ): SpiderResult<Route> = context(log) {
         spiderCatch(
             tag = "SpiderRouting",
             message = {
-                "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} first=$first before=$before after=$after)"
+                "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} first=$first last=$last before=$before after=$after)"
             },
         ) {
-            routing.planConnection(request, first = first, before = before, after = after)
+            routing.planConnection(request, first = first, last = last, before = before, after = after)
         }
     }
 
@@ -119,15 +131,23 @@ sealed interface RouteTime {
     data class ArriveBy(override val time: Instant) : RouteTime
 }
 
-data class RouteRequest(
+data class PlanRequest(
     val origin: Location,
     val destination: Location,
     val time: RouteTime,
     val via: List<ViaLocation> = emptyList(),
+    // null = no filter (all modes); a non-empty set restricts routing to those. WALK/UNKNOWN aren't transit
+    // modes and drop out. Empty and null both mean "no filter" — never emptySet-as-all.
+    val allowedTransitModes: Set<TransitMode>? = null,
+    val maxTransfers: Int? = null,
+    // Always sent (default 1h) so OTP never uses its dynamic, route-dependent window — predictable cost + paging.
+    // Normalized to whole minutes on the wire (floored, min 1m): sub-minute windows return almost nothing.
+    val searchWindow: Duration = 1.hours,
+    val wheelchairAccessible: Boolean = false,
 )
 
 data class Route(
-    val request: RouteRequest,
+    val request: PlanRequest,
     val edges: ImmutableList<RouteEdge>,
     val pageInfo: RoutePageInfo,
     val routingErrors: ImmutableList<RoutingError>,
