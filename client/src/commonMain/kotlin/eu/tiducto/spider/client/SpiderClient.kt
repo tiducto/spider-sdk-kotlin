@@ -24,11 +24,6 @@ class SpiderClient(
         SpiderStops(baseUrl, apiKey, config.stops.retry, config.logging)
     }
 
-    /** Route text search, lookup by id, and filtering by mode / agency. */
-    val routes: SpiderRoutes by lazy {
-        SpiderRoutes(baseUrl, apiKey, config.routes.retry, config.logging)
-    }
-
     /** Live vehicle positions, delays, and service alerts. */
     val realtime: SpiderRealtime by lazy {
         SpiderRealtime(baseUrl, apiKey, config.realtime.retry, config.logging)
@@ -43,16 +38,14 @@ class SpiderClient(
 
 /**
  * Configuration for a [SpiderClient]. Every surface — [SpiderClient.routing], [SpiderClient.stops],
- * [SpiderClient.routes], [SpiderClient.realtime] — is available with no setup; each surface is built
- * lazily on first use. The blocks here are optional and only needed to tune a surface (e.g.
- * [RoutingConfig.autoRetry]) or turn on [logging]. Received by the trailing lambda of the
- * [SpiderClient] constructor.
+ * [SpiderClient.realtime] — is available with no setup; each surface is built lazily on first use.
+ * The blocks here are optional and only needed to tune a surface (e.g. [RoutingConfig.autoRetry]) or
+ * turn on [logging]. Received by the trailing lambda of the [SpiderClient] constructor.
  */
 class SpiderClientBuilder internal constructor() {
     internal var logging: LoggingConfig = LoggingConfig()
     internal val routing: RoutingConfig = RoutingConfig()
     internal val stops: StopsConfig = StopsConfig()
-    internal val routes: RoutesConfig = RoutesConfig()
     internal val realtime: RealtimeConfig = RealtimeConfig()
 
     /** Client-wide request logging (off by default). */
@@ -68,11 +61,6 @@ class SpiderClientBuilder internal constructor() {
     /** Configure the stop-search surface reached at `client.stops`. */
     fun stops(block: StopsConfig.() -> Unit) {
         stops.apply(block)
-    }
-
-    /** Configure the route-search surface reached at `client.routes`. */
-    fun routes(block: RoutesConfig.() -> Unit) {
-        routes.apply(block)
     }
 
     /** Configure the realtime surface reached at `client.realtime`. */
