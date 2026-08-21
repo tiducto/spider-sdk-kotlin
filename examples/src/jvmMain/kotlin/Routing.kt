@@ -7,9 +7,7 @@ fun setup() {
     val client = SpiderClient(
         baseUrl = "https://your-env-slug.api.tiducto.eu",
         apiKey = "your-api-key",
-    ) {
-        install(Routing)
-    }
+    )
 }
 
 suspend fun planTrip(client: SpiderClient) {

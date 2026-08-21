@@ -14,9 +14,7 @@ fun setup() {
     val client = SpiderClient(
         baseUrl = "https://your-env-slug.api.tiducto.eu",
         apiKey = "your-api-key",
-    ) {
-        install(Realtime)
-    }
+    )
 }
 
 fun setupWithRetry() {
@@ -24,7 +22,7 @@ fun setupWithRetry() {
         baseUrl = "https://your-env-slug.api.tiducto.eu",
         apiKey = "your-api-key",
     ) {
-        install(Realtime) {
+        realtime {
             autoRetry { maxAttempts = 3 }
         }
     }

@@ -93,13 +93,8 @@ class SpiderRouting(
     }
 }
 
-class RoutingConfig : FeatureConfig()
-
-object Routing : SpiderFeature<RoutingConfig, SpiderRouting> {
-    override fun newConfig() = RoutingConfig()
-    override fun build(baseUrl: String, apiKey: String, config: RoutingConfig, logging: LoggingConfig): SpiderRouting =
-        SpiderRouting(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry, logging = logging)
-}
+/** Optional configuration for the routing surface. Apply it via `SpiderClient(...) { routing { … } }`. */
+class RoutingConfig : SurfaceConfig()
 
 sealed interface Location {
     data class Coordinate(val latitude: Double, val longitude: Double) : Location

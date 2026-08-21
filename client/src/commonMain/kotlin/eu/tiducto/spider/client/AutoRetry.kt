@@ -8,7 +8,7 @@ class RetryConfig {
     var maxAttempts: Int = 3
 }
 
-abstract class FeatureConfig {
+abstract class SurfaceConfig {
     internal var retry: RetryConfig? = null
 
     fun autoRetry(block: RetryConfig.() -> Unit = {}) {

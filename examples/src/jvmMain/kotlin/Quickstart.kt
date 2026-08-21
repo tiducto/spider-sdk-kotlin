@@ -6,11 +6,7 @@ suspend fun firstCall() {
     val client = SpiderClient(
         baseUrl = "https://your-env-slug.api.tiducto.eu",
         apiKey = "your-api-key",
-    ) {
-        install(Routing)
-        install(Stops)
-        install(Realtime)
-    }
+    )
 
     val result = client.routing.plan(
         origin = Location.Coordinate(49.1908, 16.6128),
