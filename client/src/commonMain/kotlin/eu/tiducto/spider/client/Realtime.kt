@@ -5,7 +5,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 /**
- * Live GTFS-RT data. Reachable as `client.realtime` once the [Realtime] feature is installed.
+ * Live GTFS-RT data. Reachable as `client.realtime` on any [SpiderClient].
  *
  * Everything here is **best-effort and volatile** — vehicles come and go, feeds go stale, and a
  * trip may have no live vehicle at all. Every result carries [FeedFreshness] so the UI can tell the
@@ -61,13 +61,8 @@ class SpiderRealtime(
         }
 }
 
-class RealtimeConfig : FeatureConfig()
-
-object Realtime : SpiderFeature<RealtimeConfig, SpiderRealtime> {
-    override fun newConfig() = RealtimeConfig()
-    override fun build(baseUrl: String, apiKey: String, config: RealtimeConfig, logging: LoggingConfig): SpiderRealtime =
-        SpiderRealtime(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry, logging = logging)
-}
+/** Optional configuration for the realtime surface. Apply it via `SpiderClient(...) { realtime { … } }`. */
+class RealtimeConfig : SurfaceConfig()
 
 /**
  * How current a realtime snapshot is.

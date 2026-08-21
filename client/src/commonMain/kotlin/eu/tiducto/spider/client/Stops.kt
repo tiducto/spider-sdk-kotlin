@@ -3,7 +3,7 @@ package eu.tiducto.spider.client
 import kotlinx.collections.immutable.ImmutableList
 
 /**
- * Stop search. Reachable as `client.stops` once the [Stops] feature is installed.
+ * Stop search. Reachable as `client.stops` on any [SpiderClient].
  *
  * The single entry point is [search] — a free-text query, an optional set of
  * filters, or both. Both are expressed via the [StopRequest] DSL:
@@ -56,13 +56,8 @@ class SpiderStops(
     }
 }
 
-class StopsConfig : FeatureConfig()
-
-object Stops : SpiderFeature<StopsConfig, SpiderStops> {
-    override fun newConfig() = StopsConfig()
-    override fun build(baseUrl: String, apiKey: String, config: StopsConfig, logging: LoggingConfig): SpiderStops =
-        SpiderStops(baseUrl = baseUrl, apiKey = apiKey, retry = config.retry, logging = logging)
-}
+/** Optional configuration for the stops surface. Apply it via `SpiderClient(...) { stops { … } }`. */
+class StopsConfig : SurfaceConfig()
 
 /**
  * Administrative geography levels that may be associated with a [Stop].

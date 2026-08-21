@@ -68,11 +68,7 @@ hoist companion factories to bare statics on the exported class.)
 ## Usage
 
 ```kotlin
-val client = SpiderClient(baseUrl = "https://your-env-slug.api.tiducto.eu", apiKey = "your-api-key") {
-    install(Routing)
-    install(Stops)
-    install(Realtime)
-}
+val client = SpiderClient(baseUrl = "https://your-env-slug.api.tiducto.eu", apiKey = "your-api-key")
 
 when (val result = client.routing.plan(
     origin = Location.Stop("U1146N175"),
@@ -83,8 +79,9 @@ when (val result = client.routing.plan(
 }
 ```
 
-Also available once installed: `client.stops.search { filter { name eq "Hlavní" } }` and
-`client.realtime.vehicleForTrip(tripId)`.
+All three surfaces are available on any client — no setup: `client.stops.search { filter { name eq "Hlavní" } }`
+and `client.realtime.vehicleForTrip(tripId)`. To tune a surface, pass an optional config block —
+`SpiderClient(baseUrl, apiKey) { realtime { autoRetry { maxAttempts = 3 } } }`.
 
 ## Contract
 

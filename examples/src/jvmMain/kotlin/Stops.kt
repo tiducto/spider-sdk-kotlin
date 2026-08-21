@@ -8,9 +8,7 @@ suspend fun search() {
     val client = SpiderClient(
         baseUrl = "https://your-env-slug.api.tiducto.eu",
         apiKey = "your-api-key",
-    ) {
-        install(Stops)
-    }
+    )
 
     when (val result = client.stops.search { filter { name eq "Hlavní nádraží" } }) {
         is SpiderResult.Success -> {
