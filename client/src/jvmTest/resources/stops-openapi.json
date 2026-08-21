@@ -118,13 +118,22 @@
     "schemas": {
       "StopSearchRequest": {
         "type": "object",
-        "description": "POST body for /stops/search. `filter` is a stop-search filter expression the client composes (not a modeled shape).",
+        "description": "POST body for /stops/search. `filter` is a stop-search filter expression the client composes (not a modeled shape); `sort` carries index sort directives (e.g. `_geoPoint(lat, lng):asc`); `limit` caps the hit count.",
         "properties": {
           "q": {
             "type": "string"
           },
           "filter": {
             "type": "string"
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "limit": {
+            "type": "integer"
           }
         },
         "required": [

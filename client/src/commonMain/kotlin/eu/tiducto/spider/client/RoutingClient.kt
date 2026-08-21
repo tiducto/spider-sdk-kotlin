@@ -45,7 +45,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 // gtfsIds are opaque and feed-prefixed ("1:U…"); the SDK never re-prefixes them — a stop id from search
-// feeds straight into route()/departures()/trip() (re-prefixing is what once 404'd).
+// feeds straight into plan()/departures()/trip() (re-prefixing is what once 404'd).
 internal class RoutingClient(
     private val baseUrl: String,
     private val apiKey: String,
