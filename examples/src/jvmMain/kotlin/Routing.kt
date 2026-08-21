@@ -1,6 +1,7 @@
 package examples.routing
 
 import eu.tiducto.spider.client.*
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
 fun setup() {
@@ -86,5 +87,105 @@ suspend fun tripLookup(client: SpiderClient) {
                 println("${stop.name}: arr ${stop.scheduledArrival}, dep ${stop.scheduledDeparture}")
             }
         is SpiderResult.Error -> println(result.error)
+    }
+}
+
+suspend fun planWithModes(client: SpiderClient) {
+    val result = client.routing.plan(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        allowedTransitModes = setOf(TransitMode.TRAM, TransitMode.SUBWAY),
+        first = 3,
+    )
+
+    when (result) {
+        is SpiderResult.Success ->
+            result.data.edges.forEach { edge ->
+                println("${edge.itinerary.start} → ${edge.itinerary.end}  ·  ${edge.itinerary.numberOfTransfers} transfers")
+            }
+        is SpiderResult.Error -> println("Planning failed: ${result.error}")
+    }
+}
+
+suspend fun arriveBy(client: SpiderClient) {
+    val result = client.routing.plan(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        time = RouteTime.ArriveBy(Instant.parse("2026-07-20T08:00:00Z")),
+        first = 3,
+    )
+
+    when (result) {
+        is SpiderResult.Success ->
+            result.data.edges.forEach { edge ->
+                println("depart ${edge.itinerary.start} → arrive ${edge.itinerary.end}")
+            }
+        is SpiderResult.Error -> println("Planning failed: ${result.error}")
+    }
+}
+
+suspend fun earlierItineraries(client: SpiderClient) {
+    val firstPage = when (val result = client.routing.plan(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        first = 3,
+    )) {
+        is SpiderResult.Success -> result.data
+        is SpiderResult.Error -> {
+            println("Planning failed: ${result.error}")
+            return
+        }
+    }
+
+    when (val earlier = client.routing.planPrevious(firstPage, last = 3)) {
+        null -> println("No earlier itineraries — that was the first page")
+        is SpiderResult.Success ->
+            earlier.data.edges.forEach { edge ->
+                println("${edge.itinerary.start} → ${edge.itinerary.end}")
+            }
+        is SpiderResult.Error -> println("Paging failed: ${earlier.error}")
+    }
+}
+
+suspend fun planVia(client: SpiderClient) {
+    val result = client.routing.plan(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        via = listOf(
+            ViaLocation.Visit(
+                location = Location.Coordinate(49.2100, 16.5900),
+                minimumWaitTime = 10.minutes,
+            ),
+        ),
+        first = 3,
+    )
+
+    when (result) {
+        is SpiderResult.Success ->
+            result.data.edges.forEach { edge ->
+                println("${edge.itinerary.start} → ${edge.itinerary.end}  ·  ${edge.itinerary.numberOfTransfers} transfers")
+            }
+        is SpiderResult.Error -> println("Planning failed: ${result.error}")
+    }
+}
+
+suspend fun wheelchairPlan(client: SpiderClient) {
+    val result = client.routing.plan(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        wheelchairAccessible = true,
+        first = 3,
+    )
+
+    when (result) {
+        is SpiderResult.Success ->
+            result.data.edges.forEach { edge ->
+                val itinerary = edge.itinerary
+                println("accessibility ${itinerary.accessibilityScore ?: "n/a"}  ·  ${itinerary.numberOfTransfers} transfers")
+                for (leg in itinerary.legs) {
+                    println("  ${leg.mode}: board ${leg.fromWheelchair ?: "unknown"} → alight ${leg.toWheelchair ?: "unknown"}")
+                }
+            }
+        is SpiderResult.Error -> println("Planning failed: ${result.error}")
     }
 }
