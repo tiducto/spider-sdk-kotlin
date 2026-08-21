@@ -3,10 +3,10 @@ package eu.tiducto.spider.client
 import kotlinx.collections.immutable.ImmutableList
 
 /**
- * Stop search. Reachable as `client.stops` on any [SpiderClient].
+ * Stop search and lookup. Reachable as `client.stops` on any [SpiderClient].
  *
- * The single entry point is [search] — a free-text query, an optional set of
- * filters, or both. Both are expressed via the [StopRequest] DSL:
+ * [search] is the general entry point — a free-text query, filters, geographic
+ * constraints, or any combination, expressed via the [StopRequest] DSL:
  *
  * ```kotlin
  * // Free-text only — fuzzy match against stop names.
@@ -23,7 +23,16 @@ import kotlinx.collections.immutable.ImmutableList
  *         AdminLevel.DISTRICT eq "Brno-město"
  *     }
  * }
+ *
+ * // Nearest stops within 500 m, closest first.
+ * client.stops.search { near(49.19, 16.61); radiusMeters = 500; sortByDistance = true }
+ *
+ * // Stops inside a bounding box (SW corner, then NE corner).
+ * client.stops.search { bbox(49.18, 16.59, 49.21, 16.63) }
  * ```
+ *
+ * Three convenience shortcuts cover the common cases: [byId] (exact lookup by
+ * `gtfsId`), [near] (nearest-first radius search), and [within] (bounding box).
  *
  * Filtering by an [AdminLevel] only works if the deployment was enriched with
  * boundary polygons for that level — see [AdminLevel] for what each level
@@ -40,21 +49,86 @@ class SpiderStops(
     private val stops = StopsClient(baseUrl, apiKey, retry, log)
 
     suspend fun search(block: StopRequest.() -> Unit): SpiderResult<ImmutableList<Stop>> {
-        var name = ""
-        var filters: Set<Filter> = emptySet()
+        // Build + validate outside spiderCatch so misuse (radius/sort without `near`) throws
+        // IllegalArgumentException eagerly rather than being folded into a SpiderResult.Error.
+        val request = StopRequest().apply(block)
+        request.validate()
+        val name = request.nameQuery.orEmpty()
+        val filters = request.nonNameFilters
         return context(log) {
             spiderCatch(
                 tag = "SpiderStops",
                 message = { "search failed against $baseUrl (q=$name, filters=${filters.size})" },
             ) {
-                val request = StopRequest().apply(block)
-                name = request.nameQuery.orEmpty()
-                filters = request.nonNameFilters
-                stops.searchStops(query = name, filters = filters)
+                stops.searchStops(
+                    query = name,
+                    filters = filters,
+                    near = request.anchor,
+                    radiusMeters = request.radiusMeters,
+                    bbox = request.boundingBox,
+                    sortByDistance = request.sortByDistance,
+                    limit = request.limit,
+                )
             }
         }
     }
+
+    /**
+     * Look up a single stop by its opaque, feed-prefixed [gtfsId] (e.g. `"1:39822"`). Returns the hit,
+     * or `null` when no stop carries that id. Transport failures surface as [SpiderResult.Error].
+     */
+    suspend fun byId(gtfsId: String): SpiderResult<Stop?> = context(log) {
+        spiderCatch(
+            tag = "SpiderStops",
+            message = { "byId failed against $baseUrl (gtfsId=$gtfsId)" },
+        ) {
+            stops.searchStops(query = "", idFilter = gtfsId, limit = 1).firstOrNull()
+        }
+    }
+
+    /**
+     * Stops nearest (lat, lng), closest first. With [radiusMeters] the search is capped to that radius;
+     * without it, the nearest [limit] stops overall are returned. Convenience over
+     * `search { near(lat, lng); radiusMeters = …; sortByDistance = true }`.
+     */
+    suspend fun near(
+        lat: Double,
+        lng: Double,
+        radiusMeters: Int? = null,
+        limit: Int? = null,
+    ): SpiderResult<ImmutableList<Stop>> = search {
+        near(lat, lng)
+        this.radiusMeters = radiusMeters
+        sortByDistance = true
+        this.limit = limit
+    }
+
+    /**
+     * Stops inside the axis-aligned bounding box defined by its south-west (min) and north-east (max)
+     * corners. Convenience over `search { bbox(minLat, minLng, maxLat, maxLng) }`.
+     */
+    suspend fun within(
+        minLat: Double,
+        minLng: Double,
+        maxLat: Double,
+        maxLng: Double,
+        limit: Int? = null,
+    ): SpiderResult<ImmutableList<Stop>> = search {
+        bbox(minLat, minLng, maxLat, maxLng)
+        this.limit = limit
+    }
 }
+
+/** Anchor point for radius filtering and distance sorting. Internal — never crosses the public surface. */
+internal data class GeoPoint(val lat: Double, val lng: Double)
+
+/** Axis-aligned bounding box, south-west (min) and north-east (max) corners. Internal wire helper. */
+internal data class BoundingBox(
+    val minLat: Double,
+    val minLng: Double,
+    val maxLat: Double,
+    val maxLng: Double,
+)
 
 /** Optional configuration for the stops surface. Apply it via `SpiderClient(...) { stops { … } }`. */
 class StopsConfig : SurfaceConfig()
@@ -163,8 +237,45 @@ class StopFilters {
 class StopRequest {
     private val filters = mutableSetOf<Filter>()
 
+    /** Anchor for [radiusMeters] / [sortByDistance]. Set via [near]; consumed internally. */
+    internal var anchor: GeoPoint? = null
+        private set
+
+    /** Bounding box set via [bbox]; consumed internally. */
+    internal var boundingBox: BoundingBox? = null
+        private set
+
+    /** Radius in meters around the [near] anchor. Requires [near]. */
+    var radiusMeters: Int? = null
+
+    /** Order hits by ascending distance from the [near] anchor (closest first). Requires [near]. */
+    var sortByDistance: Boolean = false
+
+    /** Cap on the number of hits returned. */
+    var limit: Int? = null
+
     fun filter(block: StopFilters.() -> Unit) {
         filters.addAll(StopFilters().apply(block).toSet())
+    }
+
+    /** Anchor radius filtering and distance sorting to (lat, lng). */
+    fun near(lat: Double, lng: Double) {
+        anchor = GeoPoint(lat, lng)
+    }
+
+    /** Restrict results to a bounding box: south-west (min) and north-east (max) corners. */
+    fun bbox(minLat: Double, minLng: Double, maxLat: Double, maxLng: Double) {
+        boundingBox = BoundingBox(minLat, minLng, maxLat, maxLng)
+    }
+
+    /** Rejects geo options that need an anchor but weren't given one. */
+    internal fun validate() {
+        require(radiusMeters == null || anchor != null) {
+            "radiusMeters requires near(lat, lng) to be set"
+        }
+        require(!sortByDistance || anchor != null) {
+            "sortByDistance requires near(lat, lng) to be set"
+        }
     }
 
     /** The free-text `name eq "…"` clause, if present. Becomes the search query. */
