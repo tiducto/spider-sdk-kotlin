@@ -1,4 +1,4 @@
-name: release
+name: Release
 
 # Release pipeline: build -> publish -> refresh-context, chained so each stage gates the next.
 # A semver tag push (X.Y.Z) IS the release action (also manual dispatch).
