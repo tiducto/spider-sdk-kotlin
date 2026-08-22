@@ -1,6 +1,7 @@
 package examples.routing
 
 import eu.tiducto.spider.client.*
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
 
@@ -72,7 +73,11 @@ suspend fun departures(client: SpiderClient) {
     when (result) {
         is SpiderResult.Success ->
             result.data.forEach { departure ->
-                println("${departure.routeShortName} → ${departure.headsign} at ${departure.scheduledTime}")
+                // realtimeTime is null until the feed reports; fall back to the schedule.
+                val time = departure.realtimeTime ?: departure.scheduledTime
+                val status = if (departure.isRealtime) "live (${departure.realtimeState})" else "scheduled"
+                val line = departure.routeShortName ?: departure.routeLongName
+                println("${departure.mode} $line → ${departure.headsign} at $time [$status] · trip ${departure.tripGtfsId}")
             }
         is SpiderResult.Error -> println(result.error)
     }
@@ -96,6 +101,25 @@ suspend fun planWithModes(client: SpiderClient) {
         destination = Location.Coordinate(49.2246, 16.5747),
         allowedTransitModes = setOf(TransitMode.TRAM, TransitMode.SUBWAY),
         first = 3,
+    )
+
+    when (result) {
+        is SpiderResult.Success ->
+            result.data.edges.forEach { edge ->
+                println("${edge.itinerary.start} → ${edge.itinerary.end}  ·  ${edge.itinerary.numberOfTransfers} transfers")
+            }
+        is SpiderResult.Error -> println("Planning failed: ${result.error}")
+    }
+}
+
+suspend fun planWithLimits(client: SpiderClient) {
+    val result = client.routing.plan(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        // Widen the window scanned for departures, and cap connections at two transfers.
+        searchWindow = 2.hours,
+        maxTransfers = 2,
+        first = 5,
     )
 
     when (result) {

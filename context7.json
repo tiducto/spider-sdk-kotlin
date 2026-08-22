@@ -14,8 +14,7 @@
     ".github",
     "gradle",
     "**/*Test/**",
-    "client/api",
-    "**/spider/contract/**"
+    "client/api"
   ],
   "excludeFiles": [
     "CHANGELOG.md"
