@@ -1,17 +1,19 @@
 name: Build SDK
 
-# Builds the whole KMP library. Runs on macOS because the repo declares Apple
-# targets (iosArm64/macos*), which can't compile on a Linux runner. The wire
-# models are committed Kotlin (generated out-of-band by scripts/generate-contract.sh),
-# so this just compiles them like any other source — no codegen step in the build.
-
-# CI runs only when a PR is ready — draft PRs skip it, so an unfinished PR doesn't burn a run;
-# ready_for_review re-triggers when a draft is promoted. macOS runners are ~10x Linux, so no
-# post-merge run; workflow_dispatch validates main on demand. Concurrency cancels superseded pushes.
+# Compiles the whole KMP library AND the :examples module. The examples are a Gradle
+# subproject that depends on :client, so `./gradlew build` type-checks them against the
+# real SDK — a stale or wrong example (bad API, wrong error-code casing) fails the build.
+# This is both the PR merge gate and the first stage of the release pipeline.
+#
+# Runs on macOS because the repo declares Apple targets (iosArm64/macos*), which can't
+# compile on Linux. Draft PRs skip it; ready_for_review re-triggers. Exposed via
+# workflow_call so release.yml runs it before publishing — a tag on a broken commit
+# never reaches Maven Central. Concurrency cancels superseded pushes.
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
@@ -22,7 +24,7 @@ concurrency:
 
 jobs:
   build:
-    # Skip draft PRs; still runs on workflow_dispatch (which has no pull_request context).
+    # Skip draft PRs; still runs on workflow_dispatch / workflow_call (no pull_request context).
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: macos-latest
     steps:
@@ -32,5 +34,5 @@ jobs:
           distribution: temurin
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v5
-      - name: Build KMP library (all targets)
+      - name: Build KMP library + examples (all targets)
         run: ./gradlew build --console=plain

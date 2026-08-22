@@ -1,18 +1,18 @@
 name: release
 
-# Publishes the Spider Kotlin SDK (:client) to Maven Central via the Sonatype Central Portal, using
-# the vanniktech maven-publish plugin.
+# Release pipeline: build -> publish -> refresh-context, chained so each stage gates the next.
+# A semver tag push (X.Y.Z) IS the release action (also manual dispatch).
 #
-# Triggers on a semver tag push (X.Y.Z) — pushing the tag IS the release action — and on manual
-# dispatch. The published version comes from version.properties (contract.patch), NOT the tag name;
-# a guard step fails the run if a pushed tag doesn't match that version so the two can't silently
-# diverge. Runs on macOS because the KMP library declares Apple targets (iosArm64/macos*) that can't
-# compile on Linux.
+#   build            reuses build.yml (workflow_call): compiles all targets + :examples + tests,
+#                    so a tag on a broken commit never reaches Maven Central.
+#   publish          needs build. Uploads :client to the Sonatype Central Portal (vanniktech
+#                    plugin). Published version comes from version.properties (contract.patch),
+#                    NOT the tag; a guard fails the run on tag/version drift.
+#   refresh-context  needs publish. Re-indexes Context7 (reuses context7-refresh.yml) only
+#                    after the artifact is actually live.
 #
-# Credentials are passed as ORG_GRADLE_PROJECT_* env vars sourced from repo secrets (never
-# hardcoded): the Central Portal user token as mavenCentralUsername/Password and the ASCII-armored
-# GPG private key + its passphrase as signingInMemoryKey/KeyPassword. See RELEASING.md for the
-# one-time account/secret setup required before the first release.
+# Runs on macOS for the Apple targets. Credentials come from repo secrets. See RELEASING.md
+# for the one-time account/secret setup.
 on:
   push:
     tags:
@@ -28,7 +28,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
   publish:
+    needs: build
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
@@ -59,3 +63,8 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_CENTRAL_TOKEN_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+
+  refresh-context:
+    needs: publish
+    uses: ./.github/workflows/context7-refresh.yml
+    secrets: inherit
