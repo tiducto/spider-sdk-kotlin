@@ -1,0 +1,21 @@
+package eu.tiducto.spider.contract.routing
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class Leg(
+    val start: LegTime,
+    val end: LegTime,
+    val from: Place,
+    val to: Place,
+    val mode: Mode? = null,
+    val realtimeState: RealtimeState? = null,
+    val realTime: Boolean? = null,
+    val route: Route? = null,
+    val headsign: String? = null,
+    val distance: Double? = null,
+    val duration: Double? = null,
+    val accessibilityScore: Double? = null,
+    val trip: Trip? = null,
+    val legGeometry: Geometry? = null
+)

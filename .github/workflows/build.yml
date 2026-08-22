@@ -1,0 +1,36 @@
+name: Build SDK
+
+# Builds the whole KMP library. Runs on macOS because the repo declares Apple
+# targets (iosArm64/macos*), which can't compile on a Linux runner. The wire
+# models are committed Kotlin (generated out-of-band by scripts/generate-contract.sh),
+# so this just compiles them like any other source — no codegen step in the build.
+
+# CI runs only when a PR is ready — draft PRs skip it, so an unfinished PR doesn't burn a run;
+# ready_for_review re-triggers when a draft is promoted. macOS runners are ~10x Linux, so no
+# post-merge run; workflow_dispatch validates main on demand. Concurrency cancels superseded pushes.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Skip draft PRs; still runs on workflow_dispatch (which has no pull_request context).
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Build KMP library (all targets)
+        run: ./gradlew build --console=plain
