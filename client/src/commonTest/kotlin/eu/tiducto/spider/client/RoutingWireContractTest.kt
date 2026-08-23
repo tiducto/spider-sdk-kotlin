@@ -50,11 +50,11 @@ class RoutingWireContractTest {
             via = listOf(
                 PlanViaLocationInput(passThrough = PlanPassThroughViaLocationInput(stopLocationIds = listOf("1:U999"))),
             ),
-            first = 5,
+            searchWindow = "PT60M",
         )
 
         // explicitNulls=false must drop: latestArrival, the optional `label` on every input,
-        // the unused `coordinate`/`stopLocation` alternatives, and before/after.
+        // the unused `coordinate`/`stopLocation` alternatives, and before/after. searchWindow is required.
         val expected = json.parseToJsonElement(
             """
             {
@@ -62,7 +62,7 @@ class RoutingWireContractTest {
               "origin": { "location": { "stopLocation": { "stopLocationId": "1:U123" } } },
               "destination": { "location": { "coordinate": { "latitude": 49.2, "longitude": 16.6 } } },
               "via": [ { "passThrough": { "stopLocationIds": ["1:U999"] } } ],
-              "first": 5
+              "searchWindow": "PT60M"
             }
             """.trimIndent(),
         )

@@ -13,6 +13,7 @@ enum class SpiderErrorCode(val wireName: String) {
     NETWORK("network"),
     TIMEOUT("timeout"),
     UNAUTHORIZED("unauthorized"),
+    BAD_REQUEST("bad_request"),
     NOT_FOUND("not_found"),
     SERVER("server"),
     RATE_LIMITED("rate_limited"),
@@ -35,6 +36,7 @@ sealed interface SpiderError {
             is Network -> SpiderErrorCode.NETWORK
             is Timeout -> SpiderErrorCode.TIMEOUT
             is Unauthorized -> SpiderErrorCode.UNAUTHORIZED
+            is BadRequest -> SpiderErrorCode.BAD_REQUEST
             is NotFound -> SpiderErrorCode.NOT_FOUND
             is Server -> SpiderErrorCode.SERVER
             is RateLimited -> SpiderErrorCode.RATE_LIMITED
@@ -52,6 +54,18 @@ sealed interface SpiderError {
     ) : SpiderError
 
     data class Unauthorized(
+        override val httpStatus: Int? = null,
+        override val cause: Throwable? = null,
+    ) : SpiderError
+
+    /**
+     * The server rejected the request as invalid (a GraphQL top-level `BAD_REQUEST` error): an over-cap
+     * `searchWindow`, a malformed `via`, or a missing required field. [field] names the offending input
+     * when the server reports one; [message] is the server's human-readable explanation.
+     */
+    data class BadRequest(
+        val field: String? = null,
+        override val message: String,
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
     ) : SpiderError
@@ -85,6 +99,7 @@ internal sealed class SpiderTransportException(message: String) : RuntimeExcepti
     class Http(val status: Int, message: String, val serverCode: String? = null) : SpiderTransportException(message)
     class NoData(message: String) : SpiderTransportException(message)
     class Upstream(message: String) : SpiderTransportException(message)
+    class BadRequest(val field: String?, message: String) : SpiderTransportException(message)
 }
 
 internal fun Throwable.toSpiderError(): SpiderError = when (this) {
@@ -97,6 +112,8 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
         else -> SpiderError.Unknown(httpStatus = status, cause = this)
     }
     is SpiderTransportException.NoData -> SpiderError.NotFound(cause = this)
+    is SpiderTransportException.BadRequest ->
+        SpiderError.BadRequest(field = field, message = message ?: SpiderErrorCode.BAD_REQUEST.wireName, cause = this)
     is SpiderTransportException.Upstream -> SpiderError.Server(cause = this)
     is SerializationException -> SpiderError.Decoding(this)
     is HttpRequestTimeoutException, is ConnectTimeoutException, is SocketTimeoutException ->

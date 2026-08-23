@@ -21,7 +21,6 @@ class SpiderRouting(
         origin: Location,
         destination: Location,
         time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
-        first: Int? = DEFAULT_FIRST,
         via: List<ViaLocation> = emptyList(),
         allowedTransitModes: Set<TransitMode>? = null,
         maxTransfers: Int? = null,
@@ -32,43 +31,38 @@ class SpiderRouting(
             origin, destination, time, via,
             allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible,
         ),
-        first = first,
     )
 
     /**
-     * Plans the next page of itineraries (later departures). Returns null if no next page is available.
+     * Plans the next window of itineraries (later departures). Returns null if no next window is available.
      */
-    suspend fun planNext(prev: Route, first: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
+    suspend fun planNext(prev: Route): SpiderResult<Route>? =
         if (!prev.pageInfo.hasNextPage) null
-        else page(prev.request, first = first, after = prev.pageInfo.endCursor)
+        else page(prev.request, after = prev.pageInfo.endCursor)
 
     /**
-     * Plans the previous page of itineraries (earlier departures). Returns null if no previous page is available.
+     * Plans the previous window of itineraries (earlier departures). Returns null if no previous window is available.
      */
-    suspend fun planPrevious(prev: Route, last: Int? = DEFAULT_FIRST): SpiderResult<Route>? =
-        // Relay backward paging = last + before (not first + before) — earlier itineraries, correct page size.
+    suspend fun planPrevious(prev: Route): SpiderResult<Route>? =
+        // Relay backward paging uses `before`; the server caps each page at its own default itinerary count.
         if (!prev.pageInfo.hasPreviousPage) null
-        else page(prev.request, last = last, before = prev.pageInfo.startCursor)
+        else page(prev.request, before = prev.pageInfo.startCursor)
 
+    // Cursor paging only — no page-size count. Absent first/last, the server returns up to its default
+    // itinerary cap per page (a whole search window); `before`/`after` walk the windows.
     private suspend fun page(
         request: PlanRequest,
-        first: Int? = null,
-        last: Int? = null,
         before: String? = null,
         after: String? = null,
     ): SpiderResult<Route> = context(log) {
         spiderCatch(
             tag = "SpiderRouting",
             message = {
-                "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} first=$first last=$last before=$before after=$after)"
+                "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} before=$before after=$after)"
             },
         ) {
-            routing.planConnection(request, first = first, last = last, before = before, after = after)
+            routing.planConnection(request, before = before, after = after)
         }
-    }
-
-    private companion object {
-        const val DEFAULT_FIRST = 5
     }
 
     suspend fun departures(

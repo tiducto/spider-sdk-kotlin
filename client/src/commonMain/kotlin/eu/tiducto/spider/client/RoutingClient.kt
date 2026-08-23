@@ -2,7 +2,6 @@ package eu.tiducto.spider.client
 
 import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.routing.AccessibilityPreferencesInput
-import eu.tiducto.spider.contract.routing.GraphQLError
 import eu.tiducto.spider.contract.routing.PlanConnectionData
 import eu.tiducto.spider.contract.routing.PlanConnectionVariables
 import eu.tiducto.spider.contract.routing.PlanCoordinateInput
@@ -66,8 +65,6 @@ internal class RoutingClient(
 
     suspend fun planConnection(
         request: PlanRequest,
-        first: Int? = null,
-        last: Int? = null,
         before: String? = null,
         after: String? = null,
     ): Route {
@@ -83,8 +80,6 @@ internal class RoutingClient(
             modes = request.toModesInput(),
             preferences = request.toPreferencesInput(),
             searchWindow = request.searchWindow.toSearchWindowIso(),
-            first = first,
-            last = last,
             before = before,
             after = after,
         )
@@ -250,7 +245,7 @@ internal class RoutingClient(
         }
         val envelope = json.decodeFromString<GraphQLResponse<D>>(text)
         envelope.errors?.takeIf { it.isNotEmpty() }?.let { errors ->
-            throw SpiderTransportException.Upstream("routing ${op.path} errors: ${errors.map { it.message }}")
+            throw errors.toTransportException(op.path)
         }
         return envelope.data ?: throw SpiderTransportException.NoData("routing ${op.path} returned no data")
     }
@@ -353,4 +348,22 @@ private fun ViaLocation.toInput(): PlanViaLocationInput = when (this) {
 private data class PersistedRequest<V>(val id: String, val variables: V)
 
 @Serializable
-private data class GraphQLResponse<T>(val data: T? = null, val errors: List<GraphQLError>? = null)
+private data class GraphQLResponse<T>(val data: T? = null, val errors: List<GraphQlErrorPayload>? = null)
+
+// Top-level GraphQL error, incl. the `extensions` the gateway/router stamp on validation failures.
+@Serializable
+internal data class GraphQlErrorPayload(
+    val message: String = "",
+    val extensions: GraphQlErrorExtensions? = null,
+)
+
+@Serializable
+internal data class GraphQlErrorExtensions(val code: String? = null, val field: String? = null)
+
+// A top-level BAD_REQUEST error becomes a typed BadRequest; anything else stays a generic Upstream.
+internal fun List<GraphQlErrorPayload>.toTransportException(path: String): SpiderTransportException {
+    firstOrNull { it.extensions?.code == "BAD_REQUEST" }?.let {
+        return SpiderTransportException.BadRequest(it.extensions?.field, it.message)
+    }
+    return SpiderTransportException.Upstream("routing $path errors: ${map { it.message }}")
+}

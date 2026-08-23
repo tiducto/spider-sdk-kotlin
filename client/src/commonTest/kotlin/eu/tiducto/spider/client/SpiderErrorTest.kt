@@ -61,6 +61,39 @@ class SpiderErrorTest {
     }
 
     @Test
+    fun topLevelBadRequestErrorBecomesBadRequestWithFieldAndMessage() {
+        // A GraphQL top-level BAD_REQUEST (over-cap searchWindow / bad via / missing required) as plan()
+        // sees it: errors[] → the transport exception → the typed SpiderError.
+        val errors = listOf(
+            GraphQlErrorPayload(
+                message = "searchWindow exceeds the maximum of PT2H",
+                extensions = GraphQlErrorExtensions(code = "BAD_REQUEST", field = "searchWindow"),
+            ),
+        )
+        val error = errors.toTransportException("plan").toSpiderError()
+        assertEquals(SpiderErrorCode.BAD_REQUEST, error.code)
+        assertEquals("bad_request", error.code.wireName)
+        error as SpiderError.BadRequest
+        assertEquals("searchWindow", error.field)
+        assertEquals("searchWindow exceeds the maximum of PT2H", error.message)
+    }
+
+    @Test
+    fun badRequestWithoutAFieldStillMapsWithItsMessage() {
+        val errors = listOf(GraphQlErrorPayload("bad via", GraphQlErrorExtensions(code = "BAD_REQUEST")))
+        val error = errors.toTransportException("plan").toSpiderError()
+        assertEquals(SpiderErrorCode.BAD_REQUEST, error.code)
+        assertNull((error as SpiderError.BadRequest).field)
+        assertEquals("bad via", error.message)
+    }
+
+    @Test
+    fun otherTopLevelErrorsStayServer() {
+        val errors = listOf(GraphQlErrorPayload("internal boom", extensions = null))
+        assertEquals(SpiderErrorCode.SERVER, errors.toTransportException("plan").toSpiderError().code)
+    }
+
+    @Test
     fun parseErrorEnvelopeReadsCodeAndMessageAndToleratesNonJson() {
         val envelope = parseErrorEnvelope("""{"code":"forbidden","message":"nope"}""")
         assertEquals("forbidden", envelope.code)

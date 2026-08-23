@@ -10,11 +10,9 @@ import kotlinx.coroutines.flow.flow
 
 private const val DEFAULT_TARGET_RESULTS = 10
 
-// High enough to pull a whole time-step's itinerary options in one search, so OTP's next cursor advances by
-// the FULL search window (verified: nextEdt = currentEdt + searchWindow only when this cap didn't crop the
-// window). A small cap makes the cursor sub-step by results instead of by time — which is NOT what we want:
-// each step should be one search window. `first` is a per-search cap, not cursor-locked, so it can be high.
-private const val MAX_RESULTS_PER_STEP = 50
+// Each cursor step pulls a whole search window: the SDK sends no page-size count, so the server returns up to
+// its own default itinerary cap per page (large enough that the next cursor advances by the FULL window, not
+// by a few results — verified: nextEdt = currentEdt + searchWindow only when that cap didn't crop the window).
 
 /**
  * Streams itineraries by stepping the search forward one [searchWindow] at a time, until [targetResults]
@@ -43,7 +41,7 @@ fun SpiderRouting.planUntil(
     val routing = this
     return flow {
         val first = routing.plan(
-            origin = origin, destination = destination, time = time, first = MAX_RESULTS_PER_STEP, via = via,
+            origin = origin, destination = destination, time = time, via = via,
             allowedTransitModes = allowedTransitModes, maxTransfers = maxTransfers,
             searchWindow = searchWindow, wheelchairAccessible = wheelchairAccessible,
         )
@@ -87,7 +85,7 @@ private suspend fun FlowCollector<SpiderResult<Route>>.stepThrough(
     var prev = start
     var collected = collectedSoFar
     repeat(remainingSteps.coerceAtLeast(0)) {
-        val res = (if (forward) routing.planNext(prev, MAX_RESULTS_PER_STEP) else routing.planPrevious(prev, MAX_RESULTS_PER_STEP)) ?: return
+        val res = (if (forward) routing.planNext(prev) else routing.planPrevious(prev)) ?: return
         emit(res)
         val page = (res as? SpiderResult.Success)?.data ?: return
         collected += page.edges.size
@@ -96,7 +94,7 @@ private suspend fun FlowCollector<SpiderResult<Route>>.stepThrough(
     }
 }
 
-// Each cursor step advances a full search window (MAX_RESULTS_PER_STEP consumes the window), so the number of
-// steps to traverse [maxTraversal] is a plain division by the (fixed) step — no searchWindowUsed parsing.
+// Each cursor step advances a full search window (the server returns a whole window per page), so the number
+// of steps to traverse [maxTraversal] is a plain division by the (fixed) step — no searchWindowUsed parsing.
 private fun stepCount(maxTraversal: Duration, step: Duration): Int =
     (maxTraversal / step.coerceAtLeast(1.minutes)).toInt().coerceAtLeast(1)
