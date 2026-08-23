@@ -10,7 +10,7 @@ internal data class PlanConnectionVariables(
     val via: List<PlanViaLocationInput>? = null,
     val modes: PlanModesInput? = null,
     val preferences: PlanPreferencesInput? = null,
-    val searchWindow: String? = null,
+    val searchWindow: String,
     val before: String? = null,
     val after: String? = null
 )
