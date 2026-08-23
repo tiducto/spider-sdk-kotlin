@@ -577,6 +577,26 @@ public abstract interface class eu/tiducto/spider/client/SpiderError {
 	public fun getServerCode ()Ljava/lang/String;
 }
 
+public final class eu/tiducto/spider/client/SpiderError$BadRequest : eu/tiducto/spider/client/SpiderError {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Throwable;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Throwable;)Leu/tiducto/spider/client/SpiderError$BadRequest;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/SpiderError$BadRequest;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Throwable;ILjava/lang/Object;)Leu/tiducto/spider/client/SpiderError$BadRequest;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getCode ()Leu/tiducto/spider/client/SpiderErrorCode;
+	public final fun getField ()Ljava/lang/String;
+	public fun getHttpStatus ()Ljava/lang/Integer;
+	public fun getMessage ()Ljava/lang/String;
+	public fun getServerCode ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class eu/tiducto/spider/client/SpiderError$Decoding : eu/tiducto/spider/client/SpiderError {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/Throwable;)V
@@ -726,6 +746,7 @@ public final class eu/tiducto/spider/client/SpiderError$Unknown : eu/tiducto/spi
 }
 
 public final class eu/tiducto/spider/client/SpiderErrorCode : java/lang/Enum {
+	public static final field BAD_REQUEST Leu/tiducto/spider/client/SpiderErrorCode;
 	public static final field DECODING Leu/tiducto/spider/client/SpiderErrorCode;
 	public static final field NETWORK Leu/tiducto/spider/client/SpiderErrorCode;
 	public static final field NOT_FOUND Leu/tiducto/spider/client/SpiderErrorCode;

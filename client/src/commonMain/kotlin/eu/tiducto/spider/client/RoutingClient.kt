@@ -2,7 +2,6 @@ package eu.tiducto.spider.client
 
 import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.routing.AccessibilityPreferencesInput
-import eu.tiducto.spider.contract.routing.GraphQLError
 import eu.tiducto.spider.contract.routing.PlanConnectionData
 import eu.tiducto.spider.contract.routing.PlanConnectionVariables
 import eu.tiducto.spider.contract.routing.PlanCoordinateInput
@@ -246,7 +245,7 @@ internal class RoutingClient(
         }
         val envelope = json.decodeFromString<GraphQLResponse<D>>(text)
         envelope.errors?.takeIf { it.isNotEmpty() }?.let { errors ->
-            throw SpiderTransportException.Upstream("routing ${op.path} errors: ${errors.map { it.message }}")
+            throw errors.toTransportException(op.path)
         }
         return envelope.data ?: throw SpiderTransportException.NoData("routing ${op.path} returned no data")
     }
@@ -349,4 +348,24 @@ private fun ViaLocation.toInput(): PlanViaLocationInput = when (this) {
 private data class PersistedRequest<V>(val id: String, val variables: V)
 
 @Serializable
-private data class GraphQLResponse<T>(val data: T? = null, val errors: List<GraphQLError>? = null)
+private data class GraphQLResponse<T>(val data: T? = null, val errors: List<GraphQlErrorPayload>? = null)
+
+// Top-level GraphQL error, incl. the `extensions` the gateway/router stamp on validation failures.
+@Serializable
+internal data class GraphQlErrorPayload(
+    val message: String = "",
+    val extensions: GraphQlErrorExtensions? = null,
+)
+
+@Serializable
+internal data class GraphQlErrorExtensions(val code: String? = null, val field: String? = null)
+
+// Maps a non-empty top-level errors[] to the transport exception the surface layer maps to a SpiderError.
+// A BAD_REQUEST extension (over-cap searchWindow, bad via, missing required field) becomes a typed
+// BadRequest; anything else stays a generic Upstream (→ SpiderError.Server). Internal so it is unit-testable.
+internal fun List<GraphQlErrorPayload>.toTransportException(path: String): SpiderTransportException {
+    firstOrNull { it.extensions?.code == "BAD_REQUEST" }?.let {
+        return SpiderTransportException.BadRequest(it.extensions?.field, it.message)
+    }
+    return SpiderTransportException.Upstream("routing $path errors: ${map { it.message }}")
+}

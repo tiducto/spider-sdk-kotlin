@@ -61,6 +61,7 @@ final enum class eu.tiducto.spider.client/OccupancyStatus : kotlin/Enum<eu.tiduc
 }
 
 final enum class eu.tiducto.spider.client/SpiderErrorCode : kotlin/Enum<eu.tiducto.spider.client/SpiderErrorCode> { // eu.tiducto.spider.client/SpiderErrorCode|null[0]
+    enum entry BAD_REQUEST // eu.tiducto.spider.client/SpiderErrorCode.BAD_REQUEST|null[0]
     enum entry DECODING // eu.tiducto.spider.client/SpiderErrorCode.DECODING|null[0]
     enum entry NETWORK // eu.tiducto.spider.client/SpiderErrorCode.NETWORK|null[0]
     enum entry NOT_FOUND // eu.tiducto.spider.client/SpiderErrorCode.NOT_FOUND|null[0]
@@ -209,6 +210,28 @@ sealed interface eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.cli
         open fun <get-message>(): kotlin/String // eu.tiducto.spider.client/SpiderError.message.<get-message>|<get-message>(){}[0]
     open val serverCode // eu.tiducto.spider.client/SpiderError.serverCode|{}serverCode[0]
         open fun <get-serverCode>(): kotlin/String? // eu.tiducto.spider.client/SpiderError.serverCode.<get-serverCode>|<get-serverCode>(){}[0]
+
+    final class BadRequest : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.BadRequest|null[0]
+        constructor <init>(kotlin/String? = ..., kotlin/String, kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.BadRequest.<init>|<init>(kotlin.String?;kotlin.String;kotlin.Int?;kotlin.Throwable?){}[0]
+
+        final val cause // eu.tiducto.spider.client/SpiderError.BadRequest.cause|{}cause[0]
+            final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.BadRequest.cause.<get-cause>|<get-cause>(){}[0]
+        final val field // eu.tiducto.spider.client/SpiderError.BadRequest.field|{}field[0]
+            final fun <get-field>(): kotlin/String? // eu.tiducto.spider.client/SpiderError.BadRequest.field.<get-field>|<get-field>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.BadRequest.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.BadRequest.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
+        final val message // eu.tiducto.spider.client/SpiderError.BadRequest.message|{}message[0]
+            final fun <get-message>(): kotlin/String // eu.tiducto.spider.client/SpiderError.BadRequest.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/String? // eu.tiducto.spider.client/SpiderError.BadRequest.component1|component1(){}[0]
+        final fun component2(): kotlin/String // eu.tiducto.spider.client/SpiderError.BadRequest.component2|component2(){}[0]
+        final fun component3(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.BadRequest.component3|component3(){}[0]
+        final fun component4(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.BadRequest.component4|component4(){}[0]
+        final fun copy(kotlin/String? = ..., kotlin/String = ..., kotlin/Int? = ..., kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.BadRequest // eu.tiducto.spider.client/SpiderError.BadRequest.copy|copy(kotlin.String?;kotlin.String;kotlin.Int?;kotlin.Throwable?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.BadRequest.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.BadRequest.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.BadRequest.toString|toString(){}[0]
+    }
 
     final class Decoding : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.Decoding|null[0]
         constructor <init>(kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.Decoding.<init>|<init>(kotlin.Throwable?){}[0]

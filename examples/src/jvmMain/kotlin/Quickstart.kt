@@ -43,6 +43,7 @@ suspend fun handleErrors(client: SpiderClient) {
         // SpiderError is a sealed interface — match the case you care about.
         is SpiderResult.Error -> when (val error = result.error) {
             is SpiderError.Unauthorized -> println("Check the apikey header — HTTP ${error.httpStatus}")
+            is SpiderError.BadRequest -> println("Invalid request on ${error.field ?: "input"}: ${error.message}")
             is SpiderError.RateLimited -> println("Rate limited — back off and retry later")
             is SpiderError.Timeout -> println("Timed out — safe to retry")
             is SpiderError.NotFound -> println("No data for that request")
@@ -61,6 +62,7 @@ fun isRetryable(error: SpiderError): Boolean = when (error.code) {
     SpiderErrorCode.RATE_LIMITED,
     SpiderErrorCode.SERVER -> true
     SpiderErrorCode.UNAUTHORIZED,
+    SpiderErrorCode.BAD_REQUEST,
     SpiderErrorCode.NOT_FOUND,
     SpiderErrorCode.DECODING,
     SpiderErrorCode.UNKNOWN -> false
