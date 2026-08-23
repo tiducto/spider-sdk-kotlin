@@ -1,6 +1,8 @@
 package examples.quickstart
 
 import eu.tiducto.spider.client.*
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
 
 suspend fun firstCall() {
     val client = SpiderClient(
@@ -11,7 +13,8 @@ suspend fun firstCall() {
     val result = client.routing.plan(
         origin = Location.Coordinate(49.1908, 16.6128),
         destination = Location.Coordinate(49.2270, 16.5273),
-        first = 3,
+        time = RouteTime.DepartAt(Clock.System.now()),
+        searchWindow = 60.minutes,
     )
 }
 
@@ -19,7 +22,8 @@ suspend fun handleResult(client: SpiderClient) {
     when (val result = client.routing.plan(
         origin = Location.Coordinate(49.1908, 16.6128),
         destination = Location.Coordinate(49.2270, 16.5273),
-        first = 3,
+        time = RouteTime.DepartAt(Clock.System.now()),
+        searchWindow = 60.minutes,
     )) {
         is SpiderResult.Success -> result.data.edges.forEach { edge ->
             println(edge.itinerary)
@@ -32,7 +36,8 @@ suspend fun handleErrors(client: SpiderClient) {
     when (val result = client.routing.plan(
         origin = Location.Coordinate(49.1908, 16.6128),
         destination = Location.Coordinate(49.2270, 16.5273),
-        first = 3,
+        time = RouteTime.DepartAt(Clock.System.now()),
+        searchWindow = 60.minutes,
     )) {
         is SpiderResult.Success -> result.data.edges.forEach { println(it.itinerary) }
         // SpiderError is a sealed interface — match the case you care about.

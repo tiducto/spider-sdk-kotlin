@@ -30,11 +30,15 @@ val client = SpiderClient(baseUrl = "https://your-env-slug.api.tiducto.eu", apiK
 when (val result = client.routing.plan(
     origin = Location.Stop("U123Z1"),
     destination = Location.Stop("U456Z2"),
+    time = RouteTime.DepartAt(Clock.System.now()),  // leave now…
+    searchWindow = 60.minutes,                       // …and scan the next 60 minutes
 )) {
     is SpiderResult.Success -> result.data.edges.forEach { println(it.itinerary) }
     is SpiderResult.Error -> println(result.error)
 }
 ```
+
+The recommended query pins a time and a window — a departure time (`RouteTime.DepartAt`) or an arrival deadline (`RouteTime.ArriveBy`) together with `searchWindow` — rather than asking for _N_ results from "now". Widen the window for sparse or intercity routes, and page with `first` + `planNext`.
 
 Every call returns a `SpiderResult` you branch on before reading `data`; only a contract-version mismatch throws. Tune a surface with the optional config block, e.g. `SpiderClient(baseUrl, apiKey) { realtime { autoRetry { maxAttempts = 3 } } }`.
 

@@ -1,6 +1,7 @@
 package examples.routing
 
 import eu.tiducto.spider.client.*
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
@@ -13,10 +14,12 @@ fun setup() {
 }
 
 suspend fun planTrip(client: SpiderClient) {
+    // The recommended shape: a departure time plus a search window, not "N results from now".
     val result = client.routing.plan(
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
-        first = 3,
+        time = RouteTime.DepartAt(Clock.System.now()),
+        searchWindow = 60.minutes,
     )
 
     when (result) {
@@ -38,6 +41,7 @@ suspend fun planForTime(client: SpiderClient) {
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
         time = RouteTime.DepartAt(Instant.parse("2026-07-20T08:00:00Z")),
+        searchWindow = 30.minutes,
     )
 }
 
@@ -136,7 +140,7 @@ suspend fun arriveBy(client: SpiderClient) {
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
         time = RouteTime.ArriveBy(Instant.parse("2026-07-20T08:00:00Z")),
-        first = 3,
+        searchWindow = 60.minutes,
     )
 
     when (result) {
