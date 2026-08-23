@@ -99,7 +99,6 @@ internal sealed class SpiderTransportException(message: String) : RuntimeExcepti
     class Http(val status: Int, message: String, val serverCode: String? = null) : SpiderTransportException(message)
     class NoData(message: String) : SpiderTransportException(message)
     class Upstream(message: String) : SpiderTransportException(message)
-    // A GraphQL top-level BAD_REQUEST error (validation failure from the gateway/router).
     class BadRequest(val field: String?, message: String) : SpiderTransportException(message)
 }
 

@@ -360,9 +360,7 @@ internal data class GraphQlErrorPayload(
 @Serializable
 internal data class GraphQlErrorExtensions(val code: String? = null, val field: String? = null)
 
-// Maps a non-empty top-level errors[] to the transport exception the surface layer maps to a SpiderError.
-// A BAD_REQUEST extension (over-cap searchWindow, bad via, missing required field) becomes a typed
-// BadRequest; anything else stays a generic Upstream (→ SpiderError.Server). Internal so it is unit-testable.
+// A top-level BAD_REQUEST error becomes a typed BadRequest; anything else stays a generic Upstream.
 internal fun List<GraphQlErrorPayload>.toTransportException(path: String): SpiderTransportException {
     firstOrNull { it.extensions?.code == "BAD_REQUEST" }?.let {
         return SpiderTransportException.BadRequest(it.extensions?.field, it.message)
