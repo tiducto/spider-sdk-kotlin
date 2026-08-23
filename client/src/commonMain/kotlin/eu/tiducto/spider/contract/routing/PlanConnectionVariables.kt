@@ -11,8 +11,6 @@ internal data class PlanConnectionVariables(
     val modes: PlanModesInput? = null,
     val preferences: PlanPreferencesInput? = null,
     val searchWindow: String? = null,
-    val first: Int? = null,
-    val last: Int? = null,
     val before: String? = null,
     val after: String? = null
 )

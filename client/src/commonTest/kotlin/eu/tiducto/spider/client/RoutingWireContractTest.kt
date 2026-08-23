@@ -50,7 +50,6 @@ class RoutingWireContractTest {
             via = listOf(
                 PlanViaLocationInput(passThrough = PlanPassThroughViaLocationInput(stopLocationIds = listOf("1:U999"))),
             ),
-            first = 5,
         )
 
         // explicitNulls=false must drop: latestArrival, the optional `label` on every input,
@@ -61,8 +60,7 @@ class RoutingWireContractTest {
               "dateTime": { "earliestDeparture": "2026-07-19T10:00:00Z" },
               "origin": { "location": { "stopLocation": { "stopLocationId": "1:U123" } } },
               "destination": { "location": { "coordinate": { "latitude": 49.2, "longitude": 16.6 } } },
-              "via": [ { "passThrough": { "stopLocationIds": ["1:U999"] } } ],
-              "first": 5
+              "via": [ { "passThrough": { "stopLocationIds": ["1:U999"] } } ]
             }
             """.trimIndent(),
         )

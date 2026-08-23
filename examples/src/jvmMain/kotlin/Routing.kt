@@ -49,7 +49,6 @@ suspend fun laterItineraries(client: SpiderClient) {
     val firstPage = when (val result = client.routing.plan(
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
-        first = 3,
     )) {
         is SpiderResult.Success -> result.data
         is SpiderResult.Error -> {
@@ -58,8 +57,8 @@ suspend fun laterItineraries(client: SpiderClient) {
         }
     }
 
-    when (val later = client.routing.planNext(firstPage, first = 3)) {
-        null -> println("No later itineraries — that was the last page")
+    when (val later = client.routing.planNext(firstPage)) {
+        null -> println("No later itineraries — that was the last window")
         is SpiderResult.Success ->
             later.data.edges.forEach { edge ->
                 println("${edge.itinerary.start} → ${edge.itinerary.end}")
@@ -104,7 +103,6 @@ suspend fun planWithModes(client: SpiderClient) {
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
         allowedTransitModes = setOf(TransitMode.TRAM, TransitMode.SUBWAY),
-        first = 3,
     )
 
     when (result) {
@@ -123,7 +121,6 @@ suspend fun planWithLimits(client: SpiderClient) {
         // Widen the window scanned for departures, and cap connections at two transfers.
         searchWindow = 2.hours,
         maxTransfers = 2,
-        first = 5,
     )
 
     when (result) {
@@ -156,7 +153,6 @@ suspend fun earlierItineraries(client: SpiderClient) {
     val firstPage = when (val result = client.routing.plan(
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
-        first = 3,
     )) {
         is SpiderResult.Success -> result.data
         is SpiderResult.Error -> {
@@ -165,8 +161,8 @@ suspend fun earlierItineraries(client: SpiderClient) {
         }
     }
 
-    when (val earlier = client.routing.planPrevious(firstPage, last = 3)) {
-        null -> println("No earlier itineraries — that was the first page")
+    when (val earlier = client.routing.planPrevious(firstPage)) {
+        null -> println("No earlier itineraries — that was the first window")
         is SpiderResult.Success ->
             earlier.data.edges.forEach { edge ->
                 println("${edge.itinerary.start} → ${edge.itinerary.end}")
@@ -185,7 +181,6 @@ suspend fun planVia(client: SpiderClient) {
                 minimumWaitTime = 10.minutes,
             ),
         ),
-        first = 3,
     )
 
     when (result) {
@@ -202,7 +197,6 @@ suspend fun wheelchairPlan(client: SpiderClient) {
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
         wheelchairAccessible = true,
-        first = 3,
     )
 
     when (result) {

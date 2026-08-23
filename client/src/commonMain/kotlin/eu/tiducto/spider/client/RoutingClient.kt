@@ -66,8 +66,6 @@ internal class RoutingClient(
 
     suspend fun planConnection(
         request: PlanRequest,
-        first: Int? = null,
-        last: Int? = null,
         before: String? = null,
         after: String? = null,
     ): Route {
@@ -83,8 +81,6 @@ internal class RoutingClient(
             modes = request.toModesInput(),
             preferences = request.toPreferencesInput(),
             searchWindow = request.searchWindow.toSearchWindowIso(),
-            first = first,
-            last = last,
             before = before,
             after = after,
         )
