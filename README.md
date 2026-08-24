@@ -52,7 +52,7 @@ Every call returns a `SpiderResult` you branch on before reading `data`; only a 
 
 ## Contract
 
-The wire contract (persisted GraphQL queries, routes, response shapes) is owned by [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract). Its models are generated and committed into **`:client`** as `internal` wire types (the repo carries the classes, not the spec) and mapped to the public domain types. To refresh after the contract changes, run the **Generate contract module** GitHub workflow (or `scripts/generate-contract.sh` locally, which needs Docker). Maintainers: see [`RELEASING.md`](RELEASING.md).
+The wire contract (persisted GraphQL queries, routes, response shapes) is owned by [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract). Its models are generated and committed into **`:client`** as `internal` wire types (the repo carries the classes, not the spec) and mapped to the public domain types. To refresh after the contract changes, run the **Pull contract updates** GitHub workflow (or `scripts/generate-contract.sh` locally, which needs Docker). Maintainers: see [`RELEASING.md`](RELEASING.md).
 
 ## License
 
