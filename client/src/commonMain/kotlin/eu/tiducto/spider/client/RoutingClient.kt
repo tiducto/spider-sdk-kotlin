@@ -2,7 +2,10 @@ package eu.tiducto.spider.client
 
 import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.routing.AccessibilityPreferencesInput
+import eu.tiducto.spider.contract.routing.Itinerary as WireItinerary
+import eu.tiducto.spider.contract.routing.Leg as WireLeg
 import eu.tiducto.spider.contract.routing.PlanConnectionData
+import eu.tiducto.spider.contract.routing.PlanConnectionStreamVariables
 import eu.tiducto.spider.contract.routing.PlanConnectionVariables
 import eu.tiducto.spider.contract.routing.PlanCoordinateInput
 import eu.tiducto.spider.contract.routing.PlanDateTimeInput
@@ -25,11 +28,15 @@ import eu.tiducto.spider.contract.routing.TripData
 import eu.tiducto.spider.contract.routing.TripVariables
 import eu.tiducto.spider.contract.routing.WheelchairPreferencesInput
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.sse.SSE
+import io.ktor.client.plugins.sse.SSEClientException
+import io.ktor.client.plugins.sse.sse
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlin.time.Duration
@@ -38,6 +45,9 @@ import kotlin.time.Instant
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -59,6 +69,7 @@ internal class RoutingClient(
     }
 
     private val http = HttpClient {
+        install(SSE)
         installAutoRetry(retry)
         installSpiderLogging(log, "SpiderRouting")
     }
@@ -89,47 +100,7 @@ internal class RoutingClient(
         return Route(
             request = request,
             edges = plan.edges.orEmpty().map { edge ->
-                val node = edge.node
-                RouteEdge(
-                    cursor = edge.cursor,
-                    itinerary = Itinerary(
-                        start = node.start,
-                        end = node.end,
-                        durationSeconds = node.duration ?: 0L,
-                        waitingTimeSeconds = node.waitingTime,
-                        numberOfTransfers = node.numberOfTransfers,
-                        accessibilityScore = node.accessibilityScore,
-                        legs = node.legs.map { leg ->
-                            Leg(
-                                mode = transitModeFromWire(leg.mode?.value),
-                                startScheduled = leg.start.scheduledTime,
-                                endScheduled = leg.end.scheduledTime,
-                                startEstimated = leg.start.estimated?.time,
-                                endEstimated = leg.end.estimated?.time,
-                                startDelay = durationFromWire(leg.start.estimated?.delay),
-                                endDelay = durationFromWire(leg.end.estimated?.delay),
-                                isRealtime = leg.realTime ?: false,
-                                realtimeState = leg.realtimeState?.value,
-                                fromName = leg.from.name,
-                                toName = leg.to.name,
-                                fromGtfsId = leg.from.stop?.gtfsId,
-                                toGtfsId = leg.to.stop?.gtfsId,
-                                routeShortName = leg.route?.shortName,
-                                routeLongName = leg.route?.longName,
-                                headsign = leg.headsign,
-                                distanceMeters = leg.distance,
-                                durationSeconds = leg.duration,
-                                tripGtfsId = leg.trip?.gtfsId,
-                                bikesAllowed = bikesAllowedFromWire(leg.trip?.bikesAllowed?.value),
-                                accessibilityScore = leg.accessibilityScore,
-                                fromWheelchair = wheelchairFromWire(leg.from.stop?.wheelchairBoarding?.value),
-                                toWheelchair = wheelchairFromWire(leg.to.stop?.wheelchairBoarding?.value),
-                                geometry = leg.legGeometry?.points?.let { decodePolyline(it).toImmutableList() }
-                                    ?: persistentListOf(),
-                            )
-                        }.toImmutableList(),
-                    ),
-                )
+                RouteEdge(cursor = edge.cursor, itinerary = edge.node.toDomainItinerary())
             }.toImmutableList(),
             pageInfo = RoutePageInfo(
                 startCursor = plan.pageInfo.startCursor,
@@ -143,6 +114,64 @@ internal class RoutingClient(
             }.toImmutableList(),
             searchDateTime = plan.searchDateTime,
         )
+    }
+
+    // Streaming plan over the SSE `plan-stream` route, via Ktor's client SSE plugin. Same persisted-query
+    // transport as the batch plan (a POST of {id, variables}), but the router streams `chunk`/`pageInfo`/`done`
+    // (and a terminal `error`) events as it sweeps the window, which this maps to a cold Flow of
+    // [PlanStreamEvent]. Any failure — a non-event-stream HTTP response, a server `error` event, or a decoding
+    // slip — surfaces as a terminal [PlanStreamEvent.Failure], never a throw. Auto-reconnection is left off
+    // (the plugin's default), so the stream ends when the sweep does.
+    fun planConnectionStream(
+        request: PlanRequest,
+        targetResults: Int,
+        maxWindow: Duration,
+        before: String? = null,
+        after: String? = null,
+    ): Flow<PlanStreamEvent> {
+        val dateTime = when (val time = request.time) {
+            is RouteTime.DepartAt -> PlanDateTimeInput(earliestDeparture = time.time.toString())
+            is RouteTime.ArriveBy -> PlanDateTimeInput(latestArrival = time.time.toString())
+        }
+        val variables = PlanConnectionStreamVariables(
+            dateTime = dateTime,
+            origin = request.origin.toInput(),
+            destination = request.destination.toInput(),
+            via = request.via.takeIf { it.isNotEmpty() }?.map { it.toInput() },
+            modes = request.toModesInput(),
+            preferences = request.toPreferencesInput(),
+            targetResults = targetResults,
+            maxWindow = maxWindow.toIsoString(),
+            before = before,
+            after = after,
+        )
+        val payload = json.encodeToString(PersistedRequest(id = PersistedQueries.PLAN_STREAM.id, variables = variables))
+        return flow {
+            try {
+                http.sse(
+                    request = {
+                        method = HttpMethod.Post
+                        url("$baseUrl/routing/${PersistedQueries.PLAN_STREAM.path}")
+                        contentType(ContentType.Application.Json)
+                        spiderHeaders(apiKey)
+                        setBody(payload)
+                    },
+                ) {
+                    incoming.collect { event ->
+                        parsePlanStreamRecord(event.event ?: SSE_DEFAULT_EVENT, event.data.orEmpty(), json)
+                            ?.let { emit(it) }
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: SSEClientException) {
+                // The plugin throws this when the response isn't a 2xx text/event-stream (e.g. 401/403/429);
+                // recover the status off the carried response so it maps to the right SpiderError.
+                emit(PlanStreamEvent.Failure(e.toStreamFailure()))
+            } catch (e: Exception) {
+                emit(PlanStreamEvent.Failure(e.toSpiderError()))
+            }
+        }
     }
 
     suspend fun stopDepartures(
@@ -286,6 +315,137 @@ private fun durationFromWire(raw: String?): Duration? {
     if (raw.isNullOrBlank()) return null
     return runCatching { Duration.parseIsoString(raw) }.getOrNull()
         ?: raw.toLongOrNull()?.seconds
+}
+
+// Shared wire-node → domain mapping, used by both the batch plan and the SSE stream (a stream `chunk`'s
+// `results` are the same itinerary nodes as `planConnection.edges[].node`). Realtime delays ride here:
+// each leg's estimated time + delay and its realtime state come straight off the wire node.
+private fun WireItinerary.toDomainItinerary(): Itinerary = Itinerary(
+    start = start,
+    end = end,
+    durationSeconds = duration ?: 0L,
+    waitingTimeSeconds = waitingTime,
+    numberOfTransfers = numberOfTransfers,
+    accessibilityScore = accessibilityScore,
+    legs = legs.map { it.toDomainLeg() }.toImmutableList(),
+)
+
+private fun WireLeg.toDomainLeg(): Leg = Leg(
+    mode = transitModeFromWire(mode?.value),
+    startScheduled = start.scheduledTime,
+    endScheduled = end.scheduledTime,
+    startEstimated = start.estimated?.time,
+    endEstimated = end.estimated?.time,
+    startDelay = durationFromWire(start.estimated?.delay),
+    endDelay = durationFromWire(end.estimated?.delay),
+    isRealtime = realTime ?: false,
+    realtimeState = realtimeState?.value,
+    fromName = from.name,
+    toName = to.name,
+    fromGtfsId = from.stop?.gtfsId,
+    toGtfsId = to.stop?.gtfsId,
+    routeShortName = route?.shortName,
+    routeLongName = route?.longName,
+    headsign = headsign,
+    distanceMeters = distance,
+    durationSeconds = duration,
+    tripGtfsId = trip?.gtfsId,
+    bikesAllowed = bikesAllowedFromWire(trip?.bikesAllowed?.value),
+    accessibilityScore = accessibilityScore,
+    fromWheelchair = wheelchairFromWire(from.stop?.wheelchairBoarding?.value),
+    toWheelchair = wheelchairFromWire(to.stop?.wheelchairBoarding?.value),
+    geometry = legGeometry?.points?.let { decodePolyline(it).toImmutableList() } ?: persistentListOf(),
+)
+
+private const val SSE_DEFAULT_EVENT = "message"
+
+@Serializable
+private data class StreamChunkData(
+    val frontier: Long = 0,
+    val found: Int = 0,
+    val finalized: Int = 0,
+    val results: List<WireItinerary> = emptyList(),
+)
+
+@Serializable
+private data class StreamPageInfoData(
+    val startCursor: String? = null,
+    val endCursor: String? = null,
+    val hasNextPage: Boolean = false,
+    val hasPreviousPage: Boolean = false,
+    val searchWindowUsed: String? = null,
+)
+
+@Serializable
+private data class StreamDoneData(
+    val iterations: Int = 0,
+    val windowSeconds: Long = 0,
+    val resultCount: Int = 0,
+    val stoppedBy: String = "unknown",
+)
+
+@Serializable
+private data class StreamErrorData(
+    val errors: List<GraphQlErrorPayload>? = null,
+    val message: String? = null,
+)
+
+// Parses one finished SSE record (event name + accumulated data) into a [PlanStreamEvent]; returns null for
+// records the SDK doesn't surface (heartbeats, unknown events). A malformed payload becomes a terminal
+// Failure rather than tearing the coroutine down. `internal` so the wire-contract test exercises it directly.
+internal fun parsePlanStreamRecord(event: String, data: String, json: Json): PlanStreamEvent? {
+    if (data.isBlank()) return null
+    return when (event) {
+        "chunk" -> runCatching {
+            val chunk = json.decodeFromString<StreamChunkData>(data)
+            PlanStreamEvent.Chunk(
+                frontierSeconds = chunk.frontier,
+                found = chunk.found,
+                finalized = chunk.finalized,
+                itineraries = chunk.results.map { it.toDomainItinerary() }.toImmutableList(),
+            )
+        }.getOrElse { PlanStreamEvent.Failure(it.toSpiderError()) }
+
+        "pageInfo" -> runCatching {
+            val page = json.decodeFromString<StreamPageInfoData>(data)
+            PlanStreamEvent.Page(
+                RoutePageInfo(
+                    startCursor = page.startCursor,
+                    endCursor = page.endCursor,
+                    hasNextPage = page.hasNextPage,
+                    hasPreviousPage = page.hasPreviousPage,
+                    searchWindowUsed = page.searchWindowUsed,
+                ),
+            )
+        }.getOrElse { PlanStreamEvent.Failure(it.toSpiderError()) }
+
+        "done" -> runCatching {
+            val done = json.decodeFromString<StreamDoneData>(data)
+            PlanStreamEvent.Done(done.iterations, done.windowSeconds, done.resultCount, done.stoppedBy)
+        }.getOrElse { PlanStreamEvent.Failure(it.toSpiderError()) }
+
+        "error" -> PlanStreamEvent.Failure(streamErrorToSpiderError(data, json))
+        else -> null
+    }
+}
+
+// A stream `error` record is the same GraphQL error envelope the batch path returns, so it maps through the
+// same taxonomy — a top-level BAD_REQUEST becomes SpiderError.BadRequest (with its field), anything else Server.
+private fun streamErrorToSpiderError(data: String, json: Json): SpiderError {
+    val payloads = runCatching { json.decodeFromString<StreamErrorData>(data) }.getOrNull()
+    payloads?.errors?.takeIf { it.isNotEmpty() }?.let { return it.toTransportException("plan-stream").toSpiderError() }
+    return SpiderTransportException.Upstream("plan-stream error: ${payloads?.message ?: data.take(300)}").toSpiderError()
+}
+
+// The SSE plugin raises this when the response isn't a 2xx text/event-stream. Recover the HTTP status from the
+// carried response so 401/403/429/5xx map to the same SpiderError the batch path returns; fall back otherwise.
+private fun SSEClientException.toStreamFailure(): SpiderError {
+    val status = response?.status?.value
+    return if (status != null) {
+        SpiderTransportException.Http(status, "routing plan-stream → $status: ${message ?: "stream failed"}").toSpiderError()
+    } else {
+        (cause ?: this).toSpiderError()
+    }
 }
 
 // Curated PlanRequest → OTP's nested modes/preferences inputs. Only the fields the SDK exposes are set;

@@ -6,6 +6,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 
 class SpiderRouting(
@@ -64,6 +65,47 @@ class SpiderRouting(
             routing.planConnection(request, before = before, after = after)
         }
     }
+
+    /**
+     * Streams itineraries over Server-Sent Events as the router sweeps the search window forward, emitting
+     * them as they finalize instead of one batched page. Cold and cancellable: collection starts the request,
+     * cancelling it stops the sweep. Each [PlanStreamEvent.Chunk] carries itineraries with realtime delays
+     * already applied to their legs; a [PlanStreamEvent.Page] then carries the continuation cursors and a
+     * [PlanStreamEvent.Done] closes the stream (or a terminal [PlanStreamEvent.Failure]).
+     *
+     * [targetResults] is a soft floor the sweep aims to reach; [maxWindow] caps how far forward it searches.
+     * To continue, re-call with the same inputs plus `after` = the last [RoutePageInfo.endCursor] (or `before`
+     * = [RoutePageInfo.startCursor] to walk earlier). For a single batched page instead, use [plan].
+     */
+    fun planStream(
+        origin: Location,
+        destination: Location,
+        time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
+        via: List<ViaLocation> = emptyList(),
+        allowedTransitModes: Set<TransitMode>? = null,
+        maxTransfers: Int? = null,
+        wheelchairAccessible: Boolean = false,
+        targetResults: Int = 5,
+        maxWindow: Duration = 6.hours,
+        after: String? = null,
+        before: String? = null,
+    ): Flow<PlanStreamEvent> = routing.planConnectionStream(
+        request = PlanRequest(
+            origin = origin,
+            destination = destination,
+            time = time,
+            via = via,
+            allowedTransitModes = allowedTransitModes,
+            maxTransfers = maxTransfers,
+            // Unused by the stream (it paces itself with targetResults/maxWindow), but PlanRequest requires it.
+            searchWindow = maxWindow,
+            wheelchairAccessible = wheelchairAccessible,
+        ),
+        targetResults = targetResults,
+        maxWindow = maxWindow,
+        before = before,
+        after = after,
+    )
 
     suspend fun departures(
         id: String,
