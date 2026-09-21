@@ -301,8 +301,11 @@ internal fun PlanRequest.toModesInput(): PlanModesInput? {
 }
 
 internal fun PlanRequest.toPreferencesInput(): PlanPreferencesInput? {
+    // The router indexes legs with leg 0 = the initial access (walk, or nothing), so its wire
+    // `maximumTransfers` counts boardings = transfers + 1 (wire 0 = walk-only, not exposed here).
+    // `maxTransfers` is a transfer count, so map it to boardings: 0 transfers = 1 boarding (direct).
     val transit = maxTransfers?.let {
-        TransitPreferencesInput(transfer = TransferPreferencesInput(maximumTransfers = it))
+        TransitPreferencesInput(transfer = TransferPreferencesInput(maximumTransfers = it + 1))
     }
     val accessibility = if (wheelchairAccessible) {
         AccessibilityPreferencesInput(wheelchair = WheelchairPreferencesInput(enabled = true))

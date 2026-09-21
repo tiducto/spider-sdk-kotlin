@@ -79,6 +79,7 @@ class RoutingWireContractTest {
             time = RouteTime.DepartAt(Instant.parse("2026-07-19T10:00:00Z")),
             // WALK is a street mode, not a transit filter — it must drop out, leaving BUS + TRAM.
             allowedTransitModes = setOf(TransitMode.BUS, TransitMode.TRAM, TransitMode.WALK),
+            // 2 transfers ⇒ wire maximumTransfers = 3 (the router counts boardings = transfers + 1).
             maxTransfers = 2,
             wheelchairAccessible = true,
             searchWindow = 30.minutes,
@@ -105,7 +106,7 @@ class RoutingWireContractTest {
               "modes": { "transit": { "transit": [ { "mode": "BUS" }, { "mode": "TRAM" } ] } },
               "preferences": {
                 "accessibility": { "wheelchair": { "enabled": true } },
-                "transit": { "transfer": { "maximumTransfers": 2 } }
+                "transit": { "transfer": { "maximumTransfers": 3 } }
               },
               "searchWindow": "PT30M"
             }
