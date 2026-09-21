@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [Unreleased]
+
+### Added
+
+- **Streaming trip planning** — `SpiderRouting.planStream(...)` streams itineraries over Server-Sent
+  Events (the `plan-stream` route) as the router sweeps the search window, emitting a `Flow` of
+  `PlanStreamEvent` (`Chunk` / `Page` / `Done` / `Failure`) instead of one batched page. Built on
+  Ktor's client `SSE` plugin. `targetResults` sets a soft floor and `maxWindow` caps the sweep;
+  `after` / `before` continue from a prior `Page`'s cursors. Distinct from the existing `planUntil`,
+  which window-walks batch calls.
+- Realtime **delays** on streamed itineraries: each `Chunk`'s legs carry the same estimated times and
+  delay fields (`startDelay` / `endDelay` / `isRealtime` / `realtimeState`) as the one-shot `plan`.
+
 ## [0.1.0] - 2026-08-22
 
 Initial public pre-release; targets Spider API contract 0.1.
