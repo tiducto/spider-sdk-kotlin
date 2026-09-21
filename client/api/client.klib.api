@@ -168,6 +168,78 @@ sealed interface eu.tiducto.spider.client/Location { // eu.tiducto.spider.client
     }
 }
 
+sealed interface eu.tiducto.spider.client/PlanStreamEvent { // eu.tiducto.spider.client/PlanStreamEvent|null[0]
+    final class Chunk : eu.tiducto.spider.client/PlanStreamEvent { // eu.tiducto.spider.client/PlanStreamEvent.Chunk|null[0]
+        constructor <init>(kotlin/Long, kotlin/Int, kotlin/Int, kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Itinerary>) // eu.tiducto.spider.client/PlanStreamEvent.Chunk.<init>|<init>(kotlin.Long;kotlin.Int;kotlin.Int;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.Itinerary>){}[0]
+
+        final val finalized // eu.tiducto.spider.client/PlanStreamEvent.Chunk.finalized|{}finalized[0]
+            final fun <get-finalized>(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Chunk.finalized.<get-finalized>|<get-finalized>(){}[0]
+        final val found // eu.tiducto.spider.client/PlanStreamEvent.Chunk.found|{}found[0]
+            final fun <get-found>(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Chunk.found.<get-found>|<get-found>(){}[0]
+        final val frontierSeconds // eu.tiducto.spider.client/PlanStreamEvent.Chunk.frontierSeconds|{}frontierSeconds[0]
+            final fun <get-frontierSeconds>(): kotlin/Long // eu.tiducto.spider.client/PlanStreamEvent.Chunk.frontierSeconds.<get-frontierSeconds>|<get-frontierSeconds>(){}[0]
+        final val itineraries // eu.tiducto.spider.client/PlanStreamEvent.Chunk.itineraries|{}itineraries[0]
+            final fun <get-itineraries>(): kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Itinerary> // eu.tiducto.spider.client/PlanStreamEvent.Chunk.itineraries.<get-itineraries>|<get-itineraries>(){}[0]
+
+        final fun component1(): kotlin/Long // eu.tiducto.spider.client/PlanStreamEvent.Chunk.component1|component1(){}[0]
+        final fun component2(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Chunk.component2|component2(){}[0]
+        final fun component3(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Chunk.component3|component3(){}[0]
+        final fun component4(): kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Itinerary> // eu.tiducto.spider.client/PlanStreamEvent.Chunk.component4|component4(){}[0]
+        final fun copy(kotlin/Long = ..., kotlin/Int = ..., kotlin/Int = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Itinerary> = ...): eu.tiducto.spider.client/PlanStreamEvent.Chunk // eu.tiducto.spider.client/PlanStreamEvent.Chunk.copy|copy(kotlin.Long;kotlin.Int;kotlin.Int;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.Itinerary>){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/PlanStreamEvent.Chunk.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Chunk.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/PlanStreamEvent.Chunk.toString|toString(){}[0]
+    }
+
+    final class Done : eu.tiducto.spider.client/PlanStreamEvent { // eu.tiducto.spider.client/PlanStreamEvent.Done|null[0]
+        constructor <init>(kotlin/Int, kotlin/Long, kotlin/Int, kotlin/String) // eu.tiducto.spider.client/PlanStreamEvent.Done.<init>|<init>(kotlin.Int;kotlin.Long;kotlin.Int;kotlin.String){}[0]
+
+        final val iterations // eu.tiducto.spider.client/PlanStreamEvent.Done.iterations|{}iterations[0]
+            final fun <get-iterations>(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Done.iterations.<get-iterations>|<get-iterations>(){}[0]
+        final val resultCount // eu.tiducto.spider.client/PlanStreamEvent.Done.resultCount|{}resultCount[0]
+            final fun <get-resultCount>(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Done.resultCount.<get-resultCount>|<get-resultCount>(){}[0]
+        final val stoppedBy // eu.tiducto.spider.client/PlanStreamEvent.Done.stoppedBy|{}stoppedBy[0]
+            final fun <get-stoppedBy>(): kotlin/String // eu.tiducto.spider.client/PlanStreamEvent.Done.stoppedBy.<get-stoppedBy>|<get-stoppedBy>(){}[0]
+        final val windowSeconds // eu.tiducto.spider.client/PlanStreamEvent.Done.windowSeconds|{}windowSeconds[0]
+            final fun <get-windowSeconds>(): kotlin/Long // eu.tiducto.spider.client/PlanStreamEvent.Done.windowSeconds.<get-windowSeconds>|<get-windowSeconds>(){}[0]
+
+        final fun component1(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Done.component1|component1(){}[0]
+        final fun component2(): kotlin/Long // eu.tiducto.spider.client/PlanStreamEvent.Done.component2|component2(){}[0]
+        final fun component3(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Done.component3|component3(){}[0]
+        final fun component4(): kotlin/String // eu.tiducto.spider.client/PlanStreamEvent.Done.component4|component4(){}[0]
+        final fun copy(kotlin/Int = ..., kotlin/Long = ..., kotlin/Int = ..., kotlin/String = ...): eu.tiducto.spider.client/PlanStreamEvent.Done // eu.tiducto.spider.client/PlanStreamEvent.Done.copy|copy(kotlin.Int;kotlin.Long;kotlin.Int;kotlin.String){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/PlanStreamEvent.Done.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Done.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/PlanStreamEvent.Done.toString|toString(){}[0]
+    }
+
+    final class Failure : eu.tiducto.spider.client/PlanStreamEvent { // eu.tiducto.spider.client/PlanStreamEvent.Failure|null[0]
+        constructor <init>(eu.tiducto.spider.client/SpiderError) // eu.tiducto.spider.client/PlanStreamEvent.Failure.<init>|<init>(eu.tiducto.spider.client.SpiderError){}[0]
+
+        final val error // eu.tiducto.spider.client/PlanStreamEvent.Failure.error|{}error[0]
+            final fun <get-error>(): eu.tiducto.spider.client/SpiderError // eu.tiducto.spider.client/PlanStreamEvent.Failure.error.<get-error>|<get-error>(){}[0]
+
+        final fun component1(): eu.tiducto.spider.client/SpiderError // eu.tiducto.spider.client/PlanStreamEvent.Failure.component1|component1(){}[0]
+        final fun copy(eu.tiducto.spider.client/SpiderError = ...): eu.tiducto.spider.client/PlanStreamEvent.Failure // eu.tiducto.spider.client/PlanStreamEvent.Failure.copy|copy(eu.tiducto.spider.client.SpiderError){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/PlanStreamEvent.Failure.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Failure.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/PlanStreamEvent.Failure.toString|toString(){}[0]
+    }
+
+    final class Page : eu.tiducto.spider.client/PlanStreamEvent { // eu.tiducto.spider.client/PlanStreamEvent.Page|null[0]
+        constructor <init>(eu.tiducto.spider.client/RoutePageInfo) // eu.tiducto.spider.client/PlanStreamEvent.Page.<init>|<init>(eu.tiducto.spider.client.RoutePageInfo){}[0]
+
+        final val pageInfo // eu.tiducto.spider.client/PlanStreamEvent.Page.pageInfo|{}pageInfo[0]
+            final fun <get-pageInfo>(): eu.tiducto.spider.client/RoutePageInfo // eu.tiducto.spider.client/PlanStreamEvent.Page.pageInfo.<get-pageInfo>|<get-pageInfo>(){}[0]
+
+        final fun component1(): eu.tiducto.spider.client/RoutePageInfo // eu.tiducto.spider.client/PlanStreamEvent.Page.component1|component1(){}[0]
+        final fun copy(eu.tiducto.spider.client/RoutePageInfo = ...): eu.tiducto.spider.client/PlanStreamEvent.Page // eu.tiducto.spider.client/PlanStreamEvent.Page.copy|copy(eu.tiducto.spider.client.RoutePageInfo){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/PlanStreamEvent.Page.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/PlanStreamEvent.Page.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/PlanStreamEvent.Page.toString|toString(){}[0]
+    }
+}
+
 sealed interface eu.tiducto.spider.client/RouteTime { // eu.tiducto.spider.client/RouteTime|null[0]
     abstract val time // eu.tiducto.spider.client/RouteTime.time|{}time[0]
         abstract fun <get-time>(): kotlin.time/Instant // eu.tiducto.spider.client/RouteTime.time.<get-time>|<get-time>(){}[0]
@@ -973,6 +1045,7 @@ final class eu.tiducto.spider.client/SpiderRealtime { // eu.tiducto.spider.clien
 final class eu.tiducto.spider.client/SpiderRouting { // eu.tiducto.spider.client/SpiderRouting|null[0]
     constructor <init>(kotlin/String, kotlin/String, eu.tiducto.spider.client/RetryConfig? = ..., eu.tiducto.spider.client/LoggingConfig = ...) // eu.tiducto.spider.client/SpiderRouting.<init>|<init>(kotlin.String;kotlin.String;eu.tiducto.spider.client.RetryConfig?;eu.tiducto.spider.client.LoggingConfig){}[0]
 
+    final fun planStream(eu.tiducto.spider.client/Location, eu.tiducto.spider.client/Location, eu.tiducto.spider.client/RouteTime = ..., kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ..., kotlin.collections/Set<eu.tiducto.spider.client/TransitMode>? = ..., kotlin/Int? = ..., kotlin/Boolean = ..., kotlin/Int = ..., kotlin.time/Duration = ..., kotlin/String? = ..., kotlin/String? = ...): kotlinx.coroutines.flow/Flow<eu.tiducto.spider.client/PlanStreamEvent> // eu.tiducto.spider.client/SpiderRouting.planStream|planStream(eu.tiducto.spider.client.Location;eu.tiducto.spider.client.Location;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>;kotlin.collections.Set<eu.tiducto.spider.client.TransitMode>?;kotlin.Int?;kotlin.Boolean;kotlin.Int;kotlin.time.Duration;kotlin.String?;kotlin.String?){}[0]
     final suspend fun departures(kotlin/String, kotlin/Int = ..., kotlin.time/Instant? = ..., kotlin.time/Duration = ...): eu.tiducto.spider.client/SpiderResult<kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Departure>> // eu.tiducto.spider.client/SpiderRouting.departures|departures(kotlin.String;kotlin.Int;kotlin.time.Instant?;kotlin.time.Duration){}[0]
     final suspend fun plan(eu.tiducto.spider.client/Location, eu.tiducto.spider.client/Location, eu.tiducto.spider.client/RouteTime = ..., kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ..., kotlin.collections/Set<eu.tiducto.spider.client/TransitMode>? = ..., kotlin/Int? = ..., kotlin.time/Duration = ..., kotlin/Boolean = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route> // eu.tiducto.spider.client/SpiderRouting.plan|plan(eu.tiducto.spider.client.Location;eu.tiducto.spider.client.Location;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>;kotlin.collections.Set<eu.tiducto.spider.client.TransitMode>?;kotlin.Int?;kotlin.time.Duration;kotlin.Boolean){}[0]
     final suspend fun planNext(eu.tiducto.spider.client/Route): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route>? // eu.tiducto.spider.client/SpiderRouting.planNext|planNext(eu.tiducto.spider.client.Route){}[0]
