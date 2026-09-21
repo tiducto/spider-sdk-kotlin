@@ -11,6 +11,7 @@ internal data class Leg(
     val mode: Mode? = null,
     val realtimeState: RealtimeState? = null,
     val realTime: Boolean? = null,
+    val serviceDate: String? = null,
     val route: Route? = null,
     val headsign: String? = null,
     val distance: Double? = null,

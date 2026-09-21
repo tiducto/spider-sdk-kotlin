@@ -340,6 +340,7 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     endDelay = durationFromWire(end.estimated?.delay),
     isRealtime = realTime ?: false,
     realtimeState = realtimeState?.value,
+    serviceDate = serviceDate,
     fromName = from.name,
     toName = to.name,
     fromGtfsId = from.stop?.gtfsId,
