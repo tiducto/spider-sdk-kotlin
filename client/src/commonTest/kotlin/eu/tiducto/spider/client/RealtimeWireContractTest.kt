@@ -1,6 +1,8 @@
 package eu.tiducto.spider.client
 
 import eu.tiducto.spider.contract.realtime.AlertsResponseDto
+import eu.tiducto.spider.contract.realtime.DelayQueryDto
+import eu.tiducto.spider.contract.realtime.DelaysRequestDto
 import eu.tiducto.spider.contract.realtime.DelaysResponseDto
 import eu.tiducto.spider.contract.realtime.VehicleByTripResponseDto
 import eu.tiducto.spider.contract.realtime.VehiclesResponseDto
@@ -11,8 +13,8 @@ import kotlin.test.assertTrue
 import kotlinx.serialization.json.Json
 
 /**
- * Guards the Realtime (GTFS-RT) wire format. There is no request body (plain GETs), so this pins the
- * response shapes: partial/absent fields decode, extra fields are tolerated, and the enum-ish strings
+ * Guards the Realtime (GTFS-RT) wire format — the grouped delays request body plus every response
+ * shape: partial/absent fields decode, extra fields are tolerated, and the enum-ish strings
  * pass through verbatim (a producer's newer value must survive, never throw or get rewritten). Also pins
  * the domain OccupancyStatus tolerance, the one realtime enum the SDK maps rather than passes through.
  *
@@ -66,15 +68,28 @@ class RealtimeWireContractTest {
     }
 
     @Test
-    fun `delays response decodes nested stop-time updates`() {
+    fun `delays request encodes grouped queries and round-trips`() {
+        val request = DelaysRequestDto(listOf(DelayQueryDto(serviceDate = "20260719", tripIds = listOf("1:T1", "1:T2"))))
+        val encoded = json.encodeToString(DelaysRequestDto.serializer(), request)
+        assertTrue("\"queries\"" in encoded && "\"serviceDate\":\"20260719\"" in encoded)
+        assertEquals(request, json.decodeFromString(DelaysRequestDto.serializer(), encoded))
+    }
+
+    @Test
+    fun `delays response decodes grouped results with nested stop-time updates`() {
         val body =
             """
-            {"delays":[{"tripId":"1:T1","delaySeconds":90,"scheduleRelationship":"SCHEDULED",
-              "stopTimeUpdates":[{"stopId":"1:S1","departureDelay":90}]}],
-             "missing":[],"feedTimestamp":1721385600}
+            {"results":[{"serviceDate":"20260719",
+              "delays":[{"tripId":"1:T1","delaySeconds":90,"scheduleRelationship":"SCHEDULED",
+                "stopTimeUpdates":[{"stopId":"1:S1","departureDelay":90}]}],
+              "missing":["1:T2"]}],
+             "feedTimestamp":1721385600}
             """.trimIndent()
         val dto = json.decodeFromString(DelaysResponseDto.serializer(), body)
-        val delay = dto.delays.single()
+        val group = dto.results.single()
+        assertEquals("20260719", group.serviceDate)
+        assertEquals(listOf("1:T2"), group.missing)
+        val delay = group.delays.single()
         assertEquals(90, delay.delaySeconds)
         assertEquals("1:S1", delay.stopTimeUpdates.single().stopId)
     }

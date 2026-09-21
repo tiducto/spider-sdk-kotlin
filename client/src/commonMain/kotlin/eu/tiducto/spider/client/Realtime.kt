@@ -19,8 +19,8 @@ import kotlinx.collections.immutable.persistentListOf
  *     is SpiderResult.Error -> Unit // keep the last known position
  * }
  *
- * // Batch delays for a departures board.
- * val delays = client.realtime.delays(visibleTripIds)
+ * // Delays for a set of trips running on one service date (pass the leg's serviceDate through).
+ * val delays = client.realtime.delays(visibleTripIds, serviceDate = "20260922")
  * ```
  */
 class SpiderRealtime(
@@ -45,11 +45,18 @@ class SpiderRealtime(
     suspend fun vehicleForTrip(tripId: String): SpiderResult<LiveVehicleUpdate> =
         runCatchingRealtime("vehicleForTrip($tripId)") { realtime.vehicleForTrip(tripId) }
 
-    /** Live delays for the given [tripIds] (comma-batched in one request). Empty input skips the call. */
-    suspend fun delays(tripIds: List<String>): SpiderResult<TripDelays> {
-        if (tripIds.isEmpty()) return SpiderResult.Success(TripDelays.EMPTY)
-        return runCatchingRealtime("delays(${tripIds.size})") { realtime.delays(tripIds) }
+    /**
+     * Live delays, resolved per `(tripId, serviceDate)` instance: group trip ids by the GTFS service date
+     * (`YYYYMMDD`) they run on — pass each leg's `serviceDate` through. Empty input skips the call.
+     */
+    suspend fun delays(byServiceDate: Map<String, List<String>>): SpiderResult<TripDelays> {
+        if (byServiceDate.all { it.value.isEmpty() }) return SpiderResult.Success(TripDelays.EMPTY)
+        return runCatchingRealtime("delays(${byServiceDate.size} dates)") { realtime.delays(byServiceDate) }
     }
+
+    /** Live delays for [tripIds] all on one [serviceDate] (`YYYYMMDD`) — the common single-day case. */
+    suspend fun delays(tripIds: List<String>, serviceDate: String): SpiderResult<TripDelays> =
+        delays(mapOf(serviceDate to tripIds))
 
     /** All active service alerts for the environment. */
     suspend fun alerts(): SpiderResult<ServiceAlerts> =
@@ -170,19 +177,29 @@ data class StopTimeUpdate(
     val scheduleRelationship: String?,
 )
 
-/** Result of [SpiderRealtime.delays]: delays found, [missing] trip ids, and freshness. */
+/**
+ * Result of [SpiderRealtime.delays]: delays grouped by service date (the same `tripId` on two dates is two
+ * distinct instances), plus feed freshness. Look up with [delayFor].
+ */
 data class TripDelays(
-    val delays: ImmutableList<TripDelay>,
-    val missing: ImmutableList<String>,
+    val groups: ImmutableList<ServiceDateDelays>,
     val freshness: FeedFreshness,
 ) {
-    /** The trip-level delay for [tripId], if the feed reported one. */
-    fun delayFor(tripId: String): TripDelay? = delays.firstOrNull { it.tripId == tripId }
+    /** The delay for the ([tripId], [serviceDate]) instance, if the feed reported one. */
+    fun delayFor(tripId: String, serviceDate: String): TripDelay? =
+        groups.firstOrNull { it.serviceDate == serviceDate }?.delays?.firstOrNull { it.tripId == tripId }
 
     internal companion object {
-        val EMPTY = TripDelays(persistentListOf(), persistentListOf(), FeedFreshness(null, null))
+        val EMPTY = TripDelays(persistentListOf(), FeedFreshness(null, null))
     }
 }
+
+/** Delays for one GTFS service date: those the feed reported, and the [missing] trip ids it didn't. */
+data class ServiceDateDelays(
+    val serviceDate: String,
+    val delays: ImmutableList<TripDelay>,
+    val missing: ImmutableList<String>,
+)
 
 /**
  * A service alert. Text fields are already resolved to a single language by the gateway.

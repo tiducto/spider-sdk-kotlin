@@ -17,6 +17,17 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 - Realtime **delays** on streamed itineraries: each `Chunk`'s legs carry the same estimated times and
   delay fields (`startDelay` / `endDelay` / `isRealtime` / `realtimeState`) as the one-shot `plan`.
 
+### Changed
+
+- **Realtime `delays` now resolves per trip instance** (breaking). A GTFS-RT delay is bound to a
+  `(tripId, serviceDate)` instance, so `SpiderRealtime.delays` takes the service date each trip runs on —
+  `delays(byServiceDate: Map<String, List<String>>)` (or `delays(tripIds, serviceDate)` for a single day) —
+  and returns `TripDelays.groups: List<ServiceDateDelays>`, looked up per instance via
+  `delayFor(tripId, serviceDate)`. `serviceDate` is the GTFS service date `YYYYMMDD`, taken from the plan
+  leg (not the departure clock time — GTFS times can exceed 24:00). `pollDelays` mirrors the new
+  signatures. The old flat `delays(tripIds)` is removed. Fixes cross-service-day delay bleed and the
+  midnight-overlap ambiguity.
+
 ### Fixed
 
 - `maxTransfers` now maps to the router's boarding count (`maximumTransfers = transfers + 1`). The

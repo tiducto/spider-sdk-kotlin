@@ -3,6 +3,9 @@ package eu.tiducto.spider.client
 import eu.tiducto.spider.contract.realtime.AlertDto
 import eu.tiducto.spider.contract.realtime.AlertsResponseDto
 import eu.tiducto.spider.contract.realtime.DelayDto
+import eu.tiducto.spider.contract.realtime.DelayGroupResultDto
+import eu.tiducto.spider.contract.realtime.DelayQueryDto
+import eu.tiducto.spider.contract.realtime.DelaysRequestDto
 import eu.tiducto.spider.contract.realtime.DelaysResponseDto
 import eu.tiducto.spider.contract.realtime.StopTimeUpdateDto
 import eu.tiducto.spider.contract.realtime.VehicleByTripResponseDto
@@ -14,10 +17,14 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.appendPathSegments
+import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
@@ -71,15 +78,14 @@ internal class RealtimeClient(
         )
     }
 
-    suspend fun delays(tripIds: List<String>): TripDelays {
-        val response = rtGet {
+    suspend fun delays(byServiceDate: Map<String, List<String>>): TripDelays {
+        val request = DelaysRequestDto(byServiceDate.map { (serviceDate, tripIds) -> DelayQueryDto(serviceDate, tripIds) })
+        val response = rtPost(json.encodeToString(DelaysRequestDto.serializer(), request)) {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "delays") }
-            parameter("tripIds", tripIds.joinToString(","))
         }
         val dto: DelaysResponseDto = response.decodeOrThrow("realtime/delays")
         return TripDelays(
-            delays = dto.delays.map { it.toDomain() }.toImmutableList(),
-            missing = dto.missing.toImmutableList(),
+            groups = dto.results.map { it.toDomain() }.toImmutableList(),
             freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
         )
     }
@@ -102,6 +108,17 @@ internal class RealtimeClient(
         val response = http.get {
             block()
             spiderHeaders(apiKey)
+        }
+        ContractGuard.check(response.headers[SpiderContract.HEADER])
+        return response
+    }
+
+    private suspend fun rtPost(payload: String, block: HttpRequestBuilder.() -> Unit): HttpResponse {
+        val response = http.post {
+            block()
+            contentType(ContentType.Application.Json)
+            spiderHeaders(apiKey)
+            setBody(payload)
         }
         ContractGuard.check(response.headers[SpiderContract.HEADER])
         return response
@@ -134,6 +151,12 @@ private fun VehicleDto.toDomain(): LiveVehicle = LiveVehicle(
     currentStatus = currentStatus,
     occupancy = OccupancyStatus.fromWire(occupancyStatus),
     timestamp = timestamp.toInstantOrNull(),
+)
+
+private fun DelayGroupResultDto.toDomain(): ServiceDateDelays = ServiceDateDelays(
+    serviceDate = serviceDate,
+    delays = delays.map { it.toDomain() }.toImmutableList(),
+    missing = missing.toImmutableList(),
 )
 
 private fun DelayDto.toDomain(): TripDelay = TripDelay(

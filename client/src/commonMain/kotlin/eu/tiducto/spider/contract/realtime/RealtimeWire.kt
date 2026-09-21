@@ -53,11 +53,28 @@ internal data class VehicleDto(
 )
 
 @Serializable
+internal data class DelaysRequestDto(
+    val queries: List<DelayQueryDto> = emptyList(),
+)
+
+@Serializable
+internal data class DelayQueryDto(
+    val serviceDate: String,
+    val tripIds: List<String> = emptyList(),
+)
+
+@Serializable
 internal data class DelaysResponseDto(
-    val delays: List<DelayDto> = emptyList(),
-    val missing: List<String> = emptyList(),
+    val results: List<DelayGroupResultDto> = emptyList(),
     val feedTimestamp: Long? = null,
     val staleSeconds: Int? = null,
+)
+
+@Serializable
+internal data class DelayGroupResultDto(
+    val serviceDate: String,
+    val delays: List<DelayDto> = emptyList(),
+    val missing: List<String> = emptyList(),
 )
 
 @Serializable

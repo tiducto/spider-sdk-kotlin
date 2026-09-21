@@ -28,9 +28,9 @@ fun setupWithRetry() {
     }
 }
 
-suspend fun CoroutineScope.poll(client: SpiderClient, tripIds: List<String>) {
+suspend fun CoroutineScope.poll(client: SpiderClient, tripIds: List<String>, serviceDate: String) {
     while (isActive) {
-        when (val result = client.realtime.delays(tripIds)) {
+        when (val result = client.realtime.delays(tripIds, serviceDate)) {
             is SpiderResult.Success -> updateBoard(result.data)
             is SpiderResult.Error -> log("realtime poll failed: ${result.error}")
         }
@@ -73,12 +73,14 @@ suspend fun vehicleForTrip(client: SpiderClient, tripId: String) {
     }
 }
 
-suspend fun delays(client: SpiderClient, tripIds: List<String>) {
-    when (val result = client.realtime.delays(tripIds)) {
+suspend fun delays(client: SpiderClient, tripIds: List<String>, serviceDate: String) {
+    when (val result = client.realtime.delays(tripIds, serviceDate)) {
         is SpiderResult.Success ->
-            result.data.delays.forEach { delay ->
-                val minutes = (delay.delaySeconds ?: 0) / 60
-                println("${delay.tripId}: ${if (minutes >= 0) "+$minutes" else "$minutes"} min")
+            result.data.groups.forEach { group ->
+                group.delays.forEach { delay ->
+                    val minutes = (delay.delaySeconds ?: 0) / 60
+                    println("${delay.tripId}: ${if (minutes >= 0) "+$minutes" else "$minutes"} min")
+                }
             }
         is SpiderResult.Error ->
             println("Failed to load delays: ${result.error}")
