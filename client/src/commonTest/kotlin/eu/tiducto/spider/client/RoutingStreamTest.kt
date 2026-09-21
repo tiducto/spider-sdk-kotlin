@@ -42,7 +42,7 @@ class RoutingStreamTest {
                       "mode": "BUS",
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z", "estimated": { "time": "2026-07-15T08:01:00Z", "delay": "PT60S" } },
                       "end":   { "scheduledTime": "2026-07-15T08:30:00Z", "estimated": { "time": "2026-07-15T08:32:00Z", "delay": "PT120S" } },
-                      "realtimeState": "UPDATED", "realTime": true,
+                      "realtimeState": "UPDATED", "realTime": true, "serviceDate": "20260715",
                       "from": { "name": "Origin", "stop": { "gtfsId": "1:A" } },
                       "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B" } },
                       "route": { "shortName": "12" }, "trip": { "gtfsId": "1:T" }
@@ -69,6 +69,7 @@ class RoutingStreamTest {
         assertEquals("2026-07-15T08:01:00Z", leg.startEstimated)
         assertEquals(true, leg.isRealtime)
         assertEquals("UPDATED", leg.realtimeState)
+        assertEquals("20260715", leg.serviceDate)
         assertEquals("1:A", leg.fromGtfsId)
         assertEquals("1:B", leg.toGtfsId)
     }

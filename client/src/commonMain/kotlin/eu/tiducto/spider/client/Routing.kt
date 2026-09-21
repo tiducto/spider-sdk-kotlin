@@ -222,6 +222,7 @@ data class Leg(
     val endDelay: Duration? = null,
     val isRealtime: Boolean = false,
     val realtimeState: String? = null,
+    val serviceDate: String? = null,
     val fromName: String?,
     val toName: String?,
     val fromGtfsId: String? = null,
