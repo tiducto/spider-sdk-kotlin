@@ -32,6 +32,7 @@ import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.sse.SSEClientException
 import io.ktor.client.plugins.sse.sse
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -254,12 +255,13 @@ internal class RoutingClient(
         )
     }
 
-    // Best-effort connection pre-warm. One keyless bare GET to {baseUrl}/ping through *this* surface's
-    // HttpClient, so the TLS connection it opens lands in the pool planConnection reuses. /ping takes no
-    // apikey, so this sends no auth header. Never throws: any transport error or non-2xx (incl. a 404
-    // before the gateway route ships) still warms the connection, so we swallow it and return the elapsed.
+    // Best-effort connection pre-warm. One bare GET to {baseUrl}/ping through *this* surface's HttpClient, so
+    // the TLS connection it opens lands in the pool planConnection reuses. Sends only the client apikey (no
+    // contract/sdk headers; /ping isn't contract-gated) — a keyed gateway requires it, a keyless one ignores it.
+    // Never throws: any transport error or non-2xx (incl. 401/403/404) still warms the connection, so we
+    // swallow it and return the elapsed.
     internal suspend fun warmup(): Duration = measureTime {
-        runCatching { http.get(baseUrl.trimEnd('/') + "/ping") }
+        runCatching { http.get(baseUrl.trimEnd('/') + "/ping") { header("apikey", apiKey) } }
             .onSuccess { log.d(tag = "SpiderRouting") { "warmup GET /ping → ${it.status.value}" } }
             .onFailure { e ->
                 // runCatching also catches CancellationException; rethrow it so a cancelled warmup

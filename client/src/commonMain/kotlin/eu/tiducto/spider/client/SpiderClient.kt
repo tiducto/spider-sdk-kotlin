@@ -37,9 +37,9 @@ class SpiderClient(
      *
      * Cold TLS/connection setup — radio wake, DNS, TCP handshake, TLS handshake — to the gateway is
      * ~0.6s on mobile and otherwise lands on the first trip-planning call, nearly doubling its latency.
-     * This issues one keyless `GET {baseUrl}/ping` through the [routing] surface's own HTTP client — the
-     * same connection pool `plan`/`planStream` reuse — so the opened connection is already pooled when the
-     * first real request arrives, and returns how long the probe took.
+     * This issues one `GET {baseUrl}/ping` — authenticated with the client apikey — through the [routing]
+     * surface's own HTTP client — the same connection pool `plan`/`planStream` reuse — so the opened
+     * connection is already pooled when the first real request arrives, and returns how long the probe took.
      *
      * Best-effort and **never throws**: any transport error or non-2xx response (including a `404` before
      * the gateway `/ping` route is deployed) still warms the connection and returns the measured elapsed
