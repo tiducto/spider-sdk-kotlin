@@ -43,7 +43,7 @@ import io.ktor.http.isSuccess
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-import kotlin.time.TimeSource
+import kotlin.time.measureTime
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -258,17 +258,16 @@ internal class RoutingClient(
     // HttpClient, so the TLS connection it opens lands in the pool planConnection reuses. /ping takes no
     // apikey, so this sends no auth header. Never throws: any transport error or non-2xx (incl. a 404
     // before the gateway route ships) still warms the connection, so we swallow it and return the elapsed.
-    internal suspend fun warmup(): Duration {
-        val start = TimeSource.Monotonic.markNow()
+    internal suspend fun warmup(): Duration = measureTime {
         try {
             val response = http.get(baseUrl.trimEnd('/') + "/ping")
             log.d(tag = "SpiderRouting") { "warmup GET /ping → ${response.status.value}" }
         } catch (e: CancellationException) {
+            // Don't let runCatching-style swallowing eat cancellation — a cancelled warmup must propagate.
             throw e
         } catch (e: Exception) {
             log.d(tag = "SpiderRouting") { "warmup GET /ping failed (connection still warmed): ${e.message}" }
         }
-        return start.elapsedNow()
     }
 
     private suspend inline fun <reified V, reified D> execute(
