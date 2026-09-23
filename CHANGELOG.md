@@ -8,6 +8,12 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 ### Added
 
+- **Connection pre-warm** — `SpiderClient.warmup()` opens the TLS connection to the per-env API host
+  ahead of the first real call. Cold connection setup (radio wake, DNS, TCP, TLS) is ~0.6s on mobile and
+  otherwise lands on the first trip-planning call. `warmup()` issues one keyless `GET /ping` through the
+  routing surface's own connection pool (the pool `plan`/`planStream` reuse), returns the measured elapsed
+  `Duration`, and is best-effort — it never throws, and a `404` (before the gateway `/ping` route ships)
+  still warms the connection. Recommended at app start and on return-to-foreground; safe to fire-and-forget.
 - **Streaming trip planning** — `SpiderRouting.planStream(...)` streams itineraries over Server-Sent
   Events (the `plan-stream` route) as the router sweeps the search window, emitting a `Flow` of
   `PlanStreamEvent` (`Chunk` / `Page` / `Done` / `Failure`) instead of one batched page. Built on

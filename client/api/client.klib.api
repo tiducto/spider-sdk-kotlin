@@ -1039,6 +1039,8 @@ final class eu.tiducto.spider.client/SpiderClient { // eu.tiducto.spider.client/
         final fun <get-routing>(): eu.tiducto.spider.client/SpiderRouting // eu.tiducto.spider.client/SpiderClient.routing.<get-routing>|<get-routing>(){}[0]
     final val stops // eu.tiducto.spider.client/SpiderClient.stops|{}stops[0]
         final fun <get-stops>(): eu.tiducto.spider.client/SpiderStops // eu.tiducto.spider.client/SpiderClient.stops.<get-stops>|<get-stops>(){}[0]
+
+    final suspend fun warmup(): kotlin.time/Duration // eu.tiducto.spider.client/SpiderClient.warmup|warmup(){}[0]
 }
 
 final class eu.tiducto.spider.client/SpiderClientBuilder { // eu.tiducto.spider.client/SpiderClientBuilder|null[0]

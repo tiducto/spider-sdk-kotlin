@@ -31,6 +31,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.sse.SSEClientException
 import io.ktor.client.plugins.sse.sse
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -42,6 +43,7 @@ import io.ktor.http.isSuccess
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlin.time.TimeSource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -59,7 +61,7 @@ internal class RoutingClient(
     private val baseUrl: String,
     private val apiKey: String,
     retry: RetryConfig? = null,
-    log: SpiderLog,
+    private val log: SpiderLog,
 ) {
     // explicitNulls=false so an omitted optional reads as "unset" upstream. Unknown enum values decode to
     // UNKNOWN via the generated enums' serializers (coercion doesn't — it throws).
@@ -250,6 +252,23 @@ internal class RoutingClient(
             geometry = trip.tripGeometry?.points?.let { decodePolyline(it).toImmutableList() }
                 ?: persistentListOf(),
         )
+    }
+
+    // Best-effort connection pre-warm. One keyless bare GET to {baseUrl}/ping through *this* surface's
+    // HttpClient, so the TLS connection it opens lands in the pool planConnection reuses. /ping takes no
+    // apikey, so this sends no auth header. Never throws: any transport error or non-2xx (incl. a 404
+    // before the gateway route ships) still warms the connection, so we swallow it and return the elapsed.
+    internal suspend fun warmup(): Duration {
+        val start = TimeSource.Monotonic.markNow()
+        try {
+            val response = http.get(baseUrl.trimEnd('/') + "/ping")
+            log.d(tag = "SpiderRouting") { "warmup GET /ping → ${response.status.value}" }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            log.d(tag = "SpiderRouting") { "warmup GET /ping failed (connection still warmed): ${e.message}" }
+        }
+        return start.elapsedNow()
     }
 
     private suspend inline fun <reified V, reified D> execute(
