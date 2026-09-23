@@ -259,15 +259,14 @@ internal class RoutingClient(
     // apikey, so this sends no auth header. Never throws: any transport error or non-2xx (incl. a 404
     // before the gateway route ships) still warms the connection, so we swallow it and return the elapsed.
     internal suspend fun warmup(): Duration = measureTime {
-        try {
-            val response = http.get(baseUrl.trimEnd('/') + "/ping")
-            log.d(tag = "SpiderRouting") { "warmup GET /ping → ${response.status.value}" }
-        } catch (e: CancellationException) {
-            // Don't let runCatching-style swallowing eat cancellation — a cancelled warmup must propagate.
-            throw e
-        } catch (e: Exception) {
-            log.d(tag = "SpiderRouting") { "warmup GET /ping failed (connection still warmed): ${e.message}" }
-        }
+        runCatching { http.get(baseUrl.trimEnd('/') + "/ping") }
+            .onSuccess { log.d(tag = "SpiderRouting") { "warmup GET /ping → ${it.status.value}" } }
+            .onFailure { e ->
+                // runCatching also catches CancellationException; rethrow it so a cancelled warmup
+                // propagates instead of being swallowed as "connection still warmed".
+                if (e is CancellationException) throw e
+                log.d(tag = "SpiderRouting") { "warmup GET /ping failed (connection still warmed): ${e.message}" }
+            }
     }
 
     private suspend inline fun <reified V, reified D> execute(
