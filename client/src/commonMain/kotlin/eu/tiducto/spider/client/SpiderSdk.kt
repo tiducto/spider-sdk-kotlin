@@ -1,5 +1,7 @@
 package eu.tiducto.spider.client
 
+import io.ktor.client.HttpClientConfig
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 
@@ -23,12 +25,26 @@ internal object SpiderSdk {
 }
 
 /**
- * Stamps the standard Spider request headers onto an outbound request — the raw [apiKey], the
- * wire-contract version ([SpiderContract.HEADER]), and this SDK's identity ([SpiderSdk.HEADER]). One
- * home for the headers every surface (routing, stops, Realtime) must send, so they stay identical.
+ * Installs the client apikey as a default on every request this client sends, via Ktor's DefaultRequest.
+ * The apikey is invariant for the client's whole life, so it belongs in the client's shared setup —
+ * installed once here rather than re-stamped per call. This covers every surface a client opens, including
+ * bare requests that carry no per-call headers (e.g. the warm-up GET). One home for the apikey, alongside
+ * [installAutoRetry] and [installSpiderLogging].
  */
-internal fun HttpRequestBuilder.spiderHeaders(apiKey: String) {
-    header("apikey", apiKey)
+internal fun HttpClientConfig<*>.installApiKey(apiKey: String) {
+    defaultRequest {
+        header("apikey", apiKey)
+    }
+}
+
+/**
+ * Stamps the per-request Spider headers onto an outbound request — the wire-contract version
+ * ([SpiderContract.HEADER]) and this SDK's identity ([SpiderSdk.HEADER]). The apikey is not set here: it
+ * rides on every request via [installApiKey]'s DefaultRequest (the client's shared setup), so it need not
+ * be re-attached per call. One home for the per-request headers every surface (routing, stops, Realtime)
+ * layers on top, so they stay identical.
+ */
+internal fun HttpRequestBuilder.spiderHeaders() {
     header(SpiderContract.HEADER, SpiderContract.VERSION)
     header(SpiderSdk.HEADER, SpiderSdk.IDENTITY)
 }
