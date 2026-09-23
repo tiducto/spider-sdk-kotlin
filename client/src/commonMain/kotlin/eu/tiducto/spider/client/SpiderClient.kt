@@ -1,5 +1,7 @@
 package eu.tiducto.spider.client
 
+import kotlin.time.Duration
+
 class SpiderClient(
     private val baseUrl: String,
     private val apiKey: String,
@@ -28,6 +30,24 @@ class SpiderClient(
     val realtime: SpiderRealtime by lazy {
         SpiderRealtime(baseUrl, apiKey, config.realtime.retry, config.logging)
     }
+
+    /**
+     * Pre-warms the network connection to the per-env API host so the first real call rides an
+     * already-open connection.
+     *
+     * Cold TLS/connection setup — radio wake, DNS, TCP handshake, TLS handshake — to the gateway is
+     * ~0.6s on mobile and otherwise lands on the first trip-planning call, nearly doubling its latency.
+     * This issues one keyless `GET {baseUrl}/ping` through the [routing] surface's own HTTP client — the
+     * same connection pool `plan`/`planStream` reuse — so the opened connection is already pooled when the
+     * first real request arrives, and returns how long the probe took.
+     *
+     * Best-effort and **never throws**: any transport error or non-2xx response (including a `404` before
+     * the gateway `/ping` route is deployed) still warms the connection and returns the measured elapsed
+     * time. Recommended at app start and again on return-to-foreground, since mobile radios drop idle
+     * connections. Safe to fire-and-forget — launch it without awaiting; the returned [Duration] is for
+     * optional diagnostics only.
+     */
+    suspend fun warmup(): Duration = routing.warmup()
 
     init {
         config.logging.buildLog().i(tag = "SpiderClient") {

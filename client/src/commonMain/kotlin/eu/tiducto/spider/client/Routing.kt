@@ -127,6 +127,11 @@ class SpiderRouting(
             routing.trip(tripId, serviceDate)
         }
     }
+
+    // Pre-warms this surface's connection pool by hitting {baseUrl}/ping. Best-effort, never throws.
+    // Exposed on the public API through SpiderClient.warmup(); trip planning (plan/planStream) shares
+    // this pool, so warming it here is what makes the first real call ride an already-open connection.
+    internal suspend fun warmup(): Duration = routing.warmup()
 }
 
 /** Optional configuration for the routing surface. Apply it via `SpiderClient(...) { routing { … } }`. */

@@ -632,6 +632,7 @@ public final class eu/tiducto/spider/client/SpiderClient {
 	public final fun getRealtime ()Leu/tiducto/spider/client/SpiderRealtime;
 	public final fun getRouting ()Leu/tiducto/spider/client/SpiderRouting;
 	public final fun getStops ()Leu/tiducto/spider/client/SpiderStops;
+	public final fun warmup-5sfh64U (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class eu/tiducto/spider/client/SpiderClientBuilder {
