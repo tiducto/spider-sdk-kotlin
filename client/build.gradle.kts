@@ -91,6 +91,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(libs.konsist)
+                implementation(libs.ktor.client.mock)
             }
         }
         val androidMain by getting {

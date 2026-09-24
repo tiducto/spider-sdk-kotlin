@@ -72,6 +72,7 @@ internal class RoutingClient(
 
     private val http = HttpClient {
         install(SSE)
+        installApiKey(apiKey)
         installAutoRetry(retry)
         installSpiderLogging(log, "SpiderRouting")
     }
@@ -155,7 +156,7 @@ internal class RoutingClient(
                         method = HttpMethod.Post
                         url("$baseUrl/routing/${PersistedQueries.PLAN_STREAM.path}")
                         contentType(ContentType.Application.Json)
-                        spiderHeaders(apiKey)
+                        spiderHeaders()
                         setBody(payload)
                     },
                 ) {
@@ -254,10 +255,12 @@ internal class RoutingClient(
         )
     }
 
-    // Best-effort connection pre-warm. One keyless bare GET to {baseUrl}/ping through *this* surface's
-    // HttpClient, so the TLS connection it opens lands in the pool planConnection reuses. /ping takes no
-    // apikey, so this sends no auth header. Never throws: any transport error or non-2xx (incl. a 404
-    // before the gateway route ships) still warms the connection, so we swallow it and return the elapsed.
+    // Best-effort connection pre-warm. One bare GET to {baseUrl}/ping through *this* surface's HttpClient, so
+    // the TLS connection it opens lands in the pool planConnection reuses. The client apikey rides on it via
+    // the client's DefaultRequest (shared setup), not a per-call header; no contract/sdk headers (/ping isn't
+    // contract-gated) — a keyed gateway requires the apikey, a keyless one ignores it. Never throws: any
+    // transport error or non-2xx (incl. 401/403/404) still warms the connection, so we swallow it and return
+    // the elapsed.
     internal suspend fun warmup(): Duration = measureTime {
         runCatching { http.get(baseUrl.trimEnd('/') + "/ping") }
             .onSuccess { log.d(tag = "SpiderRouting") { "warmup GET /ping → ${it.status.value}" } }
@@ -277,7 +280,7 @@ internal class RoutingClient(
         val response = http.post {
             url("$baseUrl/routing/${op.path}")
             contentType(ContentType.Application.Json)
-            spiderHeaders(apiKey)
+            spiderHeaders()
             setBody(payload)
         }
         // Crash on an incompatible contract before we try to parse a shape we may no longer understand.

@@ -27,6 +27,7 @@ internal class StopsClient(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val http: HttpClient = HttpClient {
+        installApiKey(apiKey)
         installAutoRetry(retry)
         install(ContentNegotiation) {
             json(json)
@@ -50,7 +51,7 @@ internal class StopsClient(
         val httpResponse = http.post {
             url(url)
             contentType(ContentType.Application.Json)
-            spiderHeaders(apiKey)
+            spiderHeaders()
             setBody(StopSearchRequest(q = query, filter = filterExpr, sort = sort, limit = limit))
         }
         ContractGuard.check(httpResponse.headers[SpiderContract.HEADER])

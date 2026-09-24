@@ -43,6 +43,7 @@ internal class RealtimeClient(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val http: HttpClient = HttpClient {
+        installApiKey(apiKey)
         installAutoRetry(retry)
         install(ContentNegotiation) {
             json(json)
@@ -107,7 +108,7 @@ internal class RealtimeClient(
     private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse {
         val response = http.get {
             block()
-            spiderHeaders(apiKey)
+            spiderHeaders()
         }
         ContractGuard.check(response.headers[SpiderContract.HEADER])
         return response
@@ -117,7 +118,7 @@ internal class RealtimeClient(
         val response = http.post {
             block()
             contentType(ContentType.Application.Json)
-            spiderHeaders(apiKey)
+            spiderHeaders()
             setBody(payload)
         }
         ContractGuard.check(response.headers[SpiderContract.HEADER])
