@@ -120,11 +120,12 @@ internal class RoutingClient(
     }
 
     // Streaming plan over the SSE `plan-stream` route, via Ktor's client SSE plugin. Same persisted-query
-    // transport as the batch plan (a POST of {id, variables}), but the router streams `chunk`/`pageInfo`/`done`
+    // transport as the batch plan (a POST of {id, variables}), but the router streams `chunk`/`pageInfo`
     // (and a terminal `error`) events as it sweeps the window, which this maps to a cold Flow of
-    // [PlanStreamEvent]. Any failure — a non-event-stream HTTP response, a server `error` event, or a decoding
-    // slip — surfaces as a terminal [PlanStreamEvent.Failure], never a throw. Auto-reconnection is left off
-    // (the plugin's default), so the stream ends when the sweep does.
+    // [PlanStreamEvent]: each `chunk` → [PlanStreamEvent.Result], the `pageInfo` → a terminal
+    // [PlanStreamEvent.Done]. Any failure — a non-event-stream HTTP response, a server `error` event, or a
+    // decoding slip — surfaces as a terminal [PlanStreamEvent.Failure], never a throw. Auto-reconnection is
+    // left off (the plugin's default), so the stream ends when the sweep does.
     fun planConnectionStream(
         request: PlanRequest,
         targetResults: Int,
@@ -382,9 +383,6 @@ private const val SSE_DEFAULT_EVENT = "message"
 
 @Serializable
 private data class StreamChunkData(
-    val frontier: Long = 0,
-    val found: Int = 0,
-    val finalized: Int = 0,
     val results: List<WireItinerary> = emptyList(),
 )
 
@@ -395,14 +393,6 @@ private data class StreamPageInfoData(
     val hasNextPage: Boolean = false,
     val hasPreviousPage: Boolean = false,
     val searchWindowUsed: String? = null,
-)
-
-@Serializable
-private data class StreamDoneData(
-    val iterations: Int = 0,
-    val windowSeconds: Long = 0,
-    val resultCount: Int = 0,
-    val stoppedBy: String = "unknown",
 )
 
 @Serializable
@@ -419,17 +409,12 @@ internal fun parsePlanStreamRecord(event: String, data: String, json: Json): Pla
     return when (event) {
         "chunk" -> runCatching {
             val chunk = json.decodeFromString<StreamChunkData>(data)
-            PlanStreamEvent.Chunk(
-                frontierSeconds = chunk.frontier,
-                found = chunk.found,
-                finalized = chunk.finalized,
-                itineraries = chunk.results.map { it.toDomainItinerary() }.toImmutableList(),
-            )
+            PlanStreamEvent.Result(chunk.results.map { it.toDomainItinerary() }.toImmutableList())
         }.getOrElse { PlanStreamEvent.Failure(it.toSpiderError()) }
 
         "pageInfo" -> runCatching {
             val page = json.decodeFromString<StreamPageInfoData>(data)
-            PlanStreamEvent.Page(
+            PlanStreamEvent.Done(
                 RoutePageInfo(
                     startCursor = page.startCursor,
                     endCursor = page.endCursor,
@@ -440,12 +425,8 @@ internal fun parsePlanStreamRecord(event: String, data: String, json: Json): Pla
             )
         }.getOrElse { PlanStreamEvent.Failure(it.toSpiderError()) }
 
-        "done" -> runCatching {
-            val done = json.decodeFromString<StreamDoneData>(data)
-            PlanStreamEvent.Done(done.iterations, done.windowSeconds, done.resultCount, done.stoppedBy)
-        }.getOrElse { PlanStreamEvent.Failure(it.toSpiderError()) }
-
         "error" -> PlanStreamEvent.Failure(streamErrorToSpiderError(data, json))
+        // The trailing `done` telemetry frame just ends the stream; the terminal event is `pageInfo` → Done.
         else -> null
     }
 }

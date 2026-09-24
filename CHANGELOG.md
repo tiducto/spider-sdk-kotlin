@@ -16,11 +16,13 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   still warms the connection. Recommended at app start and on return-to-foreground; safe to fire-and-forget.
 - **Streaming trip planning** — `SpiderRouting.planStream(...)` streams itineraries over Server-Sent
   Events (the `plan-stream` route) as the router sweeps the search window, emitting a `Flow` of
-  `PlanStreamEvent` (`Chunk` / `Page` / `Done` / `Failure`) instead of one batched page. Built on
-  Ktor's client `SSE` plugin. `targetResults` sets a soft floor and `maxWindow` caps the sweep;
-  `after` / `before` continue from a prior `Page`'s cursors. Distinct from the existing `planUntil`,
-  which window-walks batch calls.
-- Realtime **delays** on streamed itineraries: each `Chunk`'s legs carry the same estimated times and
+  `PlanStreamEvent` — `Result(itineraries)` as batches finalize, a terminal `Done(pageInfo)` carrying the
+  continuation cursors, or a terminal `Failure(error)` (delivered as an event, not thrown). Built on Ktor's
+  client `SSE` plugin. `targetResults` sets a soft floor and `maxWindow` caps the sweep. `planStream` is the
+  initial call; `planStreamNext(..., after = Done.pageInfo.endCursor)` and
+  `planStreamPrevious(..., before = Done.pageInfo.startCursor)` continue it (each repeats the full parameter
+  list, so `targetResults` / `maxWindow` can vary per continuation).
+- Realtime **delays** on streamed itineraries: each `Result`'s legs carry the same estimated times and
   delay fields (`startDelay` / `endDelay` / `isRealtime` / `realtimeState`) as the one-shot `plan`.
 
 ### Changed

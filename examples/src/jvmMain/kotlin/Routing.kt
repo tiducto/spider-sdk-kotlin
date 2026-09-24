@@ -192,6 +192,52 @@ suspend fun planVia(client: SpiderClient) {
     }
 }
 
+suspend fun streamPlan(client: SpiderClient) {
+    // Itineraries arrive as the router sweeps the window, instead of one batched page. A terminal Done
+    // carries the continuation cursors; a Failure is delivered as an event, never thrown.
+    client.routing.planStream(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        targetResults = 5,
+        maxWindow = 3.hours,
+    ).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result ->
+                event.itineraries.forEach { itinerary ->
+                    println("${itinerary.start} → ${itinerary.end}  ·  ${itinerary.numberOfTransfers} transfers")
+                }
+            is PlanStreamEvent.Done ->
+                println("done · more later: ${event.pageInfo.hasNextPage} (endCursor=${event.pageInfo.endCursor})")
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
+suspend fun streamMoreItineraries(client: SpiderClient) {
+    val origin = Location.Coordinate(49.1951, 16.6068)
+    val destination = Location.Coordinate(49.2246, 16.5747)
+
+    // Stream the first window, keeping the terminal Done to continue from.
+    var done: PlanStreamEvent.Done? = null
+    client.routing.planStream(origin = origin, destination = destination).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> done = event
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+
+    // Continue into the next window from the endCursor — only when Done says there is one.
+    val next = done?.takeIf { it.pageInfo.hasNextPage }?.pageInfo?.endCursor ?: return
+    client.routing.planStreamNext(origin = origin, destination = destination, after = next).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("later: ${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> println("reached the last window: ${!event.pageInfo.hasNextPage}")
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
 suspend fun wheelchairPlan(client: SpiderClient) {
     val result = client.routing.plan(
         origin = Location.Coordinate(49.1951, 16.6068),
