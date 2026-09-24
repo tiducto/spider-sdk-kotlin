@@ -13,11 +13,15 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
- * Guards the SSE `plan-stream` handling: the record parser that turns `chunk`/`pageInfo`/`done`/`error`
- * events into [PlanStreamEvent]s (including realtime-delay mapping onto legs), and the stream request's
- * wire shape. The Json config mirrors RoutingClient's exactly — the two must stay in lockstep.
+ * Guards the SSE `plan-stream` handling: the record parser that turns `chunk`/`pageInfo`/`error` events into
+ * [PlanStreamEvent]s (including realtime-delay mapping onto legs), and the stream request's wire shape (the
+ * initial call plus the `after`/`before` continuation cursors). The Json config mirrors RoutingClient's
+ * exactly — the two must stay in lockstep.
  */
 class RoutingStreamTest {
 
@@ -32,7 +36,6 @@ class RoutingStreamTest {
     fun `chunk maps itineraries with realtime delays`() {
         val data = """
             {
-              "frontier": 1800, "found": 3, "finalized": 1,
               "results": [
                 {
                   "numberOfTransfers": 1,
@@ -53,10 +56,7 @@ class RoutingStreamTest {
             }
         """.trimIndent()
 
-        val event = assertIs<PlanStreamEvent.Chunk>(parsePlanStreamRecord("chunk", data, json))
-        assertEquals(1800L, event.frontierSeconds)
-        assertEquals(3, event.found)
-        assertEquals(1, event.finalized)
+        val event = assertIs<PlanStreamEvent.Result>(parsePlanStreamRecord("chunk", data, json))
 
         val itinerary = event.itineraries.single()
         assertEquals(1, itinerary.numberOfTransfers)
@@ -74,10 +74,12 @@ class RoutingStreamTest {
         assertEquals("1:B", leg.toGtfsId)
     }
 
+    // The `pageInfo` frame is terminal: it maps to Done carrying the continuation cursors the caller feeds
+    // to planStreamNext / planStreamPrevious.
     @Test
-    fun `pageInfo maps to continuation cursors`() {
+    fun `pageInfo maps to the terminal Done with continuation cursors`() {
         val data = """{ "startCursor": "c-prev", "endCursor": "c-next", "hasNextPage": true, "hasPreviousPage": false, "searchWindowUsed": "PT1H" }"""
-        val event = assertIs<PlanStreamEvent.Page>(parsePlanStreamRecord("pageInfo", data, json))
+        val event = assertIs<PlanStreamEvent.Done>(parsePlanStreamRecord("pageInfo", data, json))
         assertEquals("c-prev", event.pageInfo.startCursor)
         assertEquals("c-next", event.pageInfo.endCursor)
         assertEquals(true, event.pageInfo.hasNextPage)
@@ -85,14 +87,11 @@ class RoutingStreamTest {
         assertEquals("PT1H", event.pageInfo.searchWindowUsed)
     }
 
+    // The trailing `done` telemetry frame just ends the stream — the SDK surfaces no telemetry, so it is dropped.
     @Test
-    fun `done maps to the terminal summary`() {
+    fun `done telemetry frame is ignored`() {
         val data = """{ "iterations": 3, "windowSeconds": 3600, "resultCount": 5, "stoppedBy": "targetResults" }"""
-        val event = assertIs<PlanStreamEvent.Done>(parsePlanStreamRecord("done", data, json))
-        assertEquals(3, event.iterations)
-        assertEquals(3600L, event.windowSeconds)
-        assertEquals(5, event.resultCount)
-        assertEquals("targetResults", event.stoppedBy)
+        assertEquals(null, parsePlanStreamRecord("done", data, json))
     }
 
     // A stream `error` record is the GraphQL error envelope; a top-level BAD_REQUEST becomes a typed BadRequest.
@@ -111,10 +110,10 @@ class RoutingStreamTest {
         assertEquals(null, parsePlanStreamRecord("weird", """{ "x": 1 }""", json))
     }
 
-    // Pins the stream request wire shape (targetResults/maxWindow + via) so a contract regen can't silently
-    // rename or reorder the fields the SDK sends to /routing/plan-stream.
+    // Pins the initial stream request wire shape (targetResults/maxWindow + via, no cursors) so a contract
+    // regen can't silently rename or reorder the fields the SDK sends to /routing/plan-stream.
     @Test
-    fun `stream variables serialize to the plan-stream wire shape`() {
+    fun `initial stream variables serialize to the plan-stream wire shape`() {
         val variables = PlanConnectionStreamVariables(
             dateTime = PlanDateTimeInput(earliestDeparture = "2026-07-15T08:00:00Z"),
             origin = PlanLabeledLocationInput(
@@ -142,4 +141,42 @@ class RoutingStreamTest {
         val actual = json.encodeToJsonElement(PlanConnectionStreamVariables.serializer(), variables)
         assertEquals(expected, actual)
     }
+
+    // planStreamNext continues from a prior Done.pageInfo.endCursor: the cursor rides as `after`, and
+    // explicitNulls=false omits the unset `before`, so the wire never carries both directions.
+    @Test
+    fun `planStreamNext continuation sends only after`() {
+        val obj = json.encodeToJsonElement(
+            PlanConnectionStreamVariables.serializer(),
+            streamContinuationVariables(after = "c-next", before = null),
+        ).jsonObject
+        assertEquals("c-next", obj["after"]?.jsonPrimitive?.contentOrNull)
+        assertEquals(null, obj["before"])
+    }
+
+    // planStreamPrevious continues from a prior Done.pageInfo.startCursor: the cursor rides as `before`,
+    // and `after` is omitted.
+    @Test
+    fun `planStreamPrevious continuation sends only before`() {
+        val obj = json.encodeToJsonElement(
+            PlanConnectionStreamVariables.serializer(),
+            streamContinuationVariables(after = null, before = "c-prev"),
+        ).jsonObject
+        assertEquals("c-prev", obj["before"]?.jsonPrimitive?.contentOrNull)
+        assertEquals(null, obj["after"])
+    }
+
+    private fun streamContinuationVariables(after: String?, before: String?) = PlanConnectionStreamVariables(
+        dateTime = PlanDateTimeInput(earliestDeparture = "2026-07-15T08:00:00Z"),
+        origin = PlanLabeledLocationInput(
+            location = PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = "1:A")),
+        ),
+        destination = PlanLabeledLocationInput(
+            location = PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = "1:B")),
+        ),
+        targetResults = 5,
+        maxWindow = "PT3H",
+        before = before,
+        after = after,
+    )
 }

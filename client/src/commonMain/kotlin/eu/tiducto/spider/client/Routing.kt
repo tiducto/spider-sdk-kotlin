@@ -69,13 +69,14 @@ class SpiderRouting(
     /**
      * Streams itineraries over Server-Sent Events as the router sweeps the search window forward, emitting
      * them as they finalize instead of one batched page. Cold and cancellable: collection starts the request,
-     * cancelling it stops the sweep. Each [PlanStreamEvent.Chunk] carries itineraries with realtime delays
-     * already applied to their legs; a [PlanStreamEvent.Page] then carries the continuation cursors and a
-     * [PlanStreamEvent.Done] closes the stream (or a terminal [PlanStreamEvent.Failure]).
+     * cancelling it stops the sweep. Each [PlanStreamEvent.Result] carries itineraries with realtime delays
+     * already applied to their legs; a terminal [PlanStreamEvent.Done] then carries the continuation cursors
+     * (or a terminal [PlanStreamEvent.Failure]).
      *
      * [targetResults] is a soft floor the sweep aims to reach; [maxWindow] caps how far forward it searches.
-     * To continue, re-call with the same inputs plus `after` = the last [RoutePageInfo.endCursor] (or `before`
-     * = [RoutePageInfo.startCursor] to walk earlier). For a single batched page instead, use [plan].
+     * To continue, call [planStreamNext] with `after` = [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor]
+     * (or [planStreamPrevious] with `before` = [RoutePageInfo.startCursor] to walk earlier). For a single
+     * batched page instead, use [plan].
      */
     fun planStream(
         origin: Location,
@@ -87,8 +88,65 @@ class SpiderRouting(
         wheelchairAccessible: Boolean = false,
         targetResults: Int = 5,
         maxWindow: Duration = 6.hours,
-        after: String? = null,
-        before: String? = null,
+    ): Flow<PlanStreamEvent> = stream(
+        origin, destination, time, via, allowedTransitModes, maxTransfers,
+        wheelchairAccessible, targetResults, maxWindow, before = null, after = null,
+    )
+
+    /**
+     * Continues a [planStream] sweep into the next window (later departures) from [after] = a prior
+     * [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor] (call this when its [RoutePageInfo.hasNextPage] is
+     * set). The inputs are repeated so [targetResults] / [maxWindow] etc. can differ per continuation.
+     */
+    fun planStreamNext(
+        origin: Location,
+        destination: Location,
+        time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
+        via: List<ViaLocation> = emptyList(),
+        allowedTransitModes: Set<TransitMode>? = null,
+        maxTransfers: Int? = null,
+        wheelchairAccessible: Boolean = false,
+        targetResults: Int = 5,
+        maxWindow: Duration = 6.hours,
+        after: String,
+    ): Flow<PlanStreamEvent> = stream(
+        origin, destination, time, via, allowedTransitModes, maxTransfers,
+        wheelchairAccessible, targetResults, maxWindow, before = null, after = after,
+    )
+
+    /**
+     * Continues a [planStream] sweep into the previous window (earlier departures) from [before] = a prior
+     * [PlanStreamEvent.Done]'s [RoutePageInfo.startCursor] (call this when its [RoutePageInfo.hasPreviousPage]
+     * is set). The inputs are repeated so [targetResults] / [maxWindow] etc. can differ per continuation.
+     */
+    fun planStreamPrevious(
+        origin: Location,
+        destination: Location,
+        time: RouteTime = RouteTime.DepartAt(Clock.System.now()),
+        via: List<ViaLocation> = emptyList(),
+        allowedTransitModes: Set<TransitMode>? = null,
+        maxTransfers: Int? = null,
+        wheelchairAccessible: Boolean = false,
+        targetResults: Int = 5,
+        maxWindow: Duration = 6.hours,
+        before: String,
+    ): Flow<PlanStreamEvent> = stream(
+        origin, destination, time, via, allowedTransitModes, maxTransfers,
+        wheelchairAccessible, targetResults, maxWindow, before = before, after = null,
+    )
+
+    private fun stream(
+        origin: Location,
+        destination: Location,
+        time: RouteTime,
+        via: List<ViaLocation>,
+        allowedTransitModes: Set<TransitMode>?,
+        maxTransfers: Int?,
+        wheelchairAccessible: Boolean,
+        targetResults: Int,
+        maxWindow: Duration,
+        before: String?,
+        after: String?,
     ): Flow<PlanStreamEvent> = routing.planConnectionStream(
         request = PlanRequest(
             origin = origin,
