@@ -238,6 +238,31 @@ suspend fun streamMoreItineraries(client: SpiderClient) {
     }
 }
 
+suspend fun streamEarlierItineraries(client: SpiderClient) {
+    val origin = Location.Coordinate(49.1951, 16.6068)
+    val destination = Location.Coordinate(49.2246, 16.5747)
+
+    // Stream the first window, keeping the terminal Done to page backwards from.
+    var done: PlanStreamEvent.Done? = null
+    client.routing.planStream(origin = origin, destination = destination).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> done = event
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+
+    // Stream the earlier window from the startCursor — only when Done says there is one.
+    val previous = done?.takeIf { it.pageInfo.hasPreviousPage }?.pageInfo?.startCursor ?: return
+    client.routing.planStreamPrevious(origin = origin, destination = destination, before = previous).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("earlier: ${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> println("reached the first window: ${!event.pageInfo.hasPreviousPage}")
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
 suspend fun wheelchairPlan(client: SpiderClient) {
     val result = client.routing.plan(
         origin = Location.Coordinate(49.1951, 16.6068),
