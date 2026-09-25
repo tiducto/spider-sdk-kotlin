@@ -257,3 +257,110 @@ suspend fun wheelchairPlan(client: SpiderClient) {
         is SpiderResult.Error -> println("Planning failed: ${result.error}")
     }
 }
+
+suspend fun streamForTime(client: SpiderClient) {
+    // Streamed form of planForTime.
+    client.routing.planStream(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        time = RouteTime.DepartAt(Instant.parse("2026-07-20T08:00:00Z")),
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> {}
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
+suspend fun streamArriveBy(client: SpiderClient) {
+    // Streamed form of arriveBy.
+    client.routing.planStream(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        time = RouteTime.ArriveBy(Instant.parse("2026-07-20T08:00:00Z")),
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> {}
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
+suspend fun streamWithModes(client: SpiderClient) {
+    // Streamed form of planWithModes.
+    client.routing.planStream(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        allowedTransitModes = setOf(TransitMode.TRAM, TransitMode.SUBWAY),
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> {}
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
+suspend fun streamVia(client: SpiderClient) {
+    // Streamed form of planVia.
+    client.routing.planStream(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        via = listOf(
+            ViaLocation.Visit(
+                location = Location.Coordinate(49.2100, 16.5900),
+                minimumWaitTime = 10.minutes,
+            ),
+        ),
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> {}
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
+suspend fun streamWheelchair(client: SpiderClient) {
+    // Streamed form of wheelchairPlan.
+    client.routing.planStream(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        wheelchairAccessible = true,
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> {}
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
+
+suspend fun streamWithLimits(client: SpiderClient) {
+    // Streamed form of planWithLimits.
+    client.routing.planStream(
+        origin = Location.Coordinate(49.1951, 16.6068),
+        destination = Location.Coordinate(49.2246, 16.5747),
+        maxTransfers = 2,
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
+        when (event) {
+            is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
+            is PlanStreamEvent.Done -> {}
+            is PlanStreamEvent.Failure -> println("stream failed: ${event.error}")
+        }
+    }
+}
