@@ -40,7 +40,7 @@ when (val result = client.routing.plan(
 
 The recommended query pins a time and a window — a departure time (`RouteTime.DepartAt`) or an arrival deadline (`RouteTime.ArriveBy`) together with `searchWindow` — rather than asking for _N_ results from "now". Widen the window for sparse or intercity routes, and page through adjacent windows with `planNext` / `planPrevious`.
 
-Every call returns a `SpiderResult` you branch on before reading `data`; only a contract-version mismatch throws. Tune a surface with the optional config block, e.g. `SpiderClient(baseUrl, apiKey) { realtime { autoRetry { maxAttempts = 3 } } }`.
+Every call returns a `SpiderResult` you branch on before reading `data`; the SDK never throws for a failed call. Tune a surface with the optional config block, e.g. `SpiderClient(baseUrl, apiKey) { realtime { autoRetry { maxAttempts = 3 } } }`.
 
 ## What's in it
 

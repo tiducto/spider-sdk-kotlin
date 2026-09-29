@@ -80,6 +80,7 @@ internal class RealtimeClient(
     }
 
     suspend fun delays(byServiceDate: Map<String, List<String>>): TripDelays {
+        byServiceDate.keys.forEach(::requireServiceDate)
         val request = DelaysRequestDto(byServiceDate.map { (serviceDate, tripIds) -> DelayQueryDto(serviceDate, tripIds) })
         val response = rtPost(json.encodeToString(DelaysRequestDto.serializer(), request)) {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "delays") }
@@ -102,28 +103,19 @@ internal class RealtimeClient(
         )
     }
 
-    // Every realtime GET goes through here: the raw key in `apikey`, the contract
-    // version so the gateway can enforce compatibility, and the inbound contract guard — run once per
-    // request, before status handling, so even a 404/by-trip miss still checks the declared version.
-    private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse {
-        val response = http.get {
+    private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse =
+        http.get {
             block()
             spiderHeaders()
         }
-        ContractGuard.check(response.headers[SpiderContract.HEADER])
-        return response
-    }
 
-    private suspend fun rtPost(payload: String, block: HttpRequestBuilder.() -> Unit): HttpResponse {
-        val response = http.post {
+    private suspend fun rtPost(payload: String, block: HttpRequestBuilder.() -> Unit): HttpResponse =
+        http.post {
             block()
             contentType(ContentType.Application.Json)
             spiderHeaders()
             setBody(payload)
         }
-        ContractGuard.check(response.headers[SpiderContract.HEADER])
-        return response
-    }
 
     private suspend inline fun <reified T> HttpResponse.decodeOrThrow(where: String): T {
         if (!status.isSuccess()) {

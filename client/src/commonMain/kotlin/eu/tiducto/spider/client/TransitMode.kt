@@ -16,5 +16,9 @@ enum class TransitMode {
     FERRY,
     AIRPLANE,
     TAXI,
+    CABLE_CAR,
+    GONDOLA,
+    FUNICULAR,
+    SNOW_AND_ICE,
     UNKNOWN,
 }

@@ -20,7 +20,7 @@ import kotlinx.collections.immutable.persistentListOf
  * }
  *
  * // Delays for a set of trips running on one service date (pass the leg's serviceDate through).
- * val delays = client.realtime.delays(visibleTripIds, serviceDate = "20260922")
+ * val delays = client.realtime.delays(visibleTripIds, serviceDate = "2026-09-22")
  * ```
  */
 class SpiderRealtime(
@@ -47,14 +47,15 @@ class SpiderRealtime(
 
     /**
      * Live delays, resolved per `(tripId, serviceDate)` instance: group trip ids by the GTFS service date
-     * (`YYYYMMDD`) they run on — pass each leg's `serviceDate` through. Empty input skips the call.
+     * (`YYYY-MM-DD`) they run on — pass each [Leg.serviceDate] or [Departure.serviceDate] through. Empty
+     * input skips the call; a malformed date returns [SpiderError.BadRequest] without a request.
      */
     suspend fun delays(byServiceDate: Map<String, List<String>>): SpiderResult<TripDelays> {
         if (byServiceDate.all { it.value.isEmpty() }) return SpiderResult.Success(TripDelays.EMPTY)
         return runCatchingRealtime("delays(${byServiceDate.size} dates)") { realtime.delays(byServiceDate) }
     }
 
-    /** Live delays for [tripIds] all on one [serviceDate] (`YYYYMMDD`) — the common single-day case. */
+    /** Live delays for [tripIds] all on one [serviceDate] (`YYYY-MM-DD`) — the common single-day case. */
     suspend fun delays(tripIds: List<String>, serviceDate: String): SpiderResult<TripDelays> =
         delays(mapOf(serviceDate to tripIds))
 

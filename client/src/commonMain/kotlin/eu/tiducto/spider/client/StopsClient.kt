@@ -54,7 +54,6 @@ internal class StopsClient(
             spiderHeaders()
             setBody(StopSearchRequest(q = query, filter = filterExpr, sort = sort, limit = limit))
         }
-        ContractGuard.check(httpResponse.headers[SpiderContract.HEADER])
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()

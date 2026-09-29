@@ -53,6 +53,11 @@ sealed interface SpiderError {
         override val cause: Throwable? = null,
     ) : SpiderError
 
+    /**
+     * The key was missing or rejected (401/403). A 403 whose [serverCode] is `persisted_query_rejected`
+     * is different: the API no longer serves a query this SDK version sends (it was retired), so the fix
+     * is to update the SDK, not the key.
+     */
     data class Unauthorized(
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
@@ -122,10 +127,13 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
     else -> SpiderError.Unknown(cause = this)
 }
 
-internal data class ErrorEnvelope(val code: String?, val message: String?)
+// The gateway's `error` for a persisted-query id it doesn't serve; for a published SDK that means a retired query.
+internal const val RETIRED_QUERY_SERVER_CODE: String = "persisted_query_rejected"
+
+internal data class ErrorEnvelope(val code: String?, val message: String?, val error: String? = null)
 
 internal fun parseErrorEnvelope(body: String): ErrorEnvelope = runCatching {
     val obj = Json.parseToJsonElement(body).jsonObject
     fun string(key: String) = (obj[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
-    ErrorEnvelope(string("code"), string("message"))
+    ErrorEnvelope(string("code"), string("message"), string("error"))
 }.getOrDefault(ErrorEnvelope(null, null))

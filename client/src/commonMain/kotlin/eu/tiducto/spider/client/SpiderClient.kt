@@ -11,8 +11,7 @@ class SpiderClient(
 
     /**
      * The single wire-contract version this client speaks across every surface (routing, stops, and
-     * realtime move together). Sent on every request; a gateway that declares an incompatible version
-     * crashes the call with [SpiderContractMismatchError] rather than returning a [SpiderResult.Error].
+     * realtime move together). Sent on every request for the platform's records; it never fails a call.
      */
     val contractVersion: String get() = SpiderContract.VERSION
 

@@ -11,7 +11,9 @@ import eu.tiducto.spider.contract.routing.PlanViaLocationInput
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -45,7 +47,7 @@ class RoutingStreamTest {
                       "mode": "BUS",
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z", "estimated": { "time": "2026-07-15T08:01:00Z", "delay": "PT60S" } },
                       "end":   { "scheduledTime": "2026-07-15T08:30:00Z", "estimated": { "time": "2026-07-15T08:32:00Z", "delay": "PT120S" } },
-                      "realtimeState": "UPDATED", "realTime": true, "serviceDate": "20260715",
+                      "realtimeState": "UPDATED", "realTime": true, "serviceDate": "2026-07-15",
                       "from": { "name": "Origin", "stop": { "gtfsId": "1:A" } },
                       "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B" } },
                       "route": { "shortName": "12" }, "trip": { "gtfsId": "1:T" }
@@ -68,8 +70,8 @@ class RoutingStreamTest {
         assertEquals(120.seconds, leg.endDelay)
         assertEquals("2026-07-15T08:01:00Z", leg.startEstimated)
         assertEquals(true, leg.isRealtime)
-        assertEquals("UPDATED", leg.realtimeState)
-        assertEquals("20260715", leg.serviceDate)
+        assertEquals(RealtimeState.UPDATED, leg.realtimeState)
+        assertEquals("2026-07-15", leg.serviceDate)
         assertEquals("1:A", leg.fromGtfsId)
         assertEquals("1:B", leg.toGtfsId)
     }
@@ -85,6 +87,55 @@ class RoutingStreamTest {
         assertEquals(true, event.pageInfo.hasNextPage)
         assertEquals(false, event.pageInfo.hasPreviousPage)
         assertEquals("PT1H", event.pageInfo.searchWindowUsed)
+        assertEquals(emptyList(), event.routingErrors)
+    }
+
+    // Routing errors ride on the final pageInfo, shaped as in batch planConnection, so a search outside the
+    // feed's dates is an outcome in the stream too, not a failure.
+    @Test
+    fun `pageInfo routingErrors map to Done with typed codes`() {
+        val data = """
+            {
+              "hasNextPage": false, "hasPreviousPage": false,
+              "routingErrors": [
+                { "code": "OUTSIDE_SERVICE_PERIOD", "description": "date is outside the feed", "inputField": "DATE_TIME" },
+                { "code": "LOCATION_NOT_FOUND", "description": "unknown stop", "inputField": "FROM" },
+                { "code": "SOMETHING_NEW", "description": "added later", "inputField": "SOMEWHERE_NEW" }
+              ]
+            }
+        """.trimIndent()
+        val event = assertIs<PlanStreamEvent.Done>(parsePlanStreamRecord("pageInfo", data, json))
+        assertEquals(
+            listOf(
+                RoutingError(RoutingErrorCode.OUTSIDE_SERVICE_PERIOD, "date is outside the feed", InputField.DATE_TIME),
+                RoutingError(RoutingErrorCode.LOCATION_NOT_FOUND, "unknown stop", InputField.FROM),
+                RoutingError(RoutingErrorCode.UNKNOWN, "added later", InputField.UNKNOWN),
+            ),
+            event.routingErrors,
+        )
+    }
+
+    @Test
+    fun `unknown realtime state and new modes map to typed values`() {
+        val data = """
+            {
+              "results": [
+                {
+                  "numberOfTransfers": 0, "duration": 300,
+                  "legs": [
+                    {
+                      "mode": "FUNICULAR", "realtimeState": "SOMETHING_NEW",
+                      "start": { "scheduledTime": "2026-07-15T08:00:00Z" }, "end": { "scheduledTime": "2026-07-15T08:05:00Z" },
+                      "from": { "name": "Újezd" }, "to": { "name": "Petřín" }
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+        val leg = assertIs<PlanStreamEvent.Result>(parsePlanStreamRecord("chunk", data, json)).itineraries.single().legs.single()
+        assertEquals(TransitMode.FUNICULAR, leg.mode)
+        assertEquals(RealtimeState.UNKNOWN, leg.realtimeState)
     }
 
     // The trailing `done` telemetry frame just ends the stream — the SDK surfaces no telemetry, so it is dropped.
@@ -164,6 +215,27 @@ class RoutingStreamTest {
         ).jsonObject
         assertEquals("c-prev", obj["before"]?.jsonPrimitive?.contentOrNull)
         assertEquals(null, obj["after"])
+    }
+
+    // No SDK-side default window: an unset maxWindow is left off the wire so the router's own cap applies.
+    @Test
+    fun `stream variables omit maxWindow unless the caller sets one`() {
+        val request = PlanRequest(
+            origin = Location.Stop("1:A"),
+            destination = Location.Stop("1:B"),
+            time = RouteTime.DepartAt(Instant.parse("2026-07-15T08:00:00Z")),
+        )
+        val unset = json.encodeToJsonElement(
+            PlanConnectionStreamVariables.serializer(),
+            request.toStreamVariables(targetResults = 5, maxWindow = null, before = null, after = null),
+        ).jsonObject
+        assertEquals(null, unset["maxWindow"])
+
+        val set = json.encodeToJsonElement(
+            PlanConnectionStreamVariables.serializer(),
+            request.toStreamVariables(targetResults = 5, maxWindow = 2.hours, before = null, after = null),
+        ).jsonObject
+        assertEquals("PT2H", set["maxWindow"]?.jsonPrimitive?.contentOrNull)
     }
 
     private fun streamContinuationVariables(after: String?, before: String?) = PlanConnectionStreamVariables(

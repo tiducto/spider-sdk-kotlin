@@ -73,7 +73,8 @@ class SpiderRouting(
      * already applied to their legs; a terminal [PlanStreamEvent.Done] then carries the continuation cursors
      * (or a terminal [PlanStreamEvent.Failure]).
      *
-     * [targetResults] is a soft floor the sweep aims to reach; [maxWindow] caps how far forward it searches.
+     * [targetResults] is a soft floor the sweep aims to reach; [maxWindow] caps how far forward it searches
+     * (null applies the API's default cap).
      * To continue, call [planStreamNext] with `after` = [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor]
      * (or [planStreamPrevious] with `before` = [RoutePageInfo.startCursor] to walk earlier). For a single
      * batched page instead, use [plan].
@@ -87,7 +88,7 @@ class SpiderRouting(
         maxTransfers: Int? = null,
         wheelchairAccessible: Boolean = false,
         targetResults: Int = 5,
-        maxWindow: Duration = 6.hours,
+        maxWindow: Duration? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
         wheelchairAccessible, targetResults, maxWindow, before = null, after = null,
@@ -107,7 +108,7 @@ class SpiderRouting(
         maxTransfers: Int? = null,
         wheelchairAccessible: Boolean = false,
         targetResults: Int = 5,
-        maxWindow: Duration = 6.hours,
+        maxWindow: Duration? = null,
         after: String,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
@@ -128,7 +129,7 @@ class SpiderRouting(
         maxTransfers: Int? = null,
         wheelchairAccessible: Boolean = false,
         targetResults: Int = 5,
-        maxWindow: Duration = 6.hours,
+        maxWindow: Duration? = null,
         before: String,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
@@ -144,7 +145,7 @@ class SpiderRouting(
         maxTransfers: Int?,
         wheelchairAccessible: Boolean,
         targetResults: Int,
-        maxWindow: Duration,
+        maxWindow: Duration?,
         before: String?,
         after: String?,
     ): Flow<PlanStreamEvent> = routing.planConnectionStream(
@@ -155,8 +156,6 @@ class SpiderRouting(
             via = via,
             allowedTransitModes = allowedTransitModes,
             maxTransfers = maxTransfers,
-            // Unused by the stream (it paces itself with targetResults/maxWindow), but PlanRequest requires it.
-            searchWindow = maxWindow,
             wheelchairAccessible = wheelchairAccessible,
         ),
         targetResults = targetResults,
@@ -176,7 +175,11 @@ class SpiderRouting(
         }
     }
 
-    /** [serviceDate] is GTFS calendar date, formatted "YYYY-MM-DD". Null defaults to today. */
+    /**
+     * One trip on one service date. [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD" (take it
+     * from [Departure.serviceDate] or [Leg.serviceDate]); null defaults to today. A malformed date returns
+     * [SpiderError.BadRequest] without a request.
+     */
     suspend fun trip(
         tripId: String,
         serviceDate: String? = null,
@@ -284,7 +287,7 @@ data class Leg(
     val startDelay: Duration? = null,
     val endDelay: Duration? = null,
     val isRealtime: Boolean = false,
-    val realtimeState: String? = null,
+    val realtimeState: RealtimeState? = null,
     val serviceDate: String? = null,
     val fromName: String?,
     val toName: String?,
@@ -319,25 +322,33 @@ data class RoutePageInfo(
 )
 
 data class RoutingError(
-    val code: String,
+    val code: RoutingErrorCode,
     val description: String,
-    val inputField: String?,
+    val inputField: InputField?,
 )
 
+/**
+ * One row of a departures board. [serviceDate] is the GTFS service date the trip runs on ("YYYY-MM-DD"),
+ * which for a night departure after midnight is the previous day; pass it with [tripGtfsId] to
+ * [SpiderRouting.trip] and [SpiderRealtime.delays].
+ */
 data class Departure(
     val scheduledTime: Instant,
     val realtimeTime: Instant?,
     val isRealtime: Boolean,
-    val realtimeState: String?,
+    val realtimeState: RealtimeState?,
     val headsign: String?,
     val tripGtfsId: String?,
+    val serviceDate: String,
     val routeShortName: String?,
     val routeLongName: String?,
     val mode: TransitMode?,
 )
 
+/** One trip on [serviceDate] ("YYYY-MM-DD"), the GTFS service date its times are anchored to. */
 data class TripDetails(
     val gtfsId: String,
+    val serviceDate: String?,
     val routeShortName: String?,
     val routeLongName: String?,
     val mode: TransitMode?,
