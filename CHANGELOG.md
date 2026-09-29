@@ -38,6 +38,9 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 ### Fixed
 
+- `autoRetry` now times retries the same way as the other SDKs. On a retried `429` or `5xx`, a
+  `Retry-After` in seconds (fractions allowed) replaces the backoff. Otherwise it waits 1s, 2s, 4s… up to
+  10s. Either delay gets up to 25 % jitter.
 - `maxTransfers` now maps to the router's boarding count (`maximumTransfers = transfers + 1`). The
   router indexes legs with leg 0 as the initial access (walk, or nothing), so passing the caller's
   transfer count verbatim made `maxTransfers` 0 and 1 behave identically. Now `0` means direct,
