@@ -33,7 +33,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
 // Live GTFS-RT read API, served from the same gateway as routing/stops under `$baseUrl/realtime/...`.
-// Ids (tripId/routeId/stopId) are opaque, feed-prefixed and passed through unchanged, exactly like
+// Ids (tripId/routeId/stopId/vehicleId) are opaque, feed-prefixed and passed through unchanged, exactly like
 // the routing gtfsIds — a tripId from routing departures/plan/trip feeds straight back into these calls.
 internal class RealtimeClient(
     private val baseUrl: String,
@@ -52,6 +52,7 @@ internal class RealtimeClient(
     }
 
     suspend fun vehicles(tripIds: List<String>): VehiclePositions {
+        requireInRange("tripIds", tripIds.size <= MAX_TRIP_IDS)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles") }
             parameter("tripIds", tripIds.joinToString(","))
@@ -80,6 +81,8 @@ internal class RealtimeClient(
     }
 
     suspend fun delays(byServiceDate: Map<String, List<String>>): TripDelays {
+        byServiceDate.keys.forEach(::requireServiceDate)
+        requireInRange("tripIds", byServiceDate.values.sumOf { it.size } <= MAX_TRIP_IDS)
         val request = DelaysRequestDto(byServiceDate.map { (serviceDate, tripIds) -> DelayQueryDto(serviceDate, tripIds) })
         val response = rtPost(json.encodeToString(DelaysRequestDto.serializer(), request)) {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "delays") }
@@ -102,39 +105,32 @@ internal class RealtimeClient(
         )
     }
 
-    // Every realtime GET goes through here: the raw key in `apikey`, the contract
-    // version so the gateway can enforce compatibility, and the inbound contract guard — run once per
-    // request, before status handling, so even a 404/by-trip miss still checks the declared version.
-    private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse {
-        val response = http.get {
+    private suspend fun rtGet(block: HttpRequestBuilder.() -> Unit): HttpResponse =
+        http.get {
             block()
             spiderHeaders()
         }
-        ContractGuard.check(response.headers[SpiderContract.HEADER])
-        return response
-    }
 
-    private suspend fun rtPost(payload: String, block: HttpRequestBuilder.() -> Unit): HttpResponse {
-        val response = http.post {
+    private suspend fun rtPost(payload: String, block: HttpRequestBuilder.() -> Unit): HttpResponse =
+        http.post {
             block()
             contentType(ContentType.Application.Json)
             spiderHeaders()
             setBody(payload)
         }
-        ContractGuard.check(response.headers[SpiderContract.HEADER])
-        return response
-    }
 
     private suspend inline fun <reified T> HttpResponse.decodeOrThrow(where: String): T {
         if (!status.isSuccess()) {
             val body = bodyAsText()
             val envelope = parseErrorEnvelope(body)
-            val detail = envelope.message ?: body.take(300)
-            throw SpiderTransportException.Http(status.value, "GET $where → ${status.value}: $detail", envelope.code)
+            val detail = envelope.message ?: body.take(300).trim()
+            throw SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", envelope.code, detail)
         }
         return body()
     }
 }
+
+private const val MAX_TRIP_IDS = 50
 
 // Epoch seconds → Instant; nulls (feed hasn't reported a timestamp) stay null.
 private fun Long?.toInstantOrNull(): Instant? = this?.let { Instant.fromEpochSeconds(it) }

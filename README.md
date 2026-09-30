@@ -40,7 +40,7 @@ when (val result = client.routing.plan(
 
 The recommended query pins a time and a window — a departure time (`RouteTime.DepartAt`) or an arrival deadline (`RouteTime.ArriveBy`) together with `searchWindow` — rather than asking for _N_ results from "now". Widen the window for sparse or intercity routes, and page through adjacent windows with `planNext` / `planPrevious`.
 
-Every call returns a `SpiderResult` you branch on before reading `data`; only a contract-version mismatch throws. Tune a surface with the optional config block, e.g. `SpiderClient(baseUrl, apiKey) { realtime { autoRetry { maxAttempts = 3 } } }`.
+Every call returns a `SpiderResult` you branch on before reading `data`; the SDK never throws for a failed call. Tune a surface with the optional config block, e.g. `SpiderClient(baseUrl, apiKey) { realtime { autoRetry { maxAttempts = 3 } } }`.
 
 ## What's in it
 
@@ -52,7 +52,7 @@ Every call returns a `SpiderResult` you branch on before reading `data`; only a 
 
 ## Contract
 
-The wire contract (persisted GraphQL queries, routes, response shapes) is owned by [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract). Its models are generated and committed into **`:client`** as `internal` wire types (the repo carries the classes, not the spec) and mapped to the public domain types. To refresh after the contract changes, run the **Pull contract updates** GitHub workflow (or `scripts/generate-contract.sh` locally, which needs Docker). Maintainers: see [`RELEASING.md`](RELEASING.md).
+The wire contract (persisted GraphQL queries, routes, response shapes) is owned by [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract). Its models are generated and committed into **`:client`** as `internal` wire types (the repo carries the classes, not the spec) and mapped to the public domain types. To refresh after the contract changes, run the **Pull contract updates** GitHub workflow (or `scripts/generate-contract.sh` locally, which needs Node.js and the GitHub CLI `gh`). Maintainers: see [`RELEASING.md`](RELEASING.md).
 
 ## License
 

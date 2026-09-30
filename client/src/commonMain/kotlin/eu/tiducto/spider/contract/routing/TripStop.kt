@@ -8,5 +8,7 @@ internal data class TripStop(
     val name: String,
     val lat: Double? = null,
     val lon: Double? = null,
-    val wheelchairBoarding: WheelchairBoarding? = null
+    val wheelchairBoarding: WheelchairBoarding? = null,
+    val platformCode: String? = null,
+    val zoneId: String? = null
 )

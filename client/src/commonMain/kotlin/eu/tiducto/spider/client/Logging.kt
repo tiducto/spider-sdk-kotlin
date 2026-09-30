@@ -11,15 +11,15 @@ import io.ktor.client.plugins.logging.Logger as KtorLogger
 import io.ktor.client.plugins.logging.Logging as KtorLogging
 
 enum class SpiderLogLevel {
-    None,
-    Error,
-    Info,
-    Headers,
-    Body,
+    NONE,
+    ERROR,
+    INFO,
+    HEADERS,
+    BODY,
 }
 
 class LoggingConfig {
-    var level: SpiderLogLevel = SpiderLogLevel.Info
+    var level: SpiderLogLevel = SpiderLogLevel.INFO
 }
 
 internal class SpiderLog(
@@ -33,20 +33,20 @@ internal class SpiderLog(
 }
 
 internal fun LoggingConfig.buildLog(): SpiderLog {
-    val writers = if (level == SpiderLogLevel.None) emptyList() else listOf(platformLogWriter())
+    val writers = if (level == SpiderLogLevel.NONE) emptyList() else listOf(platformLogWriter())
     val minSeverity = when (level) {
-        SpiderLogLevel.None -> Severity.Assert
-        SpiderLogLevel.Error -> Severity.Error
-        SpiderLogLevel.Info, SpiderLogLevel.Headers, SpiderLogLevel.Body -> Severity.Debug
+        SpiderLogLevel.NONE -> Severity.Assert
+        SpiderLogLevel.ERROR -> Severity.Error
+        SpiderLogLevel.INFO, SpiderLogLevel.HEADERS, SpiderLogLevel.BODY -> Severity.Debug
     }
     return SpiderLog(level, KermitLogger(StaticConfig(minSeverity, writers), tag = "Spider"))
 }
 
 private fun SpiderLogLevel.toKtorLevel(): LogLevel = when (this) {
-    SpiderLogLevel.None, SpiderLogLevel.Error -> LogLevel.NONE
-    SpiderLogLevel.Info -> LogLevel.INFO
-    SpiderLogLevel.Headers -> LogLevel.HEADERS
-    SpiderLogLevel.Body -> LogLevel.ALL
+    SpiderLogLevel.NONE, SpiderLogLevel.ERROR -> LogLevel.NONE
+    SpiderLogLevel.INFO -> LogLevel.INFO
+    SpiderLogLevel.HEADERS -> LogLevel.HEADERS
+    SpiderLogLevel.BODY -> LogLevel.ALL
 }
 
 internal fun HttpClientConfig<*>.installSpiderLogging(log: SpiderLog, tag: String) {

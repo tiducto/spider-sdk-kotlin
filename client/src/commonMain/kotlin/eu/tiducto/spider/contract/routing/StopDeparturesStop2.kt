@@ -3,9 +3,9 @@ package eu.tiducto.spider.contract.routing
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class Stop(
+internal data class StopDeparturesStop2(
     val gtfsId: String,
+    val name: String,
     val wheelchairBoarding: WheelchairBoarding? = null,
-    val platformCode: String? = null,
-    val zoneId: String? = null
+    val stoptimesWithoutPatterns: List<StopDeparturesStoptime>? = null
 )

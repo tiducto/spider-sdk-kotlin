@@ -43,24 +43,30 @@ internal class StopsClient(
         radiusMeters: Int? = null,
         bbox: BoundingBox? = null,
         sortByDistance: Boolean = false,
-        limit: Int? = null,
+        limit: Int,
+        modes: Set<TransitMode>? = null,
     ): ImmutableList<Stop> {
+        requireInRange("limit", limit in 1..MAX_STOP_LIMIT)
         val url = "$baseUrl/stops/search"
-        val filterExpr = composeStopFilter(filters, idFilter, near, radiusMeters, bbox)
+        val filterExpr = composeStopFilter(filters, idFilter, near, radiusMeters, bbox, modes)
         val sort = composeStopSort(near, sortByDistance)
         val httpResponse = http.post {
             url(url)
             contentType(ContentType.Application.Json)
             spiderHeaders()
-            setBody(StopSearchRequest(q = query, filter = filterExpr, sort = sort, limit = limit))
+            setBody(StopSearchRequest(q = query, limit = limit, filter = filterExpr, sort = sort))
         }
-        ContractGuard.check(httpResponse.headers[SpiderContract.HEADER])
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
             val parsed = runCatching { json.decodeFromString<StopSearchError>(body) }.getOrNull()
-            val detail = parsed?.message ?: body.take(300)
-            throw SpiderTransportException.Http(httpResponse.status.value, "POST $url → ${httpResponse.status.value}: $detail", parsed?.code)
+            val detail = parsed?.message ?: body.take(300).trim()
+            throw SpiderTransportException.Http(
+                httpResponse.status.value,
+                "POST $url → ${httpResponse.status.value}: $detail",
+                parsed?.code,
+                detail,
+            )
         }
 
         val response: StopSearchResponse<StopHit> = httpResponse.body()
@@ -88,11 +94,23 @@ internal class StopsClient(
             lat = lat,
             lon = lon,
             admin = adminPairs.toMap(),
+            wheelchairBoarding = when (wheelchairBoarding) {
+                null, 0 -> null
+                1 -> WheelchairBoarding.POSSIBLE
+                2 -> WheelchairBoarding.NOT_POSSIBLE
+                else -> WheelchairBoarding.UNKNOWN
+            },
+            modes = modes.map { transitModeFromWire(it) ?: TransitMode.UNKNOWN }.toImmutableList(),
+            code = code,
+            locationType = locationType,
         )
     }
 }
 
+private const val MAX_STOP_LIMIT = 50
+
 // Composes the Meilisearch filter expression: `field = "value" AND gtfsId = "…" AND _geoRadius(…) AND …`.
+// `modes IN [...]` matches a stop served by any of the modes; UNKNOWN has no wire value and is left out.
 // Attribute names are bare identifiers (Meili doesn't quote them); only string values are quoted, with
 // embedded `"`/`\` escaped so a value can't break out of its clause. Coordinates are formatted via string
 // interpolation, which is Locale-invariant ('.' decimal) — never String.format, which can emit a comma
@@ -104,6 +122,7 @@ internal fun composeStopFilter(
     near: GeoPoint?,
     radiusMeters: Int?,
     bbox: BoundingBox?,
+    modes: Set<TransitMode>? = null,
 ): String? {
     val clauses = buildList {
         filters.forEach { add(it.toFilterClause()) }
@@ -112,6 +131,9 @@ internal fun composeStopFilter(
             add("_geoRadius(${near.lat}, ${near.lng}, $radiusMeters)")
         }
         bbox?.let { add("_geoBoundingBox([${it.maxLat}, ${it.maxLng}], [${it.minLat}, ${it.minLng}])") }
+        modes?.filter { it != TransitMode.UNKNOWN }?.takeIf { it.isNotEmpty() }?.let { known ->
+            add("modes IN [${known.joinToString(", ") { "\"${it.name}\"" }}]")
+        }
     }
     return clauses.takeIf { it.isNotEmpty() }?.joinToString(" AND ")
 }

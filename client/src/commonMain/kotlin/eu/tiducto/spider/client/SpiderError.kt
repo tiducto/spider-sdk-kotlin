@@ -17,6 +17,7 @@ enum class SpiderErrorCode(val wireName: String) {
     NOT_FOUND("not_found"),
     SERVER("server"),
     RATE_LIMITED("rate_limited"),
+    QUERY_RETIRED("query_retired"),
     DECODING("decoding"),
     UNKNOWN("unknown"),
 }
@@ -40,6 +41,7 @@ sealed interface SpiderError {
             is NotFound -> SpiderErrorCode.NOT_FOUND
             is Server -> SpiderErrorCode.SERVER
             is RateLimited -> SpiderErrorCode.RATE_LIMITED
+            is QueryRetired -> SpiderErrorCode.QUERY_RETIRED
             is Decoding -> SpiderErrorCode.DECODING
             is Unknown -> SpiderErrorCode.UNKNOWN
         }
@@ -53,15 +55,20 @@ sealed interface SpiderError {
         override val cause: Throwable? = null,
     ) : SpiderError
 
+    /**
+     * The key was missing or rejected (401/403). A 403 whose [serverCode] is `persisted_query_rejected`
+     * means the gateway doesn't recognise the persisted-query id the call sent.
+     */
     data class Unauthorized(
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
     ) : SpiderError
 
     /**
-     * The server rejected the request as invalid (a GraphQL top-level `BAD_REQUEST` error): an over-cap
-     * `searchWindow`, a malformed `via`, or a missing required field. [field] names the offending input
-     * when the server reports one; [message] is the server's human-readable explanation.
+     * The request is invalid: a required value is missing, a value is out of range, or an input is
+     * malformed (such as `via`). [field] names the offending input; [message] names only the field, never
+     * the limit. The SDK returns this without sending a request when a value breaks a fixed platform limit;
+     * the API returns it for limits the environment sets.
      */
     data class BadRequest(
         val field: String? = null,
@@ -85,6 +92,15 @@ sealed interface SpiderError {
         override val cause: Throwable? = null,
     ) : SpiderError
 
+    /**
+     * The persisted query this call sends is retired: the API no longer serves it (HTTP 410). This is the
+     * query's state, not a problem with the key or the request.
+     */
+    data class QueryRetired(
+        override val httpStatus: Int? = null,
+        override val cause: Throwable? = null,
+    ) : SpiderError
+
     data class Decoding(override val cause: Throwable? = null) : SpiderError {
         override val httpStatus: Int? get() = null
     }
@@ -96,14 +112,28 @@ sealed interface SpiderError {
 }
 
 internal sealed class SpiderTransportException(message: String) : RuntimeException(message) {
-    class Http(val status: Int, message: String, val serverCode: String? = null) : SpiderTransportException(message)
+    // [detail] is the server's own message, without the request prefix [message] carries.
+    class Http(
+        val status: Int,
+        message: String,
+        val serverCode: String? = null,
+        val detail: String? = null,
+    ) : SpiderTransportException(message)
     class NoData(message: String) : SpiderTransportException(message)
     class Upstream(message: String) : SpiderTransportException(message)
     class BadRequest(val field: String?, message: String) : SpiderTransportException(message)
 }
 
 internal fun Throwable.toSpiderError(): SpiderError = when (this) {
-    is SpiderTransportException.Http -> when (status) {
+    is SpiderTransportException.Http -> if (serverCode == QUERY_RETIRED_SERVER_CODE) {
+        SpiderError.QueryRetired(status, this)
+    } else when (status) {
+        400 -> SpiderError.BadRequest(
+            field = detail?.let(::fieldOfBadRequest),
+            message = detail ?: message ?: SpiderErrorCode.BAD_REQUEST.wireName,
+            httpStatus = status,
+            cause = this,
+        )
         401, 403 -> SpiderError.Unauthorized(status, this)
         404 -> SpiderError.NotFound(status, this)
         408, 504 -> SpiderError.Timeout(status, this)
@@ -122,10 +152,26 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
     else -> SpiderError.Unknown(cause = this)
 }
 
-internal data class ErrorEnvelope(val code: String?, val message: String?)
+// The gateway's `error` codes for a persisted-query id: one it never had (403), and one it retired (410).
+internal const val UNKNOWN_QUERY_SERVER_CODE: String = "persisted_query_rejected"
+internal const val QUERY_RETIRED_SERVER_CODE: String = "query_retired"
+
+// A fixed platform limit, checked before any request. Like the API's own BAD_REQUEST, the message names
+// only the field.
+internal fun requireInRange(field: String, inRange: Boolean) {
+    if (!inRange) throw SpiderTransportException.BadRequest(field, "$field is out of range")
+}
+
+// The platform words a validation 400 as "<field> is out of range|required|invalid" on every surface.
+private val BAD_REQUEST_MESSAGE = Regex("""([A-Za-z_][A-Za-z0-9_]*) is (?:out of range|required|invalid)""")
+
+internal fun fieldOfBadRequest(message: String): String? =
+    BAD_REQUEST_MESSAGE.matchEntire(message.trim())?.groupValues?.get(1)
+
+internal data class ErrorEnvelope(val code: String?, val message: String?, val error: String? = null)
 
 internal fun parseErrorEnvelope(body: String): ErrorEnvelope = runCatching {
     val obj = Json.parseToJsonElement(body).jsonObject
     fun string(key: String) = (obj[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
-    ErrorEnvelope(string("code"), string("message"))
+    ErrorEnvelope(string("code"), string("message"), string("error"))
 }.getOrDefault(ErrorEnvelope(null, null))

@@ -3,18 +3,15 @@ package eu.tiducto.spider.client
 import kotlinx.serialization.Serializable
 
 /**
- * Whether wheelchair boarding is supported at a stop. Mirrors GTFS
- * `wheelchair_boarding` (and upstream's `WheelchairBoarding`). Upstream's
- * `NO_INFORMATION` is folded into `null` at the mapping boundary so callers
- * can treat "absent" and "unknown" the same way.
+ * Whether a rider in a wheelchair can board, at a stop or on a trip. Mirrors GTFS `wheelchair_boarding` /
+ * `wheelchair_accessible`. No information is `null`; [UNKNOWN] is a value this SDK version doesn't recognise.
  */
 @Serializable
-enum class WheelchairBoarding { Possible, NotPossible }
+enum class WheelchairBoarding { POSSIBLE, NOT_POSSIBLE, UNKNOWN }
 
 /**
- * Whether bikes are allowed on a trip. Mirrors GTFS `bikes_allowed` (and
- * upstream's `BikesAllowed`). Upstream's `NO_INFORMATION` is folded into `null`
- * at the mapping boundary.
+ * Whether bikes are allowed on a trip. Mirrors GTFS `bikes_allowed`. No information is `null`; [UNKNOWN] is a
+ * value this SDK version doesn't recognise.
  */
 @Serializable
-enum class BikesAllowed { Allowed, NotAllowed }
+enum class BikesAllowed { ALLOWED, NOT_ALLOWED, UNKNOWN }

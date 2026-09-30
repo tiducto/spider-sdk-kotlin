@@ -3,13 +3,13 @@ package eu.tiducto.spider.contract.routing
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class TripStoptime(
+internal data class StopDeparturesStoptime(
     val serviceDay: Long? = null,
-    val scheduledArrival: Int? = null,
     val scheduledDeparture: Int? = null,
-    val realtimeArrival: Int? = null,
     val realtimeDeparture: Int? = null,
     val realtime: Boolean? = null,
     val realtimeState: RealtimeState? = null,
-    val stop: TripStop? = null
+    val headsign: String? = null,
+    val stop: StopDeparturesStop? = null,
+    val trip: StopDeparturesTrip? = null
 )

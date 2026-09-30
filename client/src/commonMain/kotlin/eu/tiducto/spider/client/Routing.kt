@@ -45,12 +45,11 @@ class SpiderRouting(
      * Plans the previous window of itineraries (earlier departures). Returns null if no previous window is available.
      */
     suspend fun planPrevious(prev: Route): SpiderResult<Route>? =
-        // Relay backward paging uses `before`; the server caps each page at its own default itinerary count.
         if (!prev.pageInfo.hasPreviousPage) null
         else page(prev.request, before = prev.pageInfo.startCursor)
 
-    // Cursor paging only — no page-size count. Absent first/last, the server returns up to its default
-    // itinerary cap per page (a whole search window); `before`/`after` walk the windows.
+    // Cursor paging only — no page-size count. Each page is one search window, holding at most the
+    // environment's result count; `before`/`after` walk the windows.
     private suspend fun page(
         request: PlanRequest,
         before: String? = null,
@@ -71,9 +70,14 @@ class SpiderRouting(
      * them as they finalize instead of one batched page. Cold and cancellable: collection starts the request,
      * cancelling it stops the sweep. Each [PlanStreamEvent.Result] carries itineraries with realtime delays
      * already applied to their legs; a terminal [PlanStreamEvent.Done] then carries the continuation cursors
-     * (or a terminal [PlanStreamEvent.Failure]).
+     * and any routing errors (or a terminal [PlanStreamEvent.Failure]).
      *
-     * [targetResults] is a soft floor the sweep aims to reach; [maxWindow] caps how far forward it searches.
+     * [targetResults] is how many itineraries the sweep aims for, from 1 up to the environment's result
+     * count. [maxWindow] is how far the sweep may search, in either direction: at least 2 hours, up to the
+     * environment's search-window limit. Both are required. A [maxWindow] under 2 hours ends the stream in a
+     * [PlanStreamEvent.Failure] with [SpiderError.BadRequest] before any request; the API rejects values over
+     * the environment's limits the same way.
+     *
      * To continue, call [planStreamNext] with `after` = [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor]
      * (or [planStreamPrevious] with `before` = [RoutePageInfo.startCursor] to walk earlier). For a single
      * batched page instead, use [plan].
@@ -86,8 +90,8 @@ class SpiderRouting(
         allowedTransitModes: Set<TransitMode>? = null,
         maxTransfers: Int? = null,
         wheelchairAccessible: Boolean = false,
-        targetResults: Int = 5,
-        maxWindow: Duration = 6.hours,
+        targetResults: Int,
+        maxWindow: Duration,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
         wheelchairAccessible, targetResults, maxWindow, before = null, after = null,
@@ -106,8 +110,8 @@ class SpiderRouting(
         allowedTransitModes: Set<TransitMode>? = null,
         maxTransfers: Int? = null,
         wheelchairAccessible: Boolean = false,
-        targetResults: Int = 5,
-        maxWindow: Duration = 6.hours,
+        targetResults: Int,
+        maxWindow: Duration,
         after: String,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
@@ -127,8 +131,8 @@ class SpiderRouting(
         allowedTransitModes: Set<TransitMode>? = null,
         maxTransfers: Int? = null,
         wheelchairAccessible: Boolean = false,
-        targetResults: Int = 5,
-        maxWindow: Duration = 6.hours,
+        targetResults: Int,
+        maxWindow: Duration,
         before: String,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
@@ -155,8 +159,6 @@ class SpiderRouting(
             via = via,
             allowedTransitModes = allowedTransitModes,
             maxTransfers = maxTransfers,
-            // Unused by the stream (it paces itself with targetResults/maxWindow), but PlanRequest requires it.
-            searchWindow = maxWindow,
             wheelchairAccessible = wheelchairAccessible,
         ),
         targetResults = targetResults,
@@ -165,6 +167,11 @@ class SpiderRouting(
         after = after,
     )
 
+    /**
+     * The departures board for a stop or station. [numberOfDepartures] (default 30) is capped by the
+     * environment. [timeRange] (default 24 hours) is how far ahead of [startTime] (null = now) to look: above
+     * zero and at most 24 hours, else [SpiderError.BadRequest] without a request.
+     */
     suspend fun departures(
         id: String,
         numberOfDepartures: Int = 30,
@@ -176,7 +183,11 @@ class SpiderRouting(
         }
     }
 
-    /** [serviceDate] is GTFS calendar date, formatted "YYYY-MM-DD". Null defaults to today. */
+    /**
+     * One trip on one service date. [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD" (take it
+     * from [Departure.serviceDate] or [Leg.serviceDate]); null defaults to today. A malformed date returns
+     * [SpiderError.BadRequest] without a request.
+     */
     suspend fun trip(
         tripId: String,
         serviceDate: String? = null,
@@ -200,9 +211,14 @@ sealed interface Location {
     data class Stop(val id: String) : Location
 }
 
+/**
+ * A stop the itinerary must go through. How many via locations a request may carry is an environment setting.
+ * An unknown stop id comes back as a [RoutingError] with [RoutingErrorCode.LOCATION_NOT_FOUND] and
+ * [InputField.VIA].
+ */
 sealed interface ViaLocation {
     /**
-     * Vehicle's path must traverse one of [stopIds], but the passenger isn't
+     * Vehicle's path must traverse one of [stopIds] (1 to 10), but the passenger isn't
      * required to alight. A single through-route leg satisfies the constraint.
      */
     data class PassThrough(val stopIds: List<String>) : ViaLocation {
@@ -211,7 +227,7 @@ sealed interface ViaLocation {
 
     /**
      * Passenger must be at [location] (becomes a leg boundary). [minimumWaitTime]
-     * forces at least that dwell between arriving and leaving the via stop.
+     * (0 to 24 hours) forces at least that dwell between arriving and leaving the via stop.
      */
     data class Visit(
         val location: Location,
@@ -234,8 +250,7 @@ data class PlanRequest(
     // modes and drop out. Empty and null both mean "no filter" — never emptySet-as-all.
     val allowedTransitModes: Set<TransitMode>? = null,
     val maxTransfers: Int? = null,
-    // Always sent (default 1h) so OTP never uses its dynamic, route-dependent window — predictable cost + paging.
-    // Normalized to whole minutes on the wire (floored, min 1m): sub-minute windows return almost nothing.
+    // Required by the API, which checks it against the environment's search-window limit; sent as given.
     val searchWindow: Duration = 1.hours,
     val wheelchairAccessible: Boolean = false,
 )
@@ -274,6 +289,11 @@ data class Itinerary(
         other != null && stableKey == other.stableKey
 }
 
+/**
+ * One leg of an [Itinerary]. [routeColor] and [routeTextColor] are the route's GTFS colours as raw hex without
+ * `#` (e.g. `FF0000`), as the feed gives them. The platform codes and zone ids come from the boarding (`from`)
+ * and alighting (`to`) stops; all display fields are null when the feed doesn't provide them.
+ */
 @Serializable
 data class Leg(
     val mode: TransitMode?,
@@ -284,7 +304,7 @@ data class Leg(
     val startDelay: Duration? = null,
     val endDelay: Duration? = null,
     val isRealtime: Boolean = false,
-    val realtimeState: String? = null,
+    val realtimeState: RealtimeState? = null,
     val serviceDate: String? = null,
     val fromName: String?,
     val toName: String?,
@@ -302,6 +322,13 @@ data class Leg(
     val toWheelchair: WheelchairBoarding? = null,
     @Serializable(with = LatLonListSerializer::class)
     val geometry: ImmutableList<LatLon> = persistentListOf(),
+    val routeGtfsId: String? = null,
+    val routeColor: String? = null,
+    val routeTextColor: String? = null,
+    val fromPlatformCode: String? = null,
+    val toPlatformCode: String? = null,
+    val fromZoneId: String? = null,
+    val toZoneId: String? = null,
 )
 
 @Serializable
@@ -318,26 +345,53 @@ data class RoutePageInfo(
     val searchWindowUsed: String?,
 )
 
+/**
+ * Why routing returned no (or fewer) itineraries: an outcome of the search, not a failed call. For
+ * [RoutingErrorCode.LOCATION_NOT_FOUND], [inputField] says which input: [InputField.FROM], [InputField.TO]
+ * or [InputField.VIA].
+ */
 data class RoutingError(
-    val code: String,
+    val code: RoutingErrorCode,
     val description: String,
-    val inputField: String?,
+    val inputField: InputField?,
 )
 
+/**
+ * One row of a departures board. [serviceDate] is the GTFS service date the trip runs on ("YYYY-MM-DD"),
+ * which for a night departure after midnight is the previous day; pass it with [tripGtfsId] to
+ * [SpiderRouting.trip] and [SpiderRealtime.delays].
+ *
+ * [stopGtfsId] and [platformCode] are the stop the vehicle departs from (on a station's board, the
+ * platform). [routeColor] and [routeTextColor] are raw GTFS hex without `#` (e.g. `FF0000`), as the feed
+ * gives them. The display fields are null when the feed doesn't provide them.
+ */
 data class Departure(
     val scheduledTime: Instant,
     val realtimeTime: Instant?,
     val isRealtime: Boolean,
-    val realtimeState: String?,
+    val realtimeState: RealtimeState?,
     val headsign: String?,
     val tripGtfsId: String?,
+    val serviceDate: String,
     val routeShortName: String?,
     val routeLongName: String?,
     val mode: TransitMode?,
+    val routeGtfsId: String? = null,
+    val routeColor: String? = null,
+    val routeTextColor: String? = null,
+    val stopGtfsId: String? = null,
+    val platformCode: String? = null,
+    val wheelchairAccessible: WheelchairBoarding? = null,
 )
 
+/**
+ * One trip on [serviceDate] ("YYYY-MM-DD"), the GTFS service date its times are anchored to. It is null only
+ * when the trip has no stop times and the call named no date. [routeColor] and [routeTextColor] are raw GTFS
+ * hex without `#` (e.g. `FF0000`), as the feed gives them.
+ */
 data class TripDetails(
     val gtfsId: String,
+    val serviceDate: String?,
     val routeShortName: String?,
     val routeLongName: String?,
     val mode: TransitMode?,
@@ -346,6 +400,10 @@ data class TripDetails(
     val bikesAllowed: BikesAllowed? = null,
     val stops: ImmutableList<TripStop>,
     val geometry: ImmutableList<LatLon> = persistentListOf(),
+    val routeGtfsId: String? = null,
+    val routeColor: String? = null,
+    val routeTextColor: String? = null,
+    val wheelchairAccessible: WheelchairBoarding? = null,
 )
 
 data class TripStop(
@@ -359,4 +417,6 @@ data class TripStop(
     val realtimeDeparture: Instant?,
     val isRealtime: Boolean,
     val wheelchairBoarding: WheelchairBoarding? = null,
+    val platformCode: String? = null,
+    val zoneId: String? = null,
 )

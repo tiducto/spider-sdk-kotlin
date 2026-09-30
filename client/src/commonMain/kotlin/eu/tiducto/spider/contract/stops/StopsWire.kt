@@ -19,15 +19,15 @@ import kotlinx.serialization.Serializable
 
 /**
  * POST body for `/stops/search`. [filter] is a stop-search filter expression the client composes;
- * [sort] carries index sort directives (e.g. `_geoPoint(lat, lng):asc` for nearest-first); [limit]
- * caps the hit count. All three are omitted from the wire when null (the encoder drops defaults).
+ * [sort] carries index sort directives (e.g. `_geoPoint(lat, lng):asc` for nearest-first); both are omitted
+ * from the wire when null (the encoder drops defaults). [limit] caps the hit count and is always sent.
  */
 @Serializable
 internal data class StopSearchRequest(
     val q: String,
+    val limit: Int,
     val filter: String? = null,
     val sort: List<String>? = null,
-    val limit: Int? = null,
 )
 
 /**
@@ -42,12 +42,17 @@ internal data class StopSearchResponse<T>(val hits: List<T>, val query: String)
 /**
  * One stop document as indexed. [gtfsId]/[name] are always present; coordinates and the admin-geography
  * levels ([country]…[suburb]) are populated only where the deployment enriched them, so all are
- * nullable. These field names must match the index builder (`seed-stops.sh`).
+ * nullable. [locationType] and [wheelchairBoarding] are raw GTFS integer codes; [modes] are routing mode
+ * names. These field names must match the index builder (`seed-stops.sh`).
  */
 @Serializable
 internal data class StopHit(
     val gtfsId: String,
     val name: String,
+    val code: String? = null,
+    val locationType: Int? = null,
+    val wheelchairBoarding: Int? = null,
+    val modes: List<String> = emptyList(),
     val lat: Double? = null,
     val lon: Double? = null,
     val country: String? = null,

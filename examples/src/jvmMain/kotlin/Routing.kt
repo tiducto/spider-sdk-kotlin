@@ -193,8 +193,9 @@ suspend fun planVia(client: SpiderClient) {
 }
 
 suspend fun streamPlan(client: SpiderClient) {
-    // Itineraries arrive as the router sweeps the window, instead of one batched page. A terminal Done
-    // carries the continuation cursors; a Failure is delivered as an event, never thrown.
+    // Itineraries arrive as the router sweeps the window, instead of one batched page. targetResults and
+    // maxWindow (at least 2 hours) are required. A terminal Done carries the continuation cursors and any
+    // routing errors; a Failure is delivered as an event, never thrown.
     client.routing.planStream(
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
@@ -219,7 +220,12 @@ suspend fun streamMoreItineraries(client: SpiderClient) {
 
     // Stream the first window, keeping the terminal Done to continue from.
     var done: PlanStreamEvent.Done? = null
-    client.routing.planStream(origin = origin, destination = destination).collect { event ->
+    client.routing.planStream(
+        origin = origin,
+        destination = destination,
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
         when (event) {
             is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
             is PlanStreamEvent.Done -> done = event
@@ -229,7 +235,13 @@ suspend fun streamMoreItineraries(client: SpiderClient) {
 
     // Continue into the next window from the endCursor — only when Done says there is one.
     val next = done?.takeIf { it.pageInfo.hasNextPage }?.pageInfo?.endCursor ?: return
-    client.routing.planStreamNext(origin = origin, destination = destination, after = next).collect { event ->
+    client.routing.planStreamNext(
+        origin = origin,
+        destination = destination,
+        targetResults = 5,
+        maxWindow = 2.hours,
+        after = next,
+    ).collect { event ->
         when (event) {
             is PlanStreamEvent.Result -> event.itineraries.forEach { println("later: ${it.start} → ${it.end}") }
             is PlanStreamEvent.Done -> println("reached the last window: ${!event.pageInfo.hasNextPage}")
@@ -244,7 +256,12 @@ suspend fun streamEarlierItineraries(client: SpiderClient) {
 
     // Stream the first window, keeping the terminal Done to page backwards from.
     var done: PlanStreamEvent.Done? = null
-    client.routing.planStream(origin = origin, destination = destination).collect { event ->
+    client.routing.planStream(
+        origin = origin,
+        destination = destination,
+        targetResults = 5,
+        maxWindow = 2.hours,
+    ).collect { event ->
         when (event) {
             is PlanStreamEvent.Result -> event.itineraries.forEach { println("${it.start} → ${it.end}") }
             is PlanStreamEvent.Done -> done = event
@@ -254,7 +271,13 @@ suspend fun streamEarlierItineraries(client: SpiderClient) {
 
     // Stream the earlier window from the startCursor — only when Done says there is one.
     val previous = done?.takeIf { it.pageInfo.hasPreviousPage }?.pageInfo?.startCursor ?: return
-    client.routing.planStreamPrevious(origin = origin, destination = destination, before = previous).collect { event ->
+    client.routing.planStreamPrevious(
+        origin = origin,
+        destination = destination,
+        targetResults = 5,
+        maxWindow = 2.hours,
+        before = previous,
+    ).collect { event ->
         when (event) {
             is PlanStreamEvent.Result -> event.itineraries.forEach { println("earlier: ${it.start} → ${it.end}") }
             is PlanStreamEvent.Done -> println("reached the first window: ${!event.pageInfo.hasPreviousPage}")

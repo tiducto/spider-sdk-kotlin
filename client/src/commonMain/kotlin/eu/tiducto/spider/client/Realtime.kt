@@ -20,7 +20,7 @@ import kotlinx.collections.immutable.persistentListOf
  * }
  *
  * // Delays for a set of trips running on one service date (pass the leg's serviceDate through).
- * val delays = client.realtime.delays(visibleTripIds, serviceDate = "20260922")
+ * val delays = client.realtime.delays(visibleTripIds, serviceDate = "2026-09-22")
  * ```
  */
 class SpiderRealtime(
@@ -32,7 +32,10 @@ class SpiderRealtime(
     private val log = logging.buildLog()
     private val realtime = RealtimeClient(baseUrl, apiKey, retry, log)
 
-    /** Live positions for the given [tripIds] (comma-batched in one request). Empty input skips the call. */
+    /**
+     * Live positions for the given [tripIds], up to 50 per call (comma-batched in one request). An empty list
+     * returns an empty result without a request; more than 50 returns [SpiderError.BadRequest].
+     */
     suspend fun vehicles(tripIds: List<String>): SpiderResult<VehiclePositions> {
         if (tripIds.isEmpty()) return SpiderResult.Success(VehiclePositions.EMPTY)
         return runCatchingRealtime("vehicles(${tripIds.size})") { realtime.vehicles(tripIds) }
@@ -47,14 +50,16 @@ class SpiderRealtime(
 
     /**
      * Live delays, resolved per `(tripId, serviceDate)` instance: group trip ids by the GTFS service date
-     * (`YYYYMMDD`) they run on — pass each leg's `serviceDate` through. Empty input skips the call.
+     * (`YYYY-MM-DD`) they run on — pass each [Leg.serviceDate] or [Departure.serviceDate] through. A call
+     * takes up to 50 trip ids, counted across all dates. No trip ids returns an empty result without a
+     * request; more than 50, or a malformed date, returns [SpiderError.BadRequest] without a request.
      */
     suspend fun delays(byServiceDate: Map<String, List<String>>): SpiderResult<TripDelays> {
         if (byServiceDate.all { it.value.isEmpty() }) return SpiderResult.Success(TripDelays.EMPTY)
         return runCatchingRealtime("delays(${byServiceDate.size} dates)") { realtime.delays(byServiceDate) }
     }
 
-    /** Live delays for [tripIds] all on one [serviceDate] (`YYYYMMDD`) — the common single-day case. */
+    /** Live delays for [tripIds] all on one [serviceDate] (`YYYY-MM-DD`) — the common single-day case. */
     suspend fun delays(tripIds: List<String>, serviceDate: String): SpiderResult<TripDelays> =
         delays(mapOf(serviceDate to tripIds))
 
@@ -86,7 +91,7 @@ data class FeedFreshness(
 
 /**
  * A vehicle's live position. All fields are nullable — GTFS-RT producers populate wildly different
- * subsets. [latitude]/[longitude] are the only fields worth much without the others; guard on them
+ * subsets. The ids ([tripId], [routeId], [vehicleId], [stopId]) are feed-prefixed like routing's. [latitude]/[longitude] are the only fields worth much without the others; guard on them
  * before drawing. [bearing] is degrees clockwise from north; [currentStatus] is the raw GTFS-RT
  * `VehicleStopStatus` string (`INCOMING_AT` / `STOPPED_AT` / `IN_TRANSIT_TO`), passed through
  * unchanged so a producer's newer values still surface.

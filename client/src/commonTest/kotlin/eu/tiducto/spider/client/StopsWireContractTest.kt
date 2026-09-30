@@ -20,20 +20,20 @@ class StopsWireContractTest {
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
-    fun `search request without a filter omits the filter key`() {
-        val expected = json.parseToJsonElement("""{"q":"Hlavní"}""")
-        val actual = json.encodeToJsonElement(StopSearchRequest.serializer(), StopSearchRequest(q = "Hlavní"))
+    fun `search request without a filter omits the filter key and always carries limit`() {
+        val expected = json.parseToJsonElement("""{"q":"Hlavní","limit":20}""")
+        val actual = json.encodeToJsonElement(StopSearchRequest.serializer(), StopSearchRequest(q = "Hlavní", limit = 20))
         assertEquals(expected, actual)
     }
 
     @Test
     fun `search request with a filter carries the raw filter expression`() {
         val expected = json.parseToJsonElement(
-            """{"q":"Hlavní","filter":"\"city\" = \"Brno\""}""",
+            """{"q":"Hlavní","limit":20,"filter":"\"city\" = \"Brno\""}""",
         )
         val actual = json.encodeToJsonElement(
             StopSearchRequest.serializer(),
-            StopSearchRequest(q = "Hlavní", filter = "\"city\" = \"Brno\""),
+            StopSearchRequest(q = "Hlavní", limit = 20, filter = "\"city\" = \"Brno\""),
         )
         assertEquals(expected, actual)
     }
@@ -45,7 +45,8 @@ class StopsWireContractTest {
             """
             {
               "hits": [
-                {"gtfsId":"1:U123","name":"Hlavní nádraží","lat":49.19,"lon":16.61,
+                {"gtfsId":"1:U123","name":"Hlavní nádraží","code":"HN","locationType":1,"wheelchairBoarding":2,
+                 "modes":["BUS","TRAM"],"lat":49.19,"lon":16.61,
                  "country":"Česko","region":"Jihomoravský kraj","district":"Brno-město",
                  "city":"Brno","suburb":"Trnitá","_geo":{"lat":49.19,"lng":16.61}}
               ],
@@ -61,6 +62,10 @@ class StopsWireContractTest {
         assertEquals("1:U123", hit.gtfsId)
         assertEquals("Brno", hit.city)
         assertEquals("Trnitá", hit.suburb)
+        assertEquals("HN", hit.code)
+        assertEquals(1, hit.locationType)
+        assertEquals(2, hit.wheelchairBoarding)
+        assertEquals(listOf("BUS", "TRAM"), hit.modes)
     }
 
     @Test
@@ -71,6 +76,7 @@ class StopsWireContractTest {
         assertNull(hit.lon)
         assertNull(hit.country)
         assertNull(hit.city)
+        assertEquals(emptyList(), hit.modes)
     }
 
     // The exact Meili filter/sort strings the geo + by-id surface composes. Pinned here so a change to the
@@ -101,6 +107,25 @@ class StopsWireContractTest {
         val sort = composeStopSort(near = near, sortByDistance = true)
         assertEquals("_geoRadius(49.19, 16.61, 500)", filter)
         assertEquals(listOf("_geoPoint(49.19, 16.61):asc"), sort)
+    }
+
+    @Test
+    fun `a modes filter matches a stop served by any of the modes`() {
+        val filter = composeStopFilter(
+            filters = listOf(Filter("city", "eq", "Brno")),
+            idFilter = null,
+            near = null,
+            radiusMeters = null,
+            bbox = null,
+            modes = setOf(TransitMode.TRAM, TransitMode.TROLLEYBUS),
+        )
+        assertEquals("city = \"Brno\" AND modes IN [\"TRAM\", \"TROLLEYBUS\"]", filter)
+    }
+
+    @Test
+    fun `an empty or UNKNOWN-only modes set adds no filter`() {
+        assertNull(composeStopFilter(emptyList(), null, null, null, null, modes = emptySet()))
+        assertNull(composeStopFilter(emptyList(), null, null, null, null, modes = setOf(TransitMode.UNKNOWN)))
     }
 
     @Test
