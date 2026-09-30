@@ -108,6 +108,127 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
+    fun `plan limit codes map on stop search and realtime whatever the status`() = runBlocking<Unit> {
+        val planningLimit = """{"error":"planning_limit_reached","message":"trip planning limit reached"}"""
+        val agreementInactive = """{"error":"agreement_inactive","message":"agreement is not active"}"""
+        val cases = listOf(
+            Triple(Reply(403, "application/json", agreementInactive), SpiderErrorCode.AGREEMENT_INACTIVE, "agreement is not active"),
+            Triple(Reply(400, "application/json", agreementInactive), SpiderErrorCode.AGREEMENT_INACTIVE, "agreement is not active"),
+            Triple(Reply(403, "application/json", planningLimit), SpiderErrorCode.PLANNING_LIMIT_REACHED, "trip planning limit reached"),
+        )
+        for ((reply, code, message) in cases) {
+            gateway.replies = mapOf("/stops/search" to reply, "/realtime/vehicles" to reply, "/realtime/alerts" to reply)
+
+            val errors = listOf(
+                assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+                assertIs<SpiderResult.Error>(realtime.vehicles(listOf("1:T"))).error,
+                assertIs<SpiderResult.Error>(realtime.alerts()).error,
+            )
+
+            for (error in errors) {
+                assertEquals(code, error.code)
+                assertEquals(code.wireName, error.serverCode)
+                assertEquals(message, error.message)
+                assertEquals(reply.status, error.httpStatus)
+            }
+        }
+    }
+
+    @Test
+    fun `a plan limit code on a 404 for a trip vehicle is that error`() = runBlocking<Unit> {
+        val cases = listOf(
+            """{"error":"planning_limit_reached","message":"trip planning limit reached"}""" to SpiderErrorCode.PLANNING_LIMIT_REACHED,
+            """{"error":"agreement_inactive","message":"agreement is not active"}""" to SpiderErrorCode.AGREEMENT_INACTIVE,
+        )
+        for ((body, code) in cases) {
+            gateway.replies = mapOf("/realtime/vehicles/by-trip/T1" to Reply(404, "application/json", body))
+
+            val error = assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1")).error
+
+            assertEquals(code, error.code)
+            assertEquals(code.wireName, error.serverCode)
+            assertEquals(404, error.httpStatus)
+        }
+    }
+
+    @Test
+    fun `a plain 404 for a trip vehicle is still no vehicle`() = runBlocking<Unit> {
+        for (reply in listOf(
+            Reply(404, "application/json", "{}"),
+            Reply(404, "application/json", """{"error":"not_found","message":"no vehicle for trip"}"""),
+            Reply(404, "text/plain", ""),
+        )) {
+            gateway.replies = mapOf("/realtime/vehicles/by-trip/T1" to reply)
+
+            val update = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(realtime.vehicleForTrip("T1")).data
+
+            assertEquals(null, update.vehicle)
+        }
+    }
+
+    @Test
+    fun `a plan limit refusal without a message reads the fixed wording on stop search and realtime`() = runBlocking<Unit> {
+        for (message in listOf(null, "", "   ")) {
+            val extra = message?.let { ""","message":"$it"""" }.orEmpty()
+            for ((code, wording) in listOf(
+                "agreement_inactive" to "agreement is not active",
+                "planning_limit_reached" to "trip planning limit reached",
+            )) {
+                val reply = Reply(403, "application/json", """{"error":"$code"$extra}""")
+                gateway.replies = mapOf(
+                    "/stops/search" to reply,
+                    "/realtime/alerts" to reply,
+                    "/realtime/vehicles/by-trip/T1" to Reply(404, "application/json", """{"error":"$code"$extra}"""),
+                )
+
+                val errors = listOf(
+                    assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+                    assertIs<SpiderResult.Error>(realtime.alerts()).error,
+                    assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1")).error,
+                )
+
+                for (error in errors) {
+                    assertEquals(code, error.code.wireName)
+                    assertEquals(wording, error.message)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a plan limit code in the body code field stays Unauthorized on stop search and realtime`() = runBlocking<Unit> {
+        val codeOnly = Reply(403, "application/json", """{"code":"agreement_inactive","message":"agreement is not active"}""")
+        gateway.replies = mapOf("/stops/search" to codeOnly, "/realtime/alerts" to codeOnly)
+
+        val errors = listOf(
+            assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+            assertIs<SpiderResult.Error>(realtime.alerts()).error,
+        )
+
+        for (error in errors) {
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+        }
+    }
+
+    @Test
+    fun `a plain 403 on stop search and realtime stays Unauthorized`() = runBlocking<Unit> {
+        val plain403 = Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}""")
+        gateway.replies = mapOf("/stops/search" to plain403, "/realtime/alerts" to plain403)
+
+        val errors = listOf(
+            assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+            assertIs<SpiderResult.Error>(realtime.alerts()).error,
+        )
+
+        for (error in errors) {
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+            assertEquals(null, error.serverCode)
+        }
+    }
+
+    @Test
     fun `a stop search limit outside 1 to 50 is a BadRequest without a request`() = runBlocking<Unit> {
         assertOutOfRange("limit", stops.search { filter { name eq "x" }; limit = 0 })
         assertOutOfRange("limit", stops.search { filter { name eq "x" }; limit = 51 })

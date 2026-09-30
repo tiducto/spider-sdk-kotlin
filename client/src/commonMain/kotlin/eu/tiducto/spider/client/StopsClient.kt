@@ -59,6 +59,10 @@ internal class StopsClient(
 
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
+            val envelope = parseErrorEnvelope(body)
+            envelope.planLimitCode?.let {
+                throw planLimitFailure("POST $url", httpResponse.status.value, it, envelope.message)
+            }
             val parsed = runCatching { json.decodeFromString<StopSearchError>(body) }.getOrNull()
             val detail = parsed?.message ?: body.take(300).trim()
             throw SpiderTransportException.Http(

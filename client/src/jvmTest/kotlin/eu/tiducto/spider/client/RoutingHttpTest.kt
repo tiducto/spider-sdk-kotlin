@@ -226,12 +226,126 @@ class RoutingHttpTest {
 
     @Test
     fun `a plain 403 stays a key problem`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/plan" to Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}"""))
+        val plain403 = Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}""")
+        gateway.replies = mapOf("/routing/plan" to plain403, "/routing/plan-stream" to plain403)
 
-        val error = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))).error
+        val planError = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))).error
+        val streamError = assertIs<PlanStreamEvent.Failure>(stream().toList().single()).error
 
-        assertIs<SpiderError.Unauthorized>(error)
-        assertEquals(null, error.serverCode)
+        for (error in listOf(planError, streamError)) {
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(null, error.serverCode)
+        }
+    }
+
+    private fun planningLimit(status: Int = 403) =
+        Reply(status, "application/json", """{"error":"planning_limit_reached","message":"trip planning limit reached"}""")
+
+    private fun agreementInactive(status: Int = 403) =
+        Reply(status, "application/json", """{"error":"agreement_inactive","message":"agreement is not active"}""")
+
+    private suspend fun planError() = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))).error
+
+    private suspend fun streamError() = assertIs<PlanStreamEvent.Failure>(stream().toList().single()).error
+
+    @Test
+    fun `a planning limit refusal is PlanningLimitReached on plan and planStream`() = runBlocking<Unit> {
+        gateway.replies = mapOf("/routing/plan" to planningLimit(), "/routing/plan-stream" to planningLimit())
+
+        for (error in listOf(planError(), streamError())) {
+            assertIs<SpiderError.PlanningLimitReached>(error)
+            assertEquals(SpiderErrorCode.PLANNING_LIMIT_REACHED, error.code)
+            assertEquals("planning_limit_reached", error.code.wireName)
+            assertEquals(403, error.httpStatus)
+            assertEquals("planning_limit_reached", error.serverCode)
+            assertEquals("trip planning limit reached", error.message)
+        }
+    }
+
+    @Test
+    fun `an inactive agreement is AgreementInactive on every routing call`() = runBlocking<Unit> {
+        gateway.replies = listOf("/routing/plan", "/routing/plan-stream", "/routing/departures", "/routing/trip")
+            .associateWith { agreementInactive() }
+
+        val errors = listOf(
+            planError(),
+            streamError(),
+            assertIs<SpiderResult.Error>(routing.departures("1:S")).error,
+            assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28")).error,
+        )
+
+        for (error in errors) {
+            assertIs<SpiderError.AgreementInactive>(error)
+            assertEquals(SpiderErrorCode.AGREEMENT_INACTIVE, error.code)
+            assertEquals("agreement_inactive", error.code.wireName)
+            assertEquals(403, error.httpStatus)
+            assertEquals("agreement_inactive", error.serverCode)
+            assertEquals("agreement is not active", error.message)
+        }
+    }
+
+    @Test
+    fun `a plan limit refusal without a message reads the fixed wording on every routing call`() = runBlocking<Unit> {
+        for (message in listOf(null, "", "   ")) {
+            val extra = message?.let { ""","message":"$it"""" }.orEmpty()
+            val limited = Reply(403, "application/json", """{"error":"planning_limit_reached"$extra}""")
+            val inactive = Reply(403, "application/json", """{"error":"agreement_inactive"$extra}""")
+            gateway.replies = mapOf(
+                "/routing/plan" to limited,
+                "/routing/plan-stream" to limited,
+                "/routing/departures" to inactive,
+                "/routing/trip" to inactive,
+            )
+
+            for (error in listOf(planError(), streamError())) {
+                assertIs<SpiderError.PlanningLimitReached>(error)
+                assertEquals("trip planning limit reached", error.message)
+            }
+            val departuresError = assertIs<SpiderResult.Error>(routing.departures("1:S")).error
+            val tripError = assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28")).error
+            for (error in listOf(departuresError, tripError)) {
+                assertIs<SpiderError.AgreementInactive>(error)
+                assertEquals("agreement is not active", error.message)
+            }
+        }
+    }
+
+    @Test
+    fun `a plan limit code in the body code field stays a key problem`() = runBlocking<Unit> {
+        val codeOnly = Reply(403, "application/json", """{"code":"agreement_inactive","message":"agreement is not active"}""")
+        gateway.replies = mapOf("/routing/plan" to codeOnly, "/routing/plan-stream" to codeOnly)
+
+        for (error in listOf(planError(), streamError())) {
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+        }
+    }
+
+    @Test
+    fun `a plan limit code decides over a status a proxy rewrote`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/plan" to planningLimit(400),
+            "/routing/plan-stream" to planningLimit(429),
+            "/routing/departures" to agreementInactive(429),
+            "/routing/trip" to agreementInactive(410),
+        )
+
+        val limited = listOf(planError() to 400, streamError() to 429)
+        val inactive = listOf(
+            assertIs<SpiderResult.Error>(routing.departures("1:S")).error to 429,
+            assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28")).error to 410,
+        )
+
+        for ((error, status) in limited) {
+            assertIs<SpiderError.PlanningLimitReached>(error)
+            assertEquals(status, error.httpStatus)
+            assertEquals("planning_limit_reached", error.serverCode)
+        }
+        for ((error, status) in inactive) {
+            assertIs<SpiderError.AgreementInactive>(error)
+            assertEquals(status, error.httpStatus)
+            assertEquals("agreement_inactive", error.serverCode)
+        }
     }
 
     // A night departure after midnight belongs to the previous service date; rows whose headsign matches the

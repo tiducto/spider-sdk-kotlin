@@ -2,6 +2,7 @@ package eu.tiducto.spider.client
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
@@ -129,6 +130,83 @@ class SpiderErrorTest {
         assertEquals(SpiderErrorCode.UNAUTHORIZED, error.code)
         assertEquals("persisted_query_rejected", error.serverCode)
         assertEquals("routing plan → 403: unknown persisted-query id: abc", error.message)
+    }
+
+    private val planningLimit = """{"error":"planning_limit_reached","message":"trip planning limit reached"}"""
+    private val agreementInactive = """{"error":"agreement_inactive","message":"agreement is not active"}"""
+
+    @Test
+    fun planLimitCodesOnA403MapToTheirOwnErrors() {
+        val limited = routingHttpFailure("plan", 403, planningLimit).toSpiderError()
+        assertIs<SpiderError.PlanningLimitReached>(limited)
+        assertEquals(SpiderErrorCode.PLANNING_LIMIT_REACHED, limited.code)
+        assertEquals("planning_limit_reached", limited.code.wireName)
+        assertEquals("planning_limit_reached", limited.serverCode)
+        assertEquals("trip planning limit reached", limited.message)
+        assertEquals(403, limited.httpStatus)
+
+        val inactive = routingHttpFailure("departures", 403, agreementInactive).toSpiderError()
+        assertIs<SpiderError.AgreementInactive>(inactive)
+        assertEquals(SpiderErrorCode.AGREEMENT_INACTIVE, inactive.code)
+        assertEquals("agreement_inactive", inactive.code.wireName)
+        assertEquals("agreement_inactive", inactive.serverCode)
+        assertEquals("agreement is not active", inactive.message)
+        assertEquals(403, inactive.httpStatus)
+    }
+
+    @Test
+    fun planLimitCodeDecidesWhateverTheStatus() {
+        for (status in listOf(400, 404, 410, 429, 502)) {
+            val limited = routingHttpFailure("plan", status, planningLimit).toSpiderError()
+            assertIs<SpiderError.PlanningLimitReached>(limited)
+            assertEquals(status, limited.httpStatus)
+            val inactive = routingHttpFailure("trip", status, agreementInactive).toSpiderError()
+            assertIs<SpiderError.AgreementInactive>(inactive)
+            assertEquals(status, inactive.httpStatus)
+        }
+    }
+
+    @Test
+    fun planLimitMessageIsTheBodysTrimmedMessage() {
+        val limited = routingHttpFailure("plan", 403, """{"error":"planning_limit_reached","message":"  over the plan  "}""")
+            .toSpiderError()
+        assertEquals("over the plan", limited.message)
+        assertEquals("routing plan → 403: over the plan", limited.cause?.message)
+    }
+
+    @Test
+    fun planLimitMessageFallsBackToTheFixedWordingWhenTheBodyHasNone() {
+        for (extra in listOf("", ""","message":""""", ""","message":"   """", ""","message":null""")) {
+            val limited = routingHttpFailure("plan", 403, """{"error":"planning_limit_reached"$extra}""").toSpiderError()
+            assertIs<SpiderError.PlanningLimitReached>(limited)
+            assertEquals("trip planning limit reached", limited.message)
+            val inactive = routingHttpFailure("trip", 403, """{"error":"agreement_inactive"$extra}""").toSpiderError()
+            assertIs<SpiderError.AgreementInactive>(inactive)
+            assertEquals("agreement is not active", inactive.message)
+        }
+    }
+
+    @Test
+    fun a403WithoutAPlanLimitCodeStaysUnauthorized() {
+        for (body in listOf(
+            "",
+            "Forbidden",
+            """{"message":"Access to this API has been disallowed"}""",
+            """{"error":"forbidden"}""",
+            """{"code":"agreement_inactive","message":"agreement is not active"}""",
+            """{"code":"planning_limit_reached"}""",
+        )) {
+            val error = routingHttpFailure("plan", 403, body).toSpiderError()
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+        }
+        assertIs<SpiderError.Unauthorized>(http(403))
+    }
+
+    @Test
+    fun planLimitErrorsBuiltWithoutACauseKeepTheirMessage() {
+        assertEquals("trip planning limit reached", SpiderError.PlanningLimitReached().message)
+        assertEquals("agreement is not active", SpiderError.AgreementInactive().message)
     }
 
     @Test

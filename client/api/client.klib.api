@@ -113,10 +113,12 @@ final enum class eu.tiducto.spider.client/RoutingErrorCode : kotlin/Enum<eu.tidu
 }
 
 final enum class eu.tiducto.spider.client/SpiderErrorCode : kotlin/Enum<eu.tiducto.spider.client/SpiderErrorCode> { // eu.tiducto.spider.client/SpiderErrorCode|null[0]
+    enum entry AGREEMENT_INACTIVE // eu.tiducto.spider.client/SpiderErrorCode.AGREEMENT_INACTIVE|null[0]
     enum entry BAD_REQUEST // eu.tiducto.spider.client/SpiderErrorCode.BAD_REQUEST|null[0]
     enum entry DECODING // eu.tiducto.spider.client/SpiderErrorCode.DECODING|null[0]
     enum entry NETWORK // eu.tiducto.spider.client/SpiderErrorCode.NETWORK|null[0]
     enum entry NOT_FOUND // eu.tiducto.spider.client/SpiderErrorCode.NOT_FOUND|null[0]
+    enum entry PLANNING_LIMIT_REACHED // eu.tiducto.spider.client/SpiderErrorCode.PLANNING_LIMIT_REACHED|null[0]
     enum entry QUERY_RETIRED // eu.tiducto.spider.client/SpiderErrorCode.QUERY_RETIRED|null[0]
     enum entry RATE_LIMITED // eu.tiducto.spider.client/SpiderErrorCode.RATE_LIMITED|null[0]
     enum entry SERVER // eu.tiducto.spider.client/SpiderErrorCode.SERVER|null[0]
@@ -313,6 +315,24 @@ sealed interface eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.cli
     open val serverCode // eu.tiducto.spider.client/SpiderError.serverCode|{}serverCode[0]
         open fun <get-serverCode>(): kotlin/String? // eu.tiducto.spider.client/SpiderError.serverCode.<get-serverCode>|<get-serverCode>(){}[0]
 
+    final class AgreementInactive : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.AgreementInactive|null[0]
+        constructor <init>(kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.AgreementInactive.<init>|<init>(kotlin.Int?;kotlin.Throwable?){}[0]
+
+        final val cause // eu.tiducto.spider.client/SpiderError.AgreementInactive.cause|{}cause[0]
+            final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.AgreementInactive.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.AgreementInactive.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.AgreementInactive.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
+        final val message // eu.tiducto.spider.client/SpiderError.AgreementInactive.message|{}message[0]
+            final fun <get-message>(): kotlin/String // eu.tiducto.spider.client/SpiderError.AgreementInactive.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.AgreementInactive.component1|component1(){}[0]
+        final fun component2(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.AgreementInactive.component2|component2(){}[0]
+        final fun copy(kotlin/Int? = ..., kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.AgreementInactive // eu.tiducto.spider.client/SpiderError.AgreementInactive.copy|copy(kotlin.Int?;kotlin.Throwable?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.AgreementInactive.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.AgreementInactive.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.AgreementInactive.toString|toString(){}[0]
+    }
+
     final class BadRequest : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.BadRequest|null[0]
         constructor <init>(kotlin/String? = ..., kotlin/String, kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.BadRequest.<init>|<init>(kotlin.String?;kotlin.String;kotlin.Int?;kotlin.Throwable?){}[0]
 
@@ -379,6 +399,24 @@ sealed interface eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.cli
         final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.NotFound.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.NotFound.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.NotFound.toString|toString(){}[0]
+    }
+
+    final class PlanningLimitReached : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.PlanningLimitReached|null[0]
+        constructor <init>(kotlin/Int? = ..., kotlin/Throwable? = ...) // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.<init>|<init>(kotlin.Int?;kotlin.Throwable?){}[0]
+
+        final val cause // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.cause|{}cause[0]
+            final fun <get-cause>(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.cause.<get-cause>|<get-cause>(){}[0]
+        final val httpStatus // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.httpStatus|{}httpStatus[0]
+            final fun <get-httpStatus>(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.httpStatus.<get-httpStatus>|<get-httpStatus>(){}[0]
+        final val message // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.message|{}message[0]
+            final fun <get-message>(): kotlin/String // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.message.<get-message>|<get-message>(){}[0]
+
+        final fun component1(): kotlin/Int? // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.component1|component1(){}[0]
+        final fun component2(): kotlin/Throwable? // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.component2|component2(){}[0]
+        final fun copy(kotlin/Int? = ..., kotlin/Throwable? = ...): eu.tiducto.spider.client/SpiderError.PlanningLimitReached // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.copy|copy(kotlin.Int?;kotlin.Throwable?){}[0]
+        final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.equals|equals(kotlin.Any?){}[0]
+        final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.hashCode|hashCode(){}[0]
+        final fun toString(): kotlin/String // eu.tiducto.spider.client/SpiderError.PlanningLimitReached.toString|toString(){}[0]
     }
 
     final class QueryRetired : eu.tiducto.spider.client/SpiderError { // eu.tiducto.spider.client/SpiderError.QueryRetired|null[0]
