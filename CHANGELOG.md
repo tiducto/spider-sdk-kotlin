@@ -36,7 +36,7 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   an `Unauthorized`.
 - Plan-limit errors, one per state:
   - `SpiderError.PlanningLimitReached` (`SpiderErrorCode.PLANNING_LIMIT_REACHED`, wire name
-    `planning_limit_reached`): the project has used the trip-planning searches its plan includes, so only `plan`
+    `planning_limit_reached`): the project has reached the trip-planning limit its plan includes, so only `plan`
     and `planStream` are refused. Departures, trips, stop search and realtime still answer.
   - `SpiderError.AgreementInactive` (`SpiderErrorCode.AGREEMENT_INACTIVE`, wire name `agreement_inactive`): the
     project has no active agreement, so every call made with the key is refused.

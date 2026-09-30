@@ -106,7 +106,7 @@ sealed interface SpiderError {
     ) : SpiderError
 
     /**
-     * The project has used the trip-planning searches its plan includes, so only trip planning (`plan` and
+     * The project has reached the trip-planning limit its plan includes, so only trip planning (`plan` and
      * `planStream`) is refused. Departures, trips, stop search and realtime still answer. [message] is the API's
      * own message.
      */
