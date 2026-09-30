@@ -127,11 +127,11 @@ internal class RealtimeClient(
         return body()
     }
 
-    private fun httpFailure(where: String, status: HttpStatusCode, body: String): SpiderTransportException.Http {
+    private fun httpFailure(where: String, status: HttpStatusCode, body: String): SpiderTransportException {
         val envelope = parseErrorEnvelope(body)
+        envelope.planLimitCode?.let { return planLimitFailure(where, status.value, it, envelope.message) }
         val detail = envelope.message ?: body.take(300).trim()
-        val serverCode = envelope.planLimitCode ?: envelope.code
-        return SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", serverCode, detail)
+        return SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", envelope.code, detail)
     }
 }
 

@@ -167,6 +167,51 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
+    fun `a plan limit refusal without a message reads the fixed wording on stop search and realtime`() = runBlocking<Unit> {
+        for (message in listOf(null, "", "   ")) {
+            val extra = message?.let { ""","message":"$it"""" }.orEmpty()
+            for ((code, wording) in listOf(
+                "agreement_inactive" to "agreement is not active",
+                "planning_limit_reached" to "trip planning limit reached",
+            )) {
+                val reply = Reply(403, "application/json", """{"error":"$code"$extra}""")
+                gateway.replies = mapOf(
+                    "/stops/search" to reply,
+                    "/realtime/alerts" to reply,
+                    "/realtime/vehicles/by-trip/T1" to Reply(404, "application/json", """{"error":"$code"$extra}"""),
+                )
+
+                val errors = listOf(
+                    assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+                    assertIs<SpiderResult.Error>(realtime.alerts()).error,
+                    assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1")).error,
+                )
+
+                for (error in errors) {
+                    assertEquals(code, error.code.wireName)
+                    assertEquals(wording, error.message)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `a plan limit code in the body code field stays Unauthorized on stop search and realtime`() = runBlocking<Unit> {
+        val codeOnly = Reply(403, "application/json", """{"code":"agreement_inactive","message":"agreement is not active"}""")
+        gateway.replies = mapOf("/stops/search" to codeOnly, "/realtime/alerts" to codeOnly)
+
+        val errors = listOf(
+            assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+            assertIs<SpiderResult.Error>(realtime.alerts()).error,
+        )
+
+        for (error in errors) {
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+        }
+    }
+
+    @Test
     fun `a plain 403 on stop search and realtime stays Unauthorized`() = runBlocking<Unit> {
         val plain403 = Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}""")
         gateway.replies = mapOf("/stops/search" to plain403, "/realtime/alerts" to plain403)

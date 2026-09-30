@@ -167,8 +167,35 @@ class SpiderErrorTest {
     }
 
     @Test
+    fun planLimitMessageIsTheBodysTrimmedMessage() {
+        val limited = routingHttpFailure("plan", 403, """{"error":"planning_limit_reached","message":"  over the plan  "}""")
+            .toSpiderError()
+        assertEquals("over the plan", limited.message)
+        assertEquals("routing plan → 403: over the plan", limited.cause?.message)
+    }
+
+    @Test
+    fun planLimitMessageFallsBackToTheFixedWordingWhenTheBodyHasNone() {
+        for (extra in listOf("", ""","message":""""", ""","message":"   """", ""","message":null""")) {
+            val limited = routingHttpFailure("plan", 403, """{"error":"planning_limit_reached"$extra}""").toSpiderError()
+            assertIs<SpiderError.PlanningLimitReached>(limited)
+            assertEquals("trip planning limit reached", limited.message)
+            val inactive = routingHttpFailure("trip", 403, """{"error":"agreement_inactive"$extra}""").toSpiderError()
+            assertIs<SpiderError.AgreementInactive>(inactive)
+            assertEquals("agreement is not active", inactive.message)
+        }
+    }
+
+    @Test
     fun a403WithoutAPlanLimitCodeStaysUnauthorized() {
-        for (body in listOf("", "Forbidden", """{"message":"Access to this API has been disallowed"}""", """{"error":"forbidden"}""")) {
+        for (body in listOf(
+            "",
+            "Forbidden",
+            """{"message":"Access to this API has been disallowed"}""",
+            """{"error":"forbidden"}""",
+            """{"code":"agreement_inactive","message":"agreement is not active"}""",
+            """{"code":"planning_limit_reached"}""",
+        )) {
             val error = routingHttpFailure("plan", 403, body).toSpiderError()
             assertIs<SpiderError.Unauthorized>(error)
             assertEquals(403, error.httpStatus)

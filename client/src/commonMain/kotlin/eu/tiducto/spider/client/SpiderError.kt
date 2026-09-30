@@ -32,7 +32,11 @@ sealed interface SpiderError {
         get() = cause?.message ?: code.wireName
 
     val serverCode: String?
-        get() = (cause as? SpiderTransportException.Http)?.serverCode
+        get() = when (val cause = cause) {
+            is SpiderTransportException.Http -> cause.serverCode
+            is SpiderTransportException.PlanLimit -> cause.code
+            else -> null
+        }
 
     val code: SpiderErrorCode
         get() = when (this) {
@@ -108,26 +112,26 @@ sealed interface SpiderError {
     /**
      * The project has reached the trip-planning limit its plan includes, so only trip planning (`plan` and
      * `planStream`) is refused. Departures, trips, stop search and realtime still answer. [message] is the API's
-     * own message.
+     * own message, or `trip planning limit reached` when the body has none.
      */
     data class PlanningLimitReached(
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
     ) : SpiderError {
         override val message: String
-            get() = (cause as? SpiderTransportException.Http)?.detail ?: "trip planning limit reached"
+            get() = (cause as? SpiderTransportException.PlanLimit)?.detail ?: PLANNING_LIMIT_REACHED_MESSAGE
     }
 
     /**
      * The project has no active agreement, so every call made with the key is refused. [message] is the API's
-     * own message.
+     * own message, or `agreement is not active` when the body has none.
      */
     data class AgreementInactive(
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
     ) : SpiderError {
         override val message: String
-            get() = (cause as? SpiderTransportException.Http)?.detail ?: "agreement is not active"
+            get() = (cause as? SpiderTransportException.PlanLimit)?.detail ?: AGREEMENT_INACTIVE_MESSAGE
     }
 
     data class Decoding(override val cause: Throwable? = null) : SpiderError {
@@ -148,16 +152,21 @@ internal sealed class SpiderTransportException(message: String) : RuntimeExcepti
         val serverCode: String? = null,
         val detail: String? = null,
     ) : SpiderTransportException(message)
+    // A plan limit refused the key: [code] is the body's `error`, [detail] the message the error reports.
+    class PlanLimit(val status: Int, message: String, val code: String, val detail: String) :
+        SpiderTransportException(message)
     class NoData(message: String) : SpiderTransportException(message)
     class Upstream(message: String) : SpiderTransportException(message)
     class BadRequest(val field: String?, message: String) : SpiderTransportException(message)
 }
 
 internal fun Throwable.toSpiderError(): SpiderError = when (this) {
+    is SpiderTransportException.PlanLimit -> when (code) {
+        PLANNING_LIMIT_REACHED_SERVER_CODE -> SpiderError.PlanningLimitReached(status, this)
+        else -> SpiderError.AgreementInactive(status, this)
+    }
     is SpiderTransportException.Http -> when (serverCode) {
         QUERY_RETIRED_SERVER_CODE -> SpiderError.QueryRetired(status, this)
-        PLANNING_LIMIT_REACHED_SERVER_CODE -> SpiderError.PlanningLimitReached(status, this)
-        AGREEMENT_INACTIVE_SERVER_CODE -> SpiderError.AgreementInactive(status, this)
         else -> when (status) {
             400 -> SpiderError.BadRequest(
                 field = detail?.let(::fieldOfBadRequest),
@@ -188,14 +197,23 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
 internal const val UNKNOWN_QUERY_SERVER_CODE: String = "persisted_query_rejected"
 internal const val QUERY_RETIRED_SERVER_CODE: String = "query_retired"
 
-// The gateway's `error` codes when a plan limit refuses the key (403, before any upstream call). Only the code
-// decides, whatever the status a proxy passes on; a 403 without one stays Unauthorized.
+// The gateway's `error` codes when a plan limit refuses the key (403, before any upstream call). Only the body's
+// `error` decides, whatever the status a proxy passes on; a 403 without one stays Unauthorized.
 internal const val PLANNING_LIMIT_REACHED_SERVER_CODE: String = "planning_limit_reached"
 internal const val AGREEMENT_INACTIVE_SERVER_CODE: String = "agreement_inactive"
+private const val PLANNING_LIMIT_REACHED_MESSAGE = "trip planning limit reached"
+private const val AGREEMENT_INACTIVE_MESSAGE = "agreement is not active"
 
 internal val ErrorEnvelope.planLimitCode: String?
-    get() = listOfNotNull(error, code)
-        .firstOrNull { it == PLANNING_LIMIT_REACHED_SERVER_CODE || it == AGREEMENT_INACTIVE_SERVER_CODE }
+    get() = error?.takeIf { it == PLANNING_LIMIT_REACHED_SERVER_CODE || it == AGREEMENT_INACTIVE_SERVER_CODE }
+
+// The refusal carries the body's message when it has one, else the fixed wording for [code]. [where] prefixes
+// the transport message the same way the surface's other HTTP failures do.
+internal fun planLimitFailure(where: String, status: Int, code: String, message: String?): SpiderTransportException {
+    val detail = message?.trim()?.takeIf { it.isNotEmpty() }
+        ?: if (code == PLANNING_LIMIT_REACHED_SERVER_CODE) PLANNING_LIMIT_REACHED_MESSAGE else AGREEMENT_INACTIVE_MESSAGE
+    return SpiderTransportException.PlanLimit(status, "$where → $status: $detail", code, detail)
+}
 
 // A fixed platform limit, checked before any request. Like the API's own BAD_REQUEST, the message names
 // only the field.

@@ -6,6 +6,8 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 ## [Unreleased]
 
+Targets Spider API contract 1.0. The first stable release: from here on, breaking changes need a new major.
+
 ### Added
 
 - **Connection pre-warm** — `SpiderClient.warmup()` opens the TLS connection to the per-env API host
@@ -41,9 +43,11 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   - `SpiderError.AgreementInactive` (`SpiderErrorCode.AGREEMENT_INACTIVE`, wire name `agreement_inactive`): the
     project has no active agreement, so every call made with the key is refused.
 
-  The body's code decides, whatever the HTTP status; a 403 without one of these codes stays `Unauthorized`.
-  `message` is the API's (`trip planning limit reached`, `agreement is not active`), and `httpStatus` and
-  `serverCode` are carried as for other errors. A `planStream` refused this way ends in `Failure` with that error.
+  The body's `error` code decides, whatever the HTTP status; a 403 without one of these codes stays
+  `Unauthorized`. On `vehicleForTrip`, a 404 carrying one of these codes is that error, not "no vehicle".
+  `message` is the body's message, or `trip planning limit reached` / `agreement is not active` when the body has
+  none; `httpStatus` and `serverCode` are carried as for other errors. A `planStream` refused this way ends in
+  `Failure` with that error.
 - `Stop.modes`: the modes of the routes serving a stop, as `TransitMode` (an unrecognised mode is `UNKNOWN`),
   and a `modes` filter on stop search (`search { modes = setOf(TransitMode.TRAM) }`) matching stops served by
   any of the given modes (`UNKNOWN` is ignored). `Stop.code` (GTFS `stop_code`) and `Stop.locationType`

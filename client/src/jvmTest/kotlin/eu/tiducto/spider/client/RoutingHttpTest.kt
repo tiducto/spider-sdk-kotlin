@@ -285,6 +285,43 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `a plan limit refusal without a message reads the fixed wording on every routing call`() = runBlocking<Unit> {
+        for (message in listOf(null, "", "   ")) {
+            val extra = message?.let { ""","message":"$it"""" }.orEmpty()
+            val limited = Reply(403, "application/json", """{"error":"planning_limit_reached"$extra}""")
+            val inactive = Reply(403, "application/json", """{"error":"agreement_inactive"$extra}""")
+            gateway.replies = mapOf(
+                "/routing/plan" to limited,
+                "/routing/plan-stream" to limited,
+                "/routing/departures" to inactive,
+                "/routing/trip" to inactive,
+            )
+
+            for (error in listOf(planError(), streamError())) {
+                assertIs<SpiderError.PlanningLimitReached>(error)
+                assertEquals("trip planning limit reached", error.message)
+            }
+            val departuresError = assertIs<SpiderResult.Error>(routing.departures("1:S")).error
+            val tripError = assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28")).error
+            for (error in listOf(departuresError, tripError)) {
+                assertIs<SpiderError.AgreementInactive>(error)
+                assertEquals("agreement is not active", error.message)
+            }
+        }
+    }
+
+    @Test
+    fun `a plan limit code in the body code field stays a key problem`() = runBlocking<Unit> {
+        val codeOnly = Reply(403, "application/json", """{"code":"agreement_inactive","message":"agreement is not active"}""")
+        gateway.replies = mapOf("/routing/plan" to codeOnly, "/routing/plan-stream" to codeOnly)
+
+        for (error in listOf(planError(), streamError())) {
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+        }
+    }
+
+    @Test
     fun `a plan limit code decides over a status a proxy rewrote`() = runBlocking<Unit> {
         gateway.replies = mapOf(
             "/routing/plan" to planningLimit(400),
