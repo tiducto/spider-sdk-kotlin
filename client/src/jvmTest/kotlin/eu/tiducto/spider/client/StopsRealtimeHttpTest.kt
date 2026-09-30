@@ -108,6 +108,50 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
+    fun `plan limit codes map on stop search and realtime whatever the status`() = runBlocking<Unit> {
+        val searchLimit = """{"error":"search_limit_reached","message":"search limit reached"}"""
+        val agreementInactive = """{"error":"agreement_inactive","message":"agreement is not active"}"""
+        val cases = listOf(
+            Triple(Reply(403, "application/json", agreementInactive), SpiderErrorCode.AGREEMENT_INACTIVE, "agreement is not active"),
+            Triple(Reply(400, "application/json", agreementInactive), SpiderErrorCode.AGREEMENT_INACTIVE, "agreement is not active"),
+            Triple(Reply(403, "application/json", searchLimit), SpiderErrorCode.SEARCH_LIMIT_REACHED, "search limit reached"),
+        )
+        for ((reply, code, message) in cases) {
+            gateway.replies = mapOf("/stops/search" to reply, "/realtime/vehicles" to reply, "/realtime/alerts" to reply)
+
+            val errors = listOf(
+                assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+                assertIs<SpiderResult.Error>(realtime.vehicles(listOf("1:T"))).error,
+                assertIs<SpiderResult.Error>(realtime.alerts()).error,
+            )
+
+            for (error in errors) {
+                assertEquals(code, error.code)
+                assertEquals(code.wireName, error.serverCode)
+                assertEquals(message, error.message)
+                assertEquals(reply.status, error.httpStatus)
+            }
+        }
+    }
+
+    @Test
+    fun `a plain 403 on stop search and realtime stays Unauthorized`() = runBlocking<Unit> {
+        val plain403 = Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}""")
+        gateway.replies = mapOf("/stops/search" to plain403, "/realtime/alerts" to plain403)
+
+        val errors = listOf(
+            assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
+            assertIs<SpiderResult.Error>(realtime.alerts()).error,
+        )
+
+        for (error in errors) {
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+            assertEquals(null, error.serverCode)
+        }
+    }
+
+    @Test
     fun `a stop search limit outside 1 to 50 is a BadRequest without a request`() = runBlocking<Unit> {
         assertOutOfRange("limit", stops.search { filter { name eq "x" }; limit = 0 })
         assertOutOfRange("limit", stops.search { filter { name eq "x" }; limit = 51 })

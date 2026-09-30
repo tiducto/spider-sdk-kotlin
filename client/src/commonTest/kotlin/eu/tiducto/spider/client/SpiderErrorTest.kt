@@ -2,6 +2,7 @@ package eu.tiducto.spider.client
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlinx.io.IOException
 import kotlinx.serialization.SerializationException
@@ -129,6 +130,56 @@ class SpiderErrorTest {
         assertEquals(SpiderErrorCode.UNAUTHORIZED, error.code)
         assertEquals("persisted_query_rejected", error.serverCode)
         assertEquals("routing plan → 403: unknown persisted-query id: abc", error.message)
+    }
+
+    private val searchLimit = """{"error":"search_limit_reached","message":"search limit reached"}"""
+    private val agreementInactive = """{"error":"agreement_inactive","message":"agreement is not active"}"""
+
+    @Test
+    fun planLimitCodesOnA403MapToTheirOwnErrors() {
+        val limited = routingHttpFailure("plan", 403, searchLimit).toSpiderError()
+        assertIs<SpiderError.SearchLimitReached>(limited)
+        assertEquals(SpiderErrorCode.SEARCH_LIMIT_REACHED, limited.code)
+        assertEquals("search_limit_reached", limited.code.wireName)
+        assertEquals("search_limit_reached", limited.serverCode)
+        assertEquals("search limit reached", limited.message)
+        assertEquals(403, limited.httpStatus)
+
+        val inactive = routingHttpFailure("departures", 403, agreementInactive).toSpiderError()
+        assertIs<SpiderError.AgreementInactive>(inactive)
+        assertEquals(SpiderErrorCode.AGREEMENT_INACTIVE, inactive.code)
+        assertEquals("agreement_inactive", inactive.code.wireName)
+        assertEquals("agreement_inactive", inactive.serverCode)
+        assertEquals("agreement is not active", inactive.message)
+        assertEquals(403, inactive.httpStatus)
+    }
+
+    @Test
+    fun planLimitCodeDecidesWhateverTheStatus() {
+        for (status in listOf(400, 404, 410, 429, 502)) {
+            val limited = routingHttpFailure("plan", status, searchLimit).toSpiderError()
+            assertIs<SpiderError.SearchLimitReached>(limited)
+            assertEquals(status, limited.httpStatus)
+            val inactive = routingHttpFailure("trip", status, agreementInactive).toSpiderError()
+            assertIs<SpiderError.AgreementInactive>(inactive)
+            assertEquals(status, inactive.httpStatus)
+        }
+    }
+
+    @Test
+    fun a403WithoutAPlanLimitCodeStaysUnauthorized() {
+        for (body in listOf("", "Forbidden", """{"message":"Access to this API has been disallowed"}""", """{"error":"forbidden"}""")) {
+            val error = routingHttpFailure("plan", 403, body).toSpiderError()
+            assertIs<SpiderError.Unauthorized>(error)
+            assertEquals(403, error.httpStatus)
+        }
+        assertIs<SpiderError.Unauthorized>(http(403))
+    }
+
+    @Test
+    fun planLimitErrorsBuiltWithoutACauseKeepTheirMessage() {
+        assertEquals("search limit reached", SpiderError.SearchLimitReached().message)
+        assertEquals("agreement is not active", SpiderError.AgreementInactive().message)
     }
 
     @Test

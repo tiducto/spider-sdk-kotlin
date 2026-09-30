@@ -124,7 +124,8 @@ internal class RealtimeClient(
             val body = bodyAsText()
             val envelope = parseErrorEnvelope(body)
             val detail = envelope.message ?: body.take(300).trim()
-            throw SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", envelope.code, detail)
+            val serverCode = envelope.planLimitCode ?: envelope.code
+            throw SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", serverCode, detail)
         }
         return body()
     }

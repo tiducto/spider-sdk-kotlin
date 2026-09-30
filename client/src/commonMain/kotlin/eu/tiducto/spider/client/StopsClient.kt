@@ -64,7 +64,7 @@ internal class StopsClient(
             throw SpiderTransportException.Http(
                 httpResponse.status.value,
                 "POST $url → ${httpResponse.status.value}: $detail",
-                parsed?.code,
+                parseErrorEnvelope(body).planLimitCode ?: parsed?.code,
                 detail,
             )
         }

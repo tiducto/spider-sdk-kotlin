@@ -34,6 +34,16 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 - `SpiderError.QueryRetired` (`SpiderErrorCode.QUERY_RETIRED`, wire name `query_retired`): the persisted query
   a call sends is retired and the API no longer serves it (HTTP 410). It reports the query's state; it is not
   an `Unauthorized`.
+- Plan-limit errors, one per state:
+  - `SpiderError.SearchLimitReached` (`SpiderErrorCode.SEARCH_LIMIT_REACHED`, wire name `search_limit_reached`):
+    the project has used the searches its plan includes, so `plan` and `planStream` are refused. Departures,
+    trips, stop search and realtime still answer.
+  - `SpiderError.AgreementInactive` (`SpiderErrorCode.AGREEMENT_INACTIVE`, wire name `agreement_inactive`): the
+    project has no active agreement, so every call made with the key is refused.
+
+  The body's code decides, whatever the HTTP status; a 403 without one of these codes stays `Unauthorized`.
+  `message` is the API's (`search limit reached`, `agreement is not active`), and `httpStatus` and `serverCode`
+  are carried as for other errors. A `planStream` refused this way ends in `Failure` with that error.
 - `Stop.modes`: the modes of the routes serving a stop, as `TransitMode` (an unrecognised mode is `UNKNOWN`),
   and a `modes` filter on stop search (`search { modes = setOf(TransitMode.TRAM) }`) matching stops served by
   any of the given modes (`UNKNOWN` is ignored). `Stop.code` (GTFS `stop_code`) and `Stop.locationType`

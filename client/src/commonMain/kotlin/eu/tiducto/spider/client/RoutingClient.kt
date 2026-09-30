@@ -472,11 +472,13 @@ private suspend fun SSEClientException.toStreamFailure(json: Json): SpiderError 
     return routingHttpFailure(PersistedQueries.PLAN_STREAM.path, response.status.value, body).toSpiderError()
 }
 
-// The gateway answers a retired query id with 410 {"error":"query_retired"} and an id it never had with
-// 403 {"error":"persisted_query_rejected"}; both keep the gateway's code so the SpiderError can tell them apart.
+// The gateway answers a retired query id with 410 {"error":"query_retired"}, an id it never had with
+// 403 {"error":"persisted_query_rejected"}, and a key a plan limit refuses with 403 and that limit's code; each
+// keeps the gateway's code so the SpiderError can tell them apart.
 internal fun routingHttpFailure(path: String, status: Int, body: String): SpiderTransportException.Http {
     val envelope = parseErrorEnvelope(body)
     val serverCode = when {
+        envelope.planLimitCode != null -> envelope.planLimitCode
         envelope.error == QUERY_RETIRED_SERVER_CODE || status == 410 -> QUERY_RETIRED_SERVER_CODE
         status == 403 && envelope.error == UNKNOWN_QUERY_SERVER_CODE -> UNKNOWN_QUERY_SERVER_CODE
         else -> envelope.code
