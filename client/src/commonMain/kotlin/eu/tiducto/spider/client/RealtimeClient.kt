@@ -69,11 +69,14 @@ internal class RealtimeClient(
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles", "by-trip", tripId) }
         }
-        // No vehicle currently reporting for this trip is a normal state, not a failure.
+        // No vehicle currently reporting for this trip is a normal state, not a failure; a plan-limit code in
+        // the body still decides, whatever status a proxy passes on.
         if (response.status == HttpStatusCode.NotFound) {
+            val body = response.bodyAsText()
+            if (parseErrorEnvelope(body).planLimitCode != null) throw httpFailure(BY_TRIP, response.status, body)
             return LiveVehicleUpdate(vehicle = null, freshness = FeedFreshness(null, null))
         }
-        val dto: VehicleByTripResponseDto = response.decodeOrThrow("realtime/vehicles/by-trip")
+        val dto: VehicleByTripResponseDto = response.decodeOrThrow(BY_TRIP)
         return LiveVehicleUpdate(
             vehicle = dto.vehicle?.toDomain(),
             freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
@@ -120,18 +123,20 @@ internal class RealtimeClient(
         }
 
     private suspend inline fun <reified T> HttpResponse.decodeOrThrow(where: String): T {
-        if (!status.isSuccess()) {
-            val body = bodyAsText()
-            val envelope = parseErrorEnvelope(body)
-            val detail = envelope.message ?: body.take(300).trim()
-            val serverCode = envelope.planLimitCode ?: envelope.code
-            throw SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", serverCode, detail)
-        }
+        if (!status.isSuccess()) throw httpFailure(where, status, bodyAsText())
         return body()
+    }
+
+    private fun httpFailure(where: String, status: HttpStatusCode, body: String): SpiderTransportException.Http {
+        val envelope = parseErrorEnvelope(body)
+        val detail = envelope.message ?: body.take(300).trim()
+        val serverCode = envelope.planLimitCode ?: envelope.code
+        return SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", serverCode, detail)
     }
 }
 
 private const val MAX_TRIP_IDS = 50
+private const val BY_TRIP = "realtime/vehicles/by-trip"
 
 // Epoch seconds → Instant; nulls (feed hasn't reported a timestamp) stay null.
 private fun Long?.toInstantOrNull(): Instant? = this?.let { Instant.fromEpochSeconds(it) }

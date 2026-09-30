@@ -135,6 +135,38 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
+    fun `a plan limit code on a 404 for a trip vehicle is that error`() = runBlocking<Unit> {
+        val cases = listOf(
+            """{"error":"search_limit_reached","message":"search limit reached"}""" to SpiderErrorCode.SEARCH_LIMIT_REACHED,
+            """{"error":"agreement_inactive","message":"agreement is not active"}""" to SpiderErrorCode.AGREEMENT_INACTIVE,
+        )
+        for ((body, code) in cases) {
+            gateway.replies = mapOf("/realtime/vehicles/by-trip/T1" to Reply(404, "application/json", body))
+
+            val error = assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1")).error
+
+            assertEquals(code, error.code)
+            assertEquals(code.wireName, error.serverCode)
+            assertEquals(404, error.httpStatus)
+        }
+    }
+
+    @Test
+    fun `a plain 404 for a trip vehicle is still no vehicle`() = runBlocking<Unit> {
+        for (reply in listOf(
+            Reply(404, "application/json", "{}"),
+            Reply(404, "application/json", """{"error":"not_found","message":"no vehicle for trip"}"""),
+            Reply(404, "text/plain", ""),
+        )) {
+            gateway.replies = mapOf("/realtime/vehicles/by-trip/T1" to reply)
+
+            val update = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(realtime.vehicleForTrip("T1")).data
+
+            assertEquals(null, update.vehicle)
+        }
+    }
+
+    @Test
     fun `a plain 403 on stop search and realtime stays Unauthorized`() = runBlocking<Unit> {
         val plain403 = Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}""")
         gateway.replies = mapOf("/stops/search" to plain403, "/realtime/alerts" to plain403)
