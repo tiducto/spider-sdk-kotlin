@@ -132,17 +132,17 @@ class SpiderErrorTest {
         assertEquals("routing plan → 403: unknown persisted-query id: abc", error.message)
     }
 
-    private val searchLimit = """{"error":"search_limit_reached","message":"search limit reached"}"""
+    private val planningLimit = """{"error":"planning_limit_reached","message":"trip planning limit reached"}"""
     private val agreementInactive = """{"error":"agreement_inactive","message":"agreement is not active"}"""
 
     @Test
     fun planLimitCodesOnA403MapToTheirOwnErrors() {
-        val limited = routingHttpFailure("plan", 403, searchLimit).toSpiderError()
-        assertIs<SpiderError.SearchLimitReached>(limited)
-        assertEquals(SpiderErrorCode.SEARCH_LIMIT_REACHED, limited.code)
-        assertEquals("search_limit_reached", limited.code.wireName)
-        assertEquals("search_limit_reached", limited.serverCode)
-        assertEquals("search limit reached", limited.message)
+        val limited = routingHttpFailure("plan", 403, planningLimit).toSpiderError()
+        assertIs<SpiderError.PlanningLimitReached>(limited)
+        assertEquals(SpiderErrorCode.PLANNING_LIMIT_REACHED, limited.code)
+        assertEquals("planning_limit_reached", limited.code.wireName)
+        assertEquals("planning_limit_reached", limited.serverCode)
+        assertEquals("trip planning limit reached", limited.message)
         assertEquals(403, limited.httpStatus)
 
         val inactive = routingHttpFailure("departures", 403, agreementInactive).toSpiderError()
@@ -157,8 +157,8 @@ class SpiderErrorTest {
     @Test
     fun planLimitCodeDecidesWhateverTheStatus() {
         for (status in listOf(400, 404, 410, 429, 502)) {
-            val limited = routingHttpFailure("plan", status, searchLimit).toSpiderError()
-            assertIs<SpiderError.SearchLimitReached>(limited)
+            val limited = routingHttpFailure("plan", status, planningLimit).toSpiderError()
+            assertIs<SpiderError.PlanningLimitReached>(limited)
             assertEquals(status, limited.httpStatus)
             val inactive = routingHttpFailure("trip", status, agreementInactive).toSpiderError()
             assertIs<SpiderError.AgreementInactive>(inactive)
@@ -178,7 +178,7 @@ class SpiderErrorTest {
 
     @Test
     fun planLimitErrorsBuiltWithoutACauseKeepTheirMessage() {
-        assertEquals("search limit reached", SpiderError.SearchLimitReached().message)
+        assertEquals("trip planning limit reached", SpiderError.PlanningLimitReached().message)
         assertEquals("agreement is not active", SpiderError.AgreementInactive().message)
     }
 

@@ -109,12 +109,12 @@ class StopsRealtimeHttpTest {
 
     @Test
     fun `plan limit codes map on stop search and realtime whatever the status`() = runBlocking<Unit> {
-        val searchLimit = """{"error":"search_limit_reached","message":"search limit reached"}"""
+        val planningLimit = """{"error":"planning_limit_reached","message":"trip planning limit reached"}"""
         val agreementInactive = """{"error":"agreement_inactive","message":"agreement is not active"}"""
         val cases = listOf(
             Triple(Reply(403, "application/json", agreementInactive), SpiderErrorCode.AGREEMENT_INACTIVE, "agreement is not active"),
             Triple(Reply(400, "application/json", agreementInactive), SpiderErrorCode.AGREEMENT_INACTIVE, "agreement is not active"),
-            Triple(Reply(403, "application/json", searchLimit), SpiderErrorCode.SEARCH_LIMIT_REACHED, "search limit reached"),
+            Triple(Reply(403, "application/json", planningLimit), SpiderErrorCode.PLANNING_LIMIT_REACHED, "trip planning limit reached"),
         )
         for ((reply, code, message) in cases) {
             gateway.replies = mapOf("/stops/search" to reply, "/realtime/vehicles" to reply, "/realtime/alerts" to reply)
@@ -137,7 +137,7 @@ class StopsRealtimeHttpTest {
     @Test
     fun `a plan limit code on a 404 for a trip vehicle is that error`() = runBlocking<Unit> {
         val cases = listOf(
-            """{"error":"search_limit_reached","message":"search limit reached"}""" to SpiderErrorCode.SEARCH_LIMIT_REACHED,
+            """{"error":"planning_limit_reached","message":"trip planning limit reached"}""" to SpiderErrorCode.PLANNING_LIMIT_REACHED,
             """{"error":"agreement_inactive","message":"agreement is not active"}""" to SpiderErrorCode.AGREEMENT_INACTIVE,
         )
         for ((body, code) in cases) {

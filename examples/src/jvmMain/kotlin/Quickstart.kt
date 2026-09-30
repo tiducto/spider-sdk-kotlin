@@ -46,7 +46,7 @@ suspend fun handleErrors(client: SpiderClient) {
             is SpiderError.BadRequest -> println("Invalid request on ${error.field ?: "input"}: ${error.message}")
             is SpiderError.RateLimited -> println("Rate limited — back off and retry later")
             is SpiderError.QueryRetired -> println("This query is retired: ${error.message}")
-            is SpiderError.SearchLimitReached -> println("Trip planning is refused: ${error.message}")
+            is SpiderError.PlanningLimitReached -> println("Trip planning is refused: ${error.message}")
             is SpiderError.AgreementInactive -> println("Every call is refused: ${error.message}")
             is SpiderError.Timeout -> println("Timed out — safe to retry")
             is SpiderError.NotFound -> println("No data for that request")
@@ -68,7 +68,7 @@ fun isRetryable(error: SpiderError): Boolean = when (error.code) {
     SpiderErrorCode.BAD_REQUEST,
     SpiderErrorCode.NOT_FOUND,
     SpiderErrorCode.QUERY_RETIRED,
-    SpiderErrorCode.SEARCH_LIMIT_REACHED,
+    SpiderErrorCode.PLANNING_LIMIT_REACHED,
     SpiderErrorCode.AGREEMENT_INACTIVE,
     SpiderErrorCode.DECODING,
     SpiderErrorCode.UNKNOWN -> false

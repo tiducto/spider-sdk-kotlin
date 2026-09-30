@@ -18,7 +18,7 @@ enum class SpiderErrorCode(val wireName: String) {
     SERVER("server"),
     RATE_LIMITED("rate_limited"),
     QUERY_RETIRED("query_retired"),
-    SEARCH_LIMIT_REACHED("search_limit_reached"),
+    PLANNING_LIMIT_REACHED("planning_limit_reached"),
     AGREEMENT_INACTIVE("agreement_inactive"),
     DECODING("decoding"),
     UNKNOWN("unknown"),
@@ -44,7 +44,7 @@ sealed interface SpiderError {
             is Server -> SpiderErrorCode.SERVER
             is RateLimited -> SpiderErrorCode.RATE_LIMITED
             is QueryRetired -> SpiderErrorCode.QUERY_RETIRED
-            is SearchLimitReached -> SpiderErrorCode.SEARCH_LIMIT_REACHED
+            is PlanningLimitReached -> SpiderErrorCode.PLANNING_LIMIT_REACHED
             is AgreementInactive -> SpiderErrorCode.AGREEMENT_INACTIVE
             is Decoding -> SpiderErrorCode.DECODING
             is Unknown -> SpiderErrorCode.UNKNOWN
@@ -106,15 +106,16 @@ sealed interface SpiderError {
     ) : SpiderError
 
     /**
-     * The project has used the searches its plan includes, so trip planning (`plan` and `planStream`) is
-     * refused. Departures, trips, stop search and realtime still answer. [message] is the API's own message.
+     * The project has used the trip-planning searches its plan includes, so only trip planning (`plan` and
+     * `planStream`) is refused. Departures, trips, stop search and realtime still answer. [message] is the API's
+     * own message.
      */
-    data class SearchLimitReached(
+    data class PlanningLimitReached(
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
     ) : SpiderError {
         override val message: String
-            get() = (cause as? SpiderTransportException.Http)?.detail ?: "search limit reached"
+            get() = (cause as? SpiderTransportException.Http)?.detail ?: "trip planning limit reached"
     }
 
     /**
@@ -155,7 +156,7 @@ internal sealed class SpiderTransportException(message: String) : RuntimeExcepti
 internal fun Throwable.toSpiderError(): SpiderError = when (this) {
     is SpiderTransportException.Http -> when (serverCode) {
         QUERY_RETIRED_SERVER_CODE -> SpiderError.QueryRetired(status, this)
-        SEARCH_LIMIT_REACHED_SERVER_CODE -> SpiderError.SearchLimitReached(status, this)
+        PLANNING_LIMIT_REACHED_SERVER_CODE -> SpiderError.PlanningLimitReached(status, this)
         AGREEMENT_INACTIVE_SERVER_CODE -> SpiderError.AgreementInactive(status, this)
         else -> when (status) {
             400 -> SpiderError.BadRequest(
@@ -189,12 +190,12 @@ internal const val QUERY_RETIRED_SERVER_CODE: String = "query_retired"
 
 // The gateway's `error` codes when a plan limit refuses the key (403, before any upstream call). Only the code
 // decides, whatever the status a proxy passes on; a 403 without one stays Unauthorized.
-internal const val SEARCH_LIMIT_REACHED_SERVER_CODE: String = "search_limit_reached"
+internal const val PLANNING_LIMIT_REACHED_SERVER_CODE: String = "planning_limit_reached"
 internal const val AGREEMENT_INACTIVE_SERVER_CODE: String = "agreement_inactive"
 
 internal val ErrorEnvelope.planLimitCode: String?
     get() = listOfNotNull(error, code)
-        .firstOrNull { it == SEARCH_LIMIT_REACHED_SERVER_CODE || it == AGREEMENT_INACTIVE_SERVER_CODE }
+        .firstOrNull { it == PLANNING_LIMIT_REACHED_SERVER_CODE || it == AGREEMENT_INACTIVE_SERVER_CODE }
 
 // A fixed platform limit, checked before any request. Like the API's own BAD_REQUEST, the message names
 // only the field.

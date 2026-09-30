@@ -238,8 +238,8 @@ class RoutingHttpTest {
         }
     }
 
-    private fun searchLimit(status: Int = 403) =
-        Reply(status, "application/json", """{"error":"search_limit_reached","message":"search limit reached"}""")
+    private fun planningLimit(status: Int = 403) =
+        Reply(status, "application/json", """{"error":"planning_limit_reached","message":"trip planning limit reached"}""")
 
     private fun agreementInactive(status: Int = 403) =
         Reply(status, "application/json", """{"error":"agreement_inactive","message":"agreement is not active"}""")
@@ -249,16 +249,16 @@ class RoutingHttpTest {
     private suspend fun streamError() = assertIs<PlanStreamEvent.Failure>(stream().toList().single()).error
 
     @Test
-    fun `a search limit refusal is SearchLimitReached on plan and planStream`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/plan" to searchLimit(), "/routing/plan-stream" to searchLimit())
+    fun `a planning limit refusal is PlanningLimitReached on plan and planStream`() = runBlocking<Unit> {
+        gateway.replies = mapOf("/routing/plan" to planningLimit(), "/routing/plan-stream" to planningLimit())
 
         for (error in listOf(planError(), streamError())) {
-            assertIs<SpiderError.SearchLimitReached>(error)
-            assertEquals(SpiderErrorCode.SEARCH_LIMIT_REACHED, error.code)
-            assertEquals("search_limit_reached", error.code.wireName)
+            assertIs<SpiderError.PlanningLimitReached>(error)
+            assertEquals(SpiderErrorCode.PLANNING_LIMIT_REACHED, error.code)
+            assertEquals("planning_limit_reached", error.code.wireName)
             assertEquals(403, error.httpStatus)
-            assertEquals("search_limit_reached", error.serverCode)
-            assertEquals("search limit reached", error.message)
+            assertEquals("planning_limit_reached", error.serverCode)
+            assertEquals("trip planning limit reached", error.message)
         }
     }
 
@@ -287,8 +287,8 @@ class RoutingHttpTest {
     @Test
     fun `a plan limit code decides over a status a proxy rewrote`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/plan" to searchLimit(400),
-            "/routing/plan-stream" to searchLimit(429),
+            "/routing/plan" to planningLimit(400),
+            "/routing/plan-stream" to planningLimit(429),
             "/routing/departures" to agreementInactive(429),
             "/routing/trip" to agreementInactive(410),
         )
@@ -300,9 +300,9 @@ class RoutingHttpTest {
         )
 
         for ((error, status) in limited) {
-            assertIs<SpiderError.SearchLimitReached>(error)
+            assertIs<SpiderError.PlanningLimitReached>(error)
             assertEquals(status, error.httpStatus)
-            assertEquals("search_limit_reached", error.serverCode)
+            assertEquals("planning_limit_reached", error.serverCode)
         }
         for ((error, status) in inactive) {
             assertIs<SpiderError.AgreementInactive>(error)
