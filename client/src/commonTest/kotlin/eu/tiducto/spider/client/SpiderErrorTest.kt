@@ -94,6 +94,28 @@ class SpiderErrorTest {
     }
 
     @Test
+    fun retiredQueryMapsToQueryRetiredFromTheBodyOrA410() {
+        val fromBody = routingHttpFailure("plan", 410, """{"error":"query_retired","message":"persisted query is retired"}""")
+            .toSpiderError()
+        val bare410 = routingHttpFailure("trip", 410, "").toSpiderError()
+        for (error in listOf(fromBody, bare410)) {
+            assertEquals(SpiderErrorCode.QUERY_RETIRED, error.code)
+            assertEquals("query_retired", error.code.wireName)
+            assertEquals(410, error.httpStatus)
+        }
+        assertEquals("routing trip → 410: persisted query is retired", bare410.message)
+    }
+
+    @Test
+    fun unknownQueryIdStaysUnauthorizedWithTheGatewayCode() {
+        val error = routingHttpFailure("plan", 403, """{"error":"persisted_query_rejected","message":"unknown persisted-query id: abc"}""")
+            .toSpiderError()
+        assertEquals(SpiderErrorCode.UNAUTHORIZED, error.code)
+        assertEquals("persisted_query_rejected", error.serverCode)
+        assertEquals("routing plan → 403: unknown persisted-query id: abc", error.message)
+    }
+
+    @Test
     fun parseErrorEnvelopeReadsCodeAndMessageAndToleratesNonJson() {
         val envelope = parseErrorEnvelope("""{"code":"forbidden","message":"nope"}""")
         assertEquals("forbidden", envelope.code)

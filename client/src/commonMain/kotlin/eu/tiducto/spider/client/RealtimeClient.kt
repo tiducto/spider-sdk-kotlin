@@ -33,7 +33,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
 // Live GTFS-RT read API, served from the same gateway as routing/stops under `$baseUrl/realtime/...`.
-// Ids (tripId/routeId/stopId) are opaque, feed-prefixed and passed through unchanged, exactly like
+// Ids (tripId/routeId/stopId/vehicleId) are opaque, feed-prefixed and passed through unchanged, exactly like
 // the routing gtfsIds — a tripId from routing departures/plan/trip feeds straight back into these calls.
 internal class RealtimeClient(
     private val baseUrl: String,
@@ -52,6 +52,7 @@ internal class RealtimeClient(
     }
 
     suspend fun vehicles(tripIds: List<String>): VehiclePositions {
+        requireInRange("tripIds", tripIds.size in 1..MAX_TRIP_IDS)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles") }
             parameter("tripIds", tripIds.joinToString(","))
@@ -81,6 +82,7 @@ internal class RealtimeClient(
 
     suspend fun delays(byServiceDate: Map<String, List<String>>): TripDelays {
         byServiceDate.keys.forEach(::requireServiceDate)
+        requireInRange("tripIds", byServiceDate.values.sumOf { it.size } in 1..MAX_TRIP_IDS)
         val request = DelaysRequestDto(byServiceDate.map { (serviceDate, tripIds) -> DelayQueryDto(serviceDate, tripIds) })
         val response = rtPost(json.encodeToString(DelaysRequestDto.serializer(), request)) {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "delays") }
@@ -127,6 +129,8 @@ internal class RealtimeClient(
         return body()
     }
 }
+
+private const val MAX_TRIP_IDS = 50
 
 // Epoch seconds → Instant; nulls (feed hasn't reported a timestamp) stay null.
 private fun Long?.toInstantOrNull(): Instant? = this?.let { Instant.fromEpochSeconds(it) }

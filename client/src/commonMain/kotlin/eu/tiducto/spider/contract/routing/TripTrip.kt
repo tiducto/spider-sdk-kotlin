@@ -9,6 +9,7 @@ internal data class TripTrip(
     val directionId: String? = null,
     val tripHeadsign: String? = null,
     val bikesAllowed: BikesAllowed? = null,
-    val stoptimesForDate: List<TripStoptime>? = null,
+    val wheelchairAccessible: WheelchairBoarding? = null,
+    val stoptimesForDate: List<Stoptime>? = null,
     val tripGeometry: TripGeometry? = null
 )

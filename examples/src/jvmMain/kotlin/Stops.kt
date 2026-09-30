@@ -78,3 +78,20 @@ suspend fun stopsByCity(client: SpiderClient) {
         is SpiderResult.Error -> println("Search failed: ${result.error}")
     }
 }
+
+suspend fun stopsByMode(client: SpiderClient) {
+    // Stops matching the text that a tram serves, with the modes each one has.
+    val result = client.stops.search {
+        filter { name eq "Náměstí" }
+        modes = setOf(TransitMode.TRAM)
+        limit = 10
+    }
+
+    when (result) {
+        is SpiderResult.Success ->
+            result.data.forEach { stop ->
+                println("${stop.name} (${stop.gtfsId}) — ${stop.modes.joinToString()}")
+            }
+        is SpiderResult.Error -> println("Search failed: ${result.error}")
+    }
+}

@@ -19,8 +19,8 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   `PlanStreamEvent` — `Result(itineraries)` as batches finalize, a terminal `Done(pageInfo, routingErrors)`
   carrying the continuation cursors and any routing errors (shaped as in `plan`, empty when none), or a
   terminal `Failure(error)` (delivered as an event, not thrown). Built on Ktor's client `SSE` plugin.
-  `targetResults` sets a soft floor and `maxWindow` caps the sweep; `maxWindow` is optional and, left unset,
-  the API applies its own default cap. `planStream` is the initial call;
+  `targetResults` (how many itineraries the sweep aims for) and `maxWindow` (how far it may search, at least
+  2 hours) are required, with no SDK default. `planStream` is the initial call;
   `planStreamNext(..., after = Done.pageInfo.endCursor)` and
   `planStreamPrevious(..., before = Done.pageInfo.startCursor)` continue it (each repeats the full parameter
   list, so `targetResults` / `maxWindow` can vary per continuation).
@@ -31,6 +31,20 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   `trip()` and `delays` so they look up the right day. A malformed date passed to either returns
   `SpiderError.BadRequest` (field `serviceDate`) without sending a request.
 - `TransitMode.CABLE_CAR`, `GONDOLA`, `FUNICULAR` and `SNOW_AND_ICE`. These modes used to map to `UNKNOWN`.
+- `SpiderError.QueryRetired` (`SpiderErrorCode.QUERY_RETIRED`, wire name `query_retired`): the persisted query
+  a call sends is retired and the API no longer serves it (HTTP 410). It reports the query's state; it is not
+  an `Unauthorized`.
+- `Stop.modes`: the modes of the routes serving a stop, as `TransitMode` (an unrecognised mode is `UNKNOWN`),
+  and a `modes` filter on stop search (`search { modes = setOf(TransitMode.TRAM) }`) matching stops served by
+  any of the given modes. `Stop.wheelchairBoarding` is now filled in from the stop's GTFS value.
+- Client-side checks of the fixed platform limits. Each returns `SpiderError.BadRequest` naming only the field,
+  without sending a request: stream `maxWindow` under 2 hours, departures `timeRange` not above zero or over
+  24 hours, realtime `tripIds` outside 1–50 (counted across all service dates), stop search `limit` outside
+  1–50, and a via location with no or more than 10 stop ids or a `minimumWaitTime` outside 0–24 hours. Limits
+  the environment sets (search window, result count, departures count, via count) are checked by the API,
+  which returns the same `BadRequest`.
+- A `planStream` the gateway rejects before streaming (a JSON `BAD_REQUEST` body instead of an event stream)
+  ends in `Failure(SpiderError.BadRequest)` with the field, like `plan`.
 
 ### Changed
 
@@ -38,9 +52,21 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   and `RoutingError.code` / `RoutingError.inputField` are `RoutingErrorCode` / `InputField`, instead of
   `String`. The enums are open: a value the API adds later maps to `UNKNOWN`, and a minor release may add
   entries, so keep an `else` branch when matching on them.
-- A routing call whose query id the API no longer serves (a retired query) now reads as an SDK update: it is
-  `SpiderError.Unauthorized` with `httpStatus` 403, `serverCode` `persisted_query_rejected`, and a message
-  that says to update the SDK.
+- **Enum constants are `SCREAMING_SNAKE_CASE`** (breaking): `WheelchairBoarding.POSSIBLE` / `NOT_POSSIBLE`,
+  `BikesAllowed.ALLOWED` / `NOT_ALLOWED`, and `SpiderLogLevel.NONE` / `ERROR` / `INFO` / `HEADERS` / `BODY`
+  (were `Possible`, `NotPossible`, `Allowed`, `NotAllowed`, `None`, `Error`, `Info`, `Headers`, `Body`).
+  Rename the references. A serialized `Itinerary` or `Leg` now carries the new names.
+- **`planStream`, `planStreamNext` and `planStreamPrevious` require `targetResults` and `maxWindow`**
+  (breaking). Pass both, e.g. `targetResults = 5, maxWindow = 2.hours`.
+- `departures` always sends `numberOfDepartures` (default 30) and `timeRange` (default 24 hours); a
+  `timeRange` out of range is rejected instead of clamped.
+- Stop search always sends `limit`. `StopRequest.limit` and the `limit` of `near` / `within` are an `Int`
+  defaulting to 20 (was nullable, unset by default).
+- Realtime `vehicles` and `delays` with no trip ids return `SpiderError.BadRequest` (field `tripIds`) instead
+  of an empty result.
+- An unknown persisted-query id (gateway `403 persisted_query_rejected`) is `SpiderError.Unauthorized` with
+  that `serverCode`, and its message is the gateway's.
+- A stop search's free text also matches the stop's code, town and district (server-side).
 - **Realtime `delays` now resolves per trip instance** (breaking). A GTFS-RT delay is bound to a
   `(tripId, serviceDate)` instance, so `SpiderRealtime.delays` takes the service date each trip runs on —
   `delays(byServiceDate: Map<String, List<String>>)` (or `delays(tripIds, serviceDate)` for a single day) —
@@ -54,7 +80,7 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 - The contract-version check and `SpiderContractMismatchError`. The SDK still sends
   `x-spider-contract-version` on every request, but never fails a call over the version the API declares:
-  an older SDK keeps working until a query it uses is retired (see Changed).
+  an older SDK keeps working until a query it uses is retired (then `SpiderError.QueryRetired`).
 
 ### Fixed
 

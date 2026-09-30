@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
  * can treat "absent" and "unknown" the same way.
  */
 @Serializable
-enum class WheelchairBoarding { Possible, NotPossible }
+enum class WheelchairBoarding { POSSIBLE, NOT_POSSIBLE }
 
 /**
  * Whether bikes are allowed on a trip. Mirrors GTFS `bikes_allowed` (and
@@ -17,4 +17,4 @@ enum class WheelchairBoarding { Possible, NotPossible }
  * at the mapping boundary.
  */
 @Serializable
-enum class BikesAllowed { Allowed, NotAllowed }
+enum class BikesAllowed { ALLOWED, NOT_ALLOWED }

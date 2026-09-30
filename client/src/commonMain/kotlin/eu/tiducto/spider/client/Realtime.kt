@@ -2,7 +2,6 @@ package eu.tiducto.spider.client
 
 import kotlin.time.Instant
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Live GTFS-RT data. Reachable as `client.realtime` on any [SpiderClient].
@@ -32,11 +31,12 @@ class SpiderRealtime(
     private val log = logging.buildLog()
     private val realtime = RealtimeClient(baseUrl, apiKey, retry, log)
 
-    /** Live positions for the given [tripIds] (comma-batched in one request). Empty input skips the call. */
-    suspend fun vehicles(tripIds: List<String>): SpiderResult<VehiclePositions> {
-        if (tripIds.isEmpty()) return SpiderResult.Success(VehiclePositions.EMPTY)
-        return runCatchingRealtime("vehicles(${tripIds.size})") { realtime.vehicles(tripIds) }
-    }
+    /**
+     * Live positions for the given [tripIds], 1 to 50 per call (comma-batched in one request). An empty list
+     * or more than 50 returns [SpiderError.BadRequest] without a request.
+     */
+    suspend fun vehicles(tripIds: List<String>): SpiderResult<VehiclePositions> =
+        runCatchingRealtime("vehicles(${tripIds.size})") { realtime.vehicles(tripIds) }
 
     /**
      * Live position for a single trip. A trip with no vehicle currently reporting returns a
@@ -47,13 +47,12 @@ class SpiderRealtime(
 
     /**
      * Live delays, resolved per `(tripId, serviceDate)` instance: group trip ids by the GTFS service date
-     * (`YYYY-MM-DD`) they run on — pass each [Leg.serviceDate] or [Departure.serviceDate] through. Empty
-     * input skips the call; a malformed date returns [SpiderError.BadRequest] without a request.
+     * (`YYYY-MM-DD`) they run on — pass each [Leg.serviceDate] or [Departure.serviceDate] through. A call
+     * takes 1 to 50 trip ids, counted across all dates. No trip ids, more than 50, or a malformed date
+     * returns [SpiderError.BadRequest] without a request.
      */
-    suspend fun delays(byServiceDate: Map<String, List<String>>): SpiderResult<TripDelays> {
-        if (byServiceDate.all { it.value.isEmpty() }) return SpiderResult.Success(TripDelays.EMPTY)
-        return runCatchingRealtime("delays(${byServiceDate.size} dates)") { realtime.delays(byServiceDate) }
-    }
+    suspend fun delays(byServiceDate: Map<String, List<String>>): SpiderResult<TripDelays> =
+        runCatchingRealtime("delays(${byServiceDate.size} dates)") { realtime.delays(byServiceDate) }
 
     /** Live delays for [tripIds] all on one [serviceDate] (`YYYY-MM-DD`) — the common single-day case. */
     suspend fun delays(tripIds: List<String>, serviceDate: String): SpiderResult<TripDelays> =
@@ -87,7 +86,7 @@ data class FeedFreshness(
 
 /**
  * A vehicle's live position. All fields are nullable — GTFS-RT producers populate wildly different
- * subsets. [latitude]/[longitude] are the only fields worth much without the others; guard on them
+ * subsets. The ids ([tripId], [routeId], [vehicleId], [stopId]) are feed-prefixed like routing's. [latitude]/[longitude] are the only fields worth much without the others; guard on them
  * before drawing. [bearing] is degrees clockwise from north; [currentStatus] is the raw GTFS-RT
  * `VehicleStopStatus` string (`INCOMING_AT` / `STOPPED_AT` / `IN_TRANSIT_TO`), passed through
  * unchanged so a producer's newer values still surface.
@@ -152,11 +151,7 @@ data class VehiclePositions(
     val vehicles: ImmutableList<LiveVehicle>,
     val missing: ImmutableList<String>,
     val freshness: FeedFreshness,
-) {
-    internal companion object {
-        val EMPTY = VehiclePositions(persistentListOf(), persistentListOf(), FeedFreshness(null, null))
-    }
-}
+)
 
 /**
  * Live schedule deviation for a trip. [delaySeconds] is the trip-level delay (positive = late,
@@ -189,10 +184,6 @@ data class TripDelays(
     /** The delay for the ([tripId], [serviceDate]) instance, if the feed reported one. */
     fun delayFor(tripId: String, serviceDate: String): TripDelay? =
         groups.firstOrNull { it.serviceDate == serviceDate }?.delays?.firstOrNull { it.tripId == tripId }
-
-    internal companion object {
-        val EMPTY = TripDelays(persistentListOf(), FeedFreshness(null, null))
-    }
 }
 
 /** Delays for one GTFS service date: those the feed reported, and the [missing] trip ids it didn't. */

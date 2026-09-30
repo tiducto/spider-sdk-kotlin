@@ -10,8 +10,10 @@ import eu.tiducto.spider.contract.routing.PlanStopLocationInput
 import eu.tiducto.spider.contract.routing.PlanViaLocationInput
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
@@ -50,7 +52,7 @@ class RoutingStreamTest {
                       "realtimeState": "UPDATED", "realTime": true, "serviceDate": "2026-07-15",
                       "from": { "name": "Origin", "stop": { "gtfsId": "1:A" } },
                       "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B" } },
-                      "route": { "shortName": "12" }, "trip": { "gtfsId": "1:T" }
+                      "route": { "gtfsId": "1:L12", "shortName": "12" }, "trip": { "gtfsId": "1:T" }
                     }
                   ]
                 }
@@ -217,25 +219,30 @@ class RoutingStreamTest {
         assertEquals(null, obj["after"])
     }
 
-    // No SDK-side default window: an unset maxWindow is left off the wire so the router's own cap applies.
-    @Test
-    fun `stream variables omit maxWindow unless the caller sets one`() {
-        val request = PlanRequest(
-            origin = Location.Stop("1:A"),
-            destination = Location.Stop("1:B"),
-            time = RouteTime.DepartAt(Instant.parse("2026-07-15T08:00:00Z")),
-        )
-        val unset = json.encodeToJsonElement(
-            PlanConnectionStreamVariables.serializer(),
-            request.toStreamVariables(targetResults = 5, maxWindow = null, before = null, after = null),
-        ).jsonObject
-        assertEquals(null, unset["maxWindow"])
+    private val request = PlanRequest(
+        origin = Location.Stop("1:A"),
+        destination = Location.Stop("1:B"),
+        time = RouteTime.DepartAt(Instant.parse("2026-07-15T08:00:00Z")),
+    )
 
-        val set = json.encodeToJsonElement(
+    @Test
+    fun `stream variables always carry targetResults and maxWindow`() {
+        val obj = json.encodeToJsonElement(
             PlanConnectionStreamVariables.serializer(),
-            request.toStreamVariables(targetResults = 5, maxWindow = 2.hours, before = null, after = null),
+            request.toStreamVariables(targetResults = 3, maxWindow = 2.hours, before = null, after = null),
         ).jsonObject
-        assertEquals("PT2H", set["maxWindow"]?.jsonPrimitive?.contentOrNull)
+        assertEquals("3", obj["targetResults"]?.jsonPrimitive?.contentOrNull)
+        assertEquals("PT2H", obj["maxWindow"]?.jsonPrimitive?.contentOrNull)
+    }
+
+    // 2 hours is the platform minimum in both directions; nothing is widened.
+    @Test
+    fun `a maxWindow under two hours is rejected with only the field named`() {
+        val error = assertFailsWith<SpiderTransportException.BadRequest> {
+            request.toStreamVariables(targetResults = 5, maxWindow = 119.minutes, before = null, after = null)
+        }
+        assertEquals("maxWindow", error.field)
+        assertEquals("maxWindow is out of range", error.message)
     }
 
     private fun streamContinuationVariables(after: String?, before: String?) = PlanConnectionStreamVariables(

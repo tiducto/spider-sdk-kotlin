@@ -10,7 +10,7 @@ package eu.tiducto.spider.client
  *
  * Every request carries [VERSION] in the [HEADER]. It is informational (telemetry): the SDK never checks
  * a version the gateway declares back. Older SDKs keep working across contract majors until a query they
- * send is retired, which the gateway signals with a 403 on that call (see [RETIRED_QUERY_SERVER_CODE]).
+ * send is retired; that call then returns [SpiderError.QueryRetired].
  */
 internal object SpiderContract {
 

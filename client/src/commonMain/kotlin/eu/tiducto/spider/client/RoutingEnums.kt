@@ -30,9 +30,17 @@ enum class RoutingErrorCode {
 
 /** The plan input a [RoutingError] refers to. */
 enum class InputField {
+    /** The requested departure or arrival time. */
     DATE_TIME,
+
+    /** The origin. */
     FROM,
+
+    /** The destination. */
     TO,
+
+    /** A via location, such as a via stop id the environment doesn't know. */
     VIA,
+
     UNKNOWN,
 }

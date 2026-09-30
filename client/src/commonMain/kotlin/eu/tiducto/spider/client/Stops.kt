@@ -1,6 +1,7 @@
 package eu.tiducto.spider.client
 
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * Stop search and lookup. Reachable as `client.stops` on any [SpiderClient].
@@ -9,7 +10,7 @@ import kotlinx.collections.immutable.ImmutableList
  * constraints, or any combination, expressed via the [StopRequest] DSL:
  *
  * ```kotlin
- * // Free-text only — fuzzy match against stop names.
+ * // Free-text only — fuzzy match against the stop's name, code, town and district.
  * client.stops.search { filter { name eq "Hlavní" } }
  *
  * // Filter by administrative geography (server-side, scales to millions of stops).
@@ -29,15 +30,21 @@ import kotlinx.collections.immutable.ImmutableList
  *
  * // Stops inside a bounding box (SW corner, then NE corner).
  * client.stops.search { bbox(49.18, 16.59, 49.21, 16.63) }
+ *
+ * // Only stops a tram or trolleybus serves.
+ * client.stops.search { filter { name eq "Hlavní" }; modes = setOf(TransitMode.TRAM, TransitMode.TROLLEYBUS) }
  * ```
+ *
+ * Each search returns at most [StopRequest.limit] hits (default 20, 1 to 50); a limit outside that range
+ * returns [SpiderError.BadRequest] without a request.
  *
  * Three convenience shortcuts cover the common cases: [byId] (exact lookup by
  * `gtfsId`), [near] (nearest-first radius search), and [within] (bounding box).
  *
  * Filtering by an [AdminLevel] only works if the deployment was enriched with
  * boundary polygons for that level — see [AdminLevel] for what each level
- * represents across jurisdictions. Filtering by a level the tenant did not
- * enrich produces a [SpiderResult.Error] surfacing the backend's rejection.
+ * represents across jurisdictions. Filtering by a level the environment wasn't
+ * enriched with matches no stops.
  */
 class SpiderStops(
     private val baseUrl: String,
@@ -50,7 +57,8 @@ class SpiderStops(
 
     suspend fun search(block: StopRequest.() -> Unit): SpiderResult<ImmutableList<Stop>> {
         // Build + validate outside spiderCatch so misuse (radius/sort without `near`) throws
-        // IllegalArgumentException eagerly rather than being folded into a SpiderResult.Error.
+        // IllegalArgumentException eagerly rather than being folded into a SpiderResult.Error. An
+        // out-of-range limit is a request the API would reject, so it is a BadRequest result instead.
         val request = StopRequest().apply(block)
         request.validate()
         val name = request.nameQuery.orEmpty()
@@ -68,6 +76,7 @@ class SpiderStops(
                     bbox = request.boundingBox,
                     sortByDistance = request.sortByDistance,
                     limit = request.limit,
+                    modes = request.modes,
                 )
             }
         }
@@ -95,7 +104,7 @@ class SpiderStops(
         lat: Double,
         lng: Double,
         radiusMeters: Int? = null,
-        limit: Int? = null,
+        limit: Int = 20,
     ): SpiderResult<ImmutableList<Stop>> = search {
         near(lat, lng)
         this.radiusMeters = radiusMeters
@@ -112,7 +121,7 @@ class SpiderStops(
         minLng: Double,
         maxLat: Double,
         maxLng: Double,
-        limit: Int? = null,
+        limit: Int = 20,
     ): SpiderResult<ImmutableList<Stop>> = search {
         bbox(minLat, minLng, maxLat, maxLng)
         this.limit = limit
@@ -164,6 +173,11 @@ enum class AdminLevel(val osmLevel: Int) {
     SUBURB(10),
 }
 
+/**
+ * One stop, or a station with its platforms folded into it. [modes] are the modes of the routes serving it
+ * (empty when none does); a mode this SDK version doesn't know is [TransitMode.UNKNOWN].
+ * [wheelchairBoarding] is null when the feed gives no information.
+ */
 data class Stop(
     val gtfsId: String,
     val name: String,
@@ -171,6 +185,7 @@ data class Stop(
     val lon: Double? = null,
     val admin: Map<AdminLevel, String> = emptyMap(),
     val wheelchairBoarding: WheelchairBoarding? = null,
+    val modes: ImmutableList<TransitMode> = persistentListOf(),
 )
 
 /**
@@ -203,16 +218,17 @@ class Filter(
  * Filter DSL surface inside [StopRequest.filter].
  *
  * Two ways to write a clause:
- *  - `name eq "Hlavní"` — fuzzy free-text match against the stop name.
+ *  - `name eq "Hlavní"` — fuzzy free-text search, matched against the stop's name, its code, its town
+ *    ([AdminLevel.CITY]) and the district within the town ([AdminLevel.SUBURB]) where the environment has them.
  *  - `AdminLevel.CITY eq "Brno"` (typed) — exact match against an admin level
  *    the deployment was enriched with. Same shape for every level in
  *    [AdminLevel] (`COUNTRY`, `REGION`, `DISTRICT`, `CITY`, `SUBURB`).
  *
- * Multiple clauses combine with AND. Filtering an unrelated level (one this
- * deployment didn't enrich) surfaces as a [SpiderResult.Error].
+ * Multiple clauses combine with AND. Filtering by a level this deployment
+ * didn't enrich matches no stops.
  */
 class StopFilters {
-    /** Free-text name match. Use as `name eq "Hlavní nádraží"`. */
+    /** Free-text search (name, code, town, district). Use as `name eq "Hlavní nádraží"`. */
     val name: String = "name"
 
     private val filters: MutableSet<Filter> = mutableSetOf()
@@ -251,8 +267,11 @@ class StopRequest {
     /** Order hits by ascending distance from the [near] anchor (closest first). Requires [near]. */
     var sortByDistance: Boolean = false
 
-    /** Cap on the number of hits returned. */
-    var limit: Int? = null
+    /** Maximum hits to return, 1 to 50. */
+    var limit: Int = 20
+
+    /** Only stops served by at least one of these modes. Null or empty means no mode filter. */
+    var modes: Set<TransitMode>? = null
 
     fun filter(block: StopFilters.() -> Unit) {
         filters.addAll(StopFilters().apply(block).toSet())

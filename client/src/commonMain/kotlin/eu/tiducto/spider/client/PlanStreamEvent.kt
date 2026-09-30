@@ -26,7 +26,8 @@ sealed interface PlanStreamEvent {
      * call [SpiderRouting.planStreamPrevious] with `before` = [RoutePageInfo.startCursor].
      *
      * [routingErrors] mirrors [Route.routingErrors]: why the search found nothing (or less), such as
-     * `OUTSIDE_SERVICE_PERIOD` or `LOCATION_NOT_FOUND`. Empty when there were none.
+     * `OUTSIDE_SERVICE_PERIOD`, or `LOCATION_NOT_FOUND` with [InputField.FROM], [InputField.TO] or
+     * [InputField.VIA]. Empty when there were none.
      */
     data class Done(
         val pageInfo: RoutePageInfo,
@@ -34,9 +35,10 @@ sealed interface PlanStreamEvent {
     ) : PlanStreamEvent
 
     /**
-     * Terminal failure — a transport/HTTP problem, a decoding error, or a server `error` event (an invalid
-     * request, as [SpiderError.BadRequest]). [error] is the same [SpiderError] taxonomy the one-shot calls
-     * return. A search that simply finds nothing ends in [Done] with [Done.routingErrors] instead.
+     * Terminal failure — an invalid request ([SpiderError.BadRequest], whether the SDK or the API rejected
+     * it), a transport/HTTP problem, or a decoding error. [error] is the same [SpiderError] taxonomy the
+     * one-shot calls return. A search that simply finds nothing ends in [Done] with [Done.routingErrors]
+     * instead.
      */
     data class Failure(val error: SpiderError) : PlanStreamEvent
 }

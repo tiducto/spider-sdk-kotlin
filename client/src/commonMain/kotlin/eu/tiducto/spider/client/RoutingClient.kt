@@ -42,6 +42,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.time.measureTime
@@ -83,6 +84,7 @@ internal class RoutingClient(
         before: String? = null,
         after: String? = null,
     ): Route {
+        request.requireValidVia()
         val dateTime = when (val time = request.time) {
             is RouteTime.DepartAt -> PlanDateTimeInput(earliestDeparture = time.time.toString())
             is RouteTime.ArriveBy -> PlanDateTimeInput(latestArrival = time.time.toString())
@@ -122,43 +124,43 @@ internal class RoutingClient(
     // transport as the batch plan (a POST of {id, variables}), but the router streams `chunk`/`pageInfo`
     // (and a terminal `error`) events as it sweeps the window, which this maps to a cold Flow of
     // [PlanStreamEvent]: each `chunk` → [PlanStreamEvent.Result], the `pageInfo` → a terminal
-    // [PlanStreamEvent.Done] (with any routing errors). Any failure — a non-event-stream HTTP response, a
-    // server `error` event, or a decoding slip — surfaces as a terminal [PlanStreamEvent.Failure], never a
-    // throw. Auto-reconnection is left off (the plugin's default), so the stream ends when the sweep does.
+    // [PlanStreamEvent.Done] (with any routing errors). Any failure — an input the SDK rejects, a
+    // non-event-stream HTTP response, a server `error` event, or a decoding slip — surfaces as a terminal
+    // [PlanStreamEvent.Failure], never a throw. Auto-reconnection is left off (the plugin's default), so the
+    // stream ends when the sweep does.
     fun planConnectionStream(
         request: PlanRequest,
         targetResults: Int,
-        maxWindow: Duration?,
+        maxWindow: Duration,
         before: String? = null,
         after: String? = null,
-    ): Flow<PlanStreamEvent> {
-        val variables = request.toStreamVariables(targetResults, maxWindow, before, after)
-        val payload = json.encodeToString(PersistedRequest(id = PersistedQueries.PLAN_STREAM.id, variables = variables))
-        return flow {
-            try {
-                http.sse(
-                    request = {
-                        method = HttpMethod.Post
-                        url("$baseUrl/routing/${PersistedQueries.PLAN_STREAM.path}")
-                        contentType(ContentType.Application.Json)
-                        spiderHeaders()
-                        setBody(payload)
-                    },
-                ) {
-                    incoming.collect { event ->
-                        parsePlanStreamRecord(event.event ?: SSE_DEFAULT_EVENT, event.data.orEmpty(), json)
-                            ?.let { emit(it) }
-                    }
+    ): Flow<PlanStreamEvent> = flow {
+        try {
+            val variables = request.toStreamVariables(targetResults, maxWindow, before, after)
+            val payload = json.encodeToString(PersistedRequest(id = PersistedQueries.PLAN_STREAM.id, variables = variables))
+            http.sse(
+                request = {
+                    method = HttpMethod.Post
+                    url("$baseUrl/routing/${PersistedQueries.PLAN_STREAM.path}")
+                    contentType(ContentType.Application.Json)
+                    spiderHeaders()
+                    setBody(payload)
+                },
+            ) {
+                incoming.collect { event ->
+                    parsePlanStreamRecord(event.event ?: SSE_DEFAULT_EVENT, event.data.orEmpty(), json)
+                        ?.let { emit(it) }
                 }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: SSEClientException) {
-                // The plugin throws this when the response isn't a 2xx text/event-stream (e.g. 401/403/429);
-                // recover the status and body off the carried response so it maps to the right SpiderError.
-                emit(PlanStreamEvent.Failure(e.toStreamFailure()))
-            } catch (e: Exception) {
-                emit(PlanStreamEvent.Failure(e.toSpiderError()))
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: SSEClientException) {
+            // The plugin throws this when the response isn't a 2xx text/event-stream (e.g. 401/403/410/429,
+            // or the gateway's JSON answer to a missing variable); recover the status and body off the
+            // carried response so it maps to the right SpiderError.
+            emit(PlanStreamEvent.Failure(e.toStreamFailure(json)))
+        } catch (e: Exception) {
+            emit(PlanStreamEvent.Failure(e.toSpiderError()))
         }
     }
 
@@ -168,11 +170,13 @@ internal class RoutingClient(
         startTime: Instant?,
         timeRange: Duration,
     ): ImmutableList<Departure> {
+        val timeRangeSeconds = timeRange.inWholeSeconds
+        requireInRange("timeRange", timeRangeSeconds in 1..MAX_TIME_RANGE_SECONDS)
         val variables = StopDeparturesVariables(
             id = id,
             numberOfDepartures = numberOfDepartures,
+            timeRange = timeRangeSeconds.toInt(),
             startTime = startTime?.epochSeconds,
-            timeRange = timeRange.inWholeSeconds.coerceIn(0L, Int.MAX_VALUE.toLong()).toInt(),
         )
         val data: StopDeparturesData = execute(PersistedQueries.DEPARTURES, variables)
         val stop = data.asStop ?: data.asStation
@@ -277,7 +281,7 @@ internal class RoutingClient(
     }
 }
 
-private fun transitModeFromWire(raw: String?): TransitMode? = when (raw) {
+internal fun transitModeFromWire(raw: String?): TransitMode? = when (raw) {
     null -> null
     "WALK" -> TransitMode.WALK
     "BUS" -> TransitMode.BUS
@@ -309,15 +313,15 @@ private fun WireRoutingError.toDomainRoutingError(): RoutingError = RoutingError
 )
 
 private fun wheelchairFromWire(raw: String?): WheelchairBoarding? = when (raw) {
-    "POSSIBLE" -> WheelchairBoarding.Possible
-    "NOT_POSSIBLE" -> WheelchairBoarding.NotPossible
+    "POSSIBLE" -> WheelchairBoarding.POSSIBLE
+    "NOT_POSSIBLE" -> WheelchairBoarding.NOT_POSSIBLE
     // NO_INFORMATION / absent / unknown → null (callers treat "absent" and "unknown" the same).
     else -> null
 }
 
 private fun bikesAllowedFromWire(raw: String?): BikesAllowed? = when (raw) {
-    "ALLOWED" -> BikesAllowed.Allowed
-    "NOT_ALLOWED" -> BikesAllowed.NotAllowed
+    "ALLOWED" -> BikesAllowed.ALLOWED
+    "NOT_ALLOWED" -> BikesAllowed.NOT_ALLOWED
     else -> null
 }
 
@@ -431,56 +435,79 @@ private fun streamErrorToSpiderError(data: String, json: Json): SpiderError {
 }
 
 // The SSE plugin raises this when the response isn't a 2xx text/event-stream. Recover the HTTP status (and the
-// body, when still readable) from the carried response so 401/403/429/5xx map to the same SpiderError the batch
-// path returns; fall back otherwise.
-private suspend fun SSEClientException.toStreamFailure(): SpiderError {
+// body, when still readable) from the carried response so 401/403/410/429/5xx map to the same SpiderError the
+// batch path returns. A 2xx JSON body is the gateway answering before the router streams (a missing required
+// variable), shaped like the batch GraphQL envelope, so its errors map the same way.
+private suspend fun SSEClientException.toStreamFailure(json: Json): SpiderError {
     val response = response ?: return (cause ?: this).toSpiderError()
     val body = runCatching { response.bodyAsText() }
         .onFailure { if (it is CancellationException) throw it }
         .getOrNull()?.takeIf { it.isNotBlank() }
         ?: (message ?: "stream failed")
+    if (response.status.isSuccess()) {
+        runCatching { json.decodeFromString<StreamErrorData>(body) }.getOrNull()?.errors
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { return it.toTransportException(PersistedQueries.PLAN_STREAM.path).toSpiderError() }
+    }
     return routingHttpFailure(PersistedQueries.PLAN_STREAM.path, response.status.value, body).toSpiderError()
 }
 
-// A 403 carrying the gateway's persisted_query_rejected means the API no longer serves a query id this SDK
-// build sends (retired), so the message points at an SDK update rather than the key.
+// The gateway answers a retired query id with 410 {"error":"query_retired"} and an id it never had with
+// 403 {"error":"persisted_query_rejected"}; both keep the gateway's code so the SpiderError can tell them apart.
 internal fun routingHttpFailure(path: String, status: Int, body: String): SpiderTransportException.Http {
     val envelope = parseErrorEnvelope(body)
-    if (status == 403 && envelope.error == RETIRED_QUERY_SERVER_CODE) {
-        return SpiderTransportException.Http(
-            status,
-            "routing $path → 403: the API no longer serves this SDK version's $path query; update the Spider SDK " +
-                "(${envelope.message ?: RETIRED_QUERY_SERVER_CODE})",
-            RETIRED_QUERY_SERVER_CODE,
-        )
+    val serverCode = when {
+        envelope.error == QUERY_RETIRED_SERVER_CODE || status == 410 -> QUERY_RETIRED_SERVER_CODE
+        status == 403 && envelope.error == UNKNOWN_QUERY_SERVER_CODE -> UNKNOWN_QUERY_SERVER_CODE
+        else -> envelope.code
     }
-    return SpiderTransportException.Http(status, "routing $path → $status: ${envelope.message ?: body.take(300)}", envelope.code)
+    val detail = envelope.message
+        ?: if (serverCode == QUERY_RETIRED_SERVER_CODE) "persisted query is retired" else body.take(300)
+    return SpiderTransportException.Http(status, "routing $path → $status: $detail", serverCode)
 }
 
-// A null maxWindow is omitted, so the router applies its own default cap.
 internal fun PlanRequest.toStreamVariables(
     targetResults: Int,
-    maxWindow: Duration?,
+    maxWindow: Duration,
     before: String?,
     after: String?,
-): PlanConnectionStreamVariables = PlanConnectionStreamVariables(
-    dateTime = when (val time = time) {
-        is RouteTime.DepartAt -> PlanDateTimeInput(earliestDeparture = time.time.toString())
-        is RouteTime.ArriveBy -> PlanDateTimeInput(latestArrival = time.time.toString())
-    },
-    origin = origin.toInput(),
-    destination = destination.toInput(),
-    via = via.takeIf { it.isNotEmpty() }?.map { it.toInput() },
-    modes = toModesInput(),
-    preferences = toPreferencesInput(),
-    targetResults = targetResults,
-    maxWindow = maxWindow?.toIsoString(),
-    before = before,
-    after = after,
-)
+): PlanConnectionStreamVariables {
+    requireInRange("maxWindow", maxWindow >= MIN_STREAM_WINDOW)
+    requireValidVia()
+    return PlanConnectionStreamVariables(
+        dateTime = when (val time = time) {
+            is RouteTime.DepartAt -> PlanDateTimeInput(earliestDeparture = time.time.toString())
+            is RouteTime.ArriveBy -> PlanDateTimeInput(latestArrival = time.time.toString())
+        },
+        origin = origin.toInput(),
+        destination = destination.toInput(),
+        via = via.takeIf { it.isNotEmpty() }?.map { it.toInput() },
+        modes = toModesInput(),
+        preferences = toPreferencesInput(),
+        targetResults = targetResults,
+        maxWindow = maxWindow.toIsoString(),
+        before = before,
+        after = after,
+    )
+}
+
+// The fixed platform limits on each via location. How many via locations are allowed is an environment
+// setting, which the API checks.
+internal fun PlanRequest.requireValidVia() = via.forEach { location ->
+    val valid = when (location) {
+        is ViaLocation.PassThrough -> location.stopIds.size in 1..MAX_VIA_STOP_IDS
+        is ViaLocation.Visit -> location.minimumWaitTime in Duration.ZERO..MAX_VIA_WAIT
+    }
+    requireInRange("via", valid)
+}
+
+private val MIN_STREAM_WINDOW = 2.hours
+private val MAX_VIA_WAIT = 24.hours
+private const val MAX_VIA_STOP_IDS = 10
+private const val MAX_TIME_RANGE_SECONDS = 86_400L
 
 // Curated PlanRequest → OTP's nested modes/preferences inputs. Only the fields the SDK exposes are set;
-// everything else stays null so OTP applies its own defaults.
+// everything else stays null so the environment's routing defaults apply.
 internal fun PlanRequest.toModesInput(): PlanModesInput? {
     // WALK/UNKNOWN have no transit-mode wire value (WALK is a street mode) and drop out; empty ⇒ no filter.
     val transit = allowedTransitModes
@@ -512,7 +539,7 @@ private fun TransitMode.toWireTransitMode(): WireTransitMode? =
 
 // The wire unit is whole minutes — the scale a search window is actually reasoned about, and what the TS
 // SDK enforces by type. Floor to whole minutes, at least one, so a sub-minute Duration (5.seconds, ZERO)
-// can't collapse to a near-empty search or OTP's dynamic window.
+// can't collapse to a near-empty search.
 internal fun Duration.toSearchWindowIso(): String =
     "PT${inWholeMinutes.coerceAtLeast(1L)}M"
 

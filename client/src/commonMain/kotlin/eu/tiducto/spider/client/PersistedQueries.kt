@@ -3,8 +3,8 @@ package eu.tiducto.spider.client
 internal object PersistedQueries {
     data class Op(val id: String, val path: String)
 
-    val DEPARTURES = Op("70a644fe3c6b2cbf5b2d70cef8230c1428bea6357ae1766772162d86469563d0", "departures")
-    val PLAN = Op("06004d101213f2d6abbbde9e7ed3fd239af47352168d5fd47ece8c46cab67618", "plan")
-    val PLAN_STREAM = Op("7f82dbee066bcb53a1ddfe83254abb396c408c5ce95a151ac743c656789aef4b", "plan-stream")
-    val TRIP = Op("e8959a8d47a8e8437ee3ec740cd9c3e28bd401efdd236dde0502559daea53920", "trip")
+    val DEPARTURES = Op("e4ae3f49e06982173b38e945c3c02ef113be05e12564145faeade7758295f536", "departures")
+    val PLAN = Op("679549e87f9653ff7a5a021c0b329a2c9658d4701c836139e63712dd9b77981f", "plan")
+    val PLAN_STREAM = Op("40380fc4cf10397a4c20d039cc9428b73757c7fce0de2072ae1685a43efbfc15", "plan-stream")
+    val TRIP = Op("4a10717f45697a241a0843902808cd696eb8ffd102e93238bf753f865d939a3f", "trip")
 }

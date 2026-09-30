@@ -45,6 +45,7 @@ suspend fun handleErrors(client: SpiderClient) {
             is SpiderError.Unauthorized -> println("Check the apikey header — HTTP ${error.httpStatus}")
             is SpiderError.BadRequest -> println("Invalid request on ${error.field ?: "input"}: ${error.message}")
             is SpiderError.RateLimited -> println("Rate limited — back off and retry later")
+            is SpiderError.QueryRetired -> println("This query is retired: ${error.message}")
             is SpiderError.Timeout -> println("Timed out — safe to retry")
             is SpiderError.NotFound -> println("No data for that request")
             is SpiderError.Network -> println("Connectivity problem: ${error.message}")
@@ -64,6 +65,7 @@ fun isRetryable(error: SpiderError): Boolean = when (error.code) {
     SpiderErrorCode.UNAUTHORIZED,
     SpiderErrorCode.BAD_REQUEST,
     SpiderErrorCode.NOT_FOUND,
+    SpiderErrorCode.QUERY_RETIRED,
     SpiderErrorCode.DECODING,
     SpiderErrorCode.UNKNOWN -> false
 }
