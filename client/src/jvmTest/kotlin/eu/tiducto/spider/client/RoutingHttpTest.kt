@@ -14,7 +14,9 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 /**
@@ -52,6 +54,34 @@ class RoutingHttpTest {
         val badRequest = assertIs<SpiderError.BadRequest>(error)
         assertEquals(field, badRequest.field)
         assertEquals("$field is out of range", badRequest.message)
+    }
+
+    @Test
+    fun `plan sends searchWindow as given`() = runBlocking<Unit> {
+        gateway.replies = mapOf("/routing/plan" to emptyPlan)
+
+        routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), searchWindow = 90.seconds)
+        routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))
+
+        val windows = gateway.seen.map {
+            Json.parseToJsonElement(it.body).jsonObject
+                .getValue("variables").jsonObject.getValue("searchWindow").jsonPrimitive.content
+        }
+        assertEquals(listOf("PT1M30S", "PT1H"), windows)
+    }
+
+    @Test
+    fun `a routing HTTP 400 is a BadRequest carrying the field`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/plan" to Reply(400, "application/json", """{"error":"bad_request","message":"searchWindow is invalid"}"""),
+        )
+
+        val error = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))).error
+
+        val badRequest = assertIs<SpiderError.BadRequest>(error)
+        assertEquals("searchWindow", badRequest.field)
+        assertEquals("searchWindow is invalid", badRequest.message)
+        assertEquals(400, badRequest.httpStatus)
     }
 
     @Test
@@ -214,7 +244,9 @@ class RoutingHttpTest {
                 """
                 {"data":{"asStation":{"gtfsId":"1:S","name":"Zvonařka","stoptimesWithoutPatterns":[
                   {"serviceDay":$serviceDay,"scheduledDeparture":81000,"headsign":"Zvonařka",
-                   "trip":{"gtfsId":"1:T44","route":{"gtfsId":"1:L44","shortName":"44","mode":"BUS"}}},
+                   "stop":{"gtfsId":"1:S1","platformCode":"B"},
+                   "trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE",
+                     "route":{"gtfsId":"1:L44","shortName":"44","mode":"BUS","color":"FF0000","textColor":"FFFFFF"}}},
                   {"serviceDay":$serviceDay,"scheduledDeparture":88800,"realtimeState":"CANCELED","headsign":"Líšeň",
                    "trip":{"gtfsId":"1:N89","route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS"}}}
                 ]}}}
@@ -227,6 +259,15 @@ class RoutingHttpTest {
         assertEquals(listOf("1:T44", "1:N89"), departures.map { it.tripGtfsId })
         assertEquals(listOf("2026-09-28", "2026-09-28"), departures.map { it.serviceDate })
         assertEquals(RealtimeState.CANCELED, departures[1].realtimeState)
+        val (full, bare) = departures
+        assertEquals("1:L44", full.routeGtfsId)
+        assertEquals("FF0000", full.routeColor)
+        assertEquals("FFFFFF", full.routeTextColor)
+        assertEquals("1:S1", full.stopGtfsId)
+        assertEquals("B", full.platformCode)
+        assertEquals(WheelchairBoarding.POSSIBLE, full.wheelchairAccessible)
+        assertEquals(listOf(null, null, null, null), listOf(bare.routeColor, bare.routeTextColor, bare.stopGtfsId, bare.platformCode))
+        assertEquals(null, bare.wheelchairAccessible)
         val variables = gateway.variables()
         assertEquals(30, variables.getValue("numberOfDepartures").jsonPrimitive.int)
         assertEquals(86_400, variables.getValue("timeRange").jsonPrimitive.int)
@@ -241,12 +282,15 @@ class RoutingHttpTest {
     }
 
     @Test
-    fun `trip reports its service date`() = runBlocking<Unit> {
+    fun `trip reports its service date and display fields`() = runBlocking<Unit> {
         gateway.replies = mapOf(
             "/routing/trip" to json(
                 """
-                {"data":{"trip":{"gtfsId":"1:N89","route":{"gtfsId":"1:LN89","shortName":"N89"},"stoptimesForDate":[
-                  {"serviceDay":1790546400,"scheduledDeparture":88800,"stop":{"gtfsId":"1:U1","name":"Líšeň","wheelchairBoarding":"POSSIBLE"}}
+                {"data":{"trip":{"gtfsId":"1:N89","wheelchairAccessible":"NO_INFORMATION","bikesAllowed":"SOMETHING_NEW",
+                  "route":{"gtfsId":"1:LN89","shortName":"N89","color":"00AA00","textColor":"000000"},"stoptimesForDate":[
+                  {"serviceDay":1790546400,"scheduledDeparture":88800,
+                   "stop":{"gtfsId":"1:U1","name":"Líšeň","wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101"}},
+                  {"serviceDay":1790546400,"scheduledDeparture":89400,"stop":{"gtfsId":"1:U2","name":"Jírova"}}
                 ]}}}
                 """.trimIndent(),
             ),
@@ -255,7 +299,17 @@ class RoutingHttpTest {
         val trip = assertIs<SpiderResult.Success<TripDetails>>(routing.trip("1:N89", "2026-09-28")).data
 
         assertEquals("2026-09-28", trip.serviceDate)
-        assertEquals(WheelchairBoarding.POSSIBLE, trip.stops.single().wheelchairBoarding)
+        assertEquals("1:LN89", trip.routeGtfsId)
+        assertEquals("00AA00", trip.routeColor)
+        assertEquals("000000", trip.routeTextColor)
+        assertEquals(null, trip.wheelchairAccessible)
+        assertEquals(BikesAllowed.UNKNOWN, trip.bikesAllowed)
+        val (first, second) = trip.stops
+        assertEquals(WheelchairBoarding.POSSIBLE, first.wheelchairBoarding)
+        assertEquals("2", first.platformCode)
+        assertEquals("101", first.zoneId)
+        assertEquals(null, second.platformCode)
+        assertEquals(null, second.zoneId)
     }
 
     @Test
@@ -266,7 +320,9 @@ class RoutingHttpTest {
         ).error
 
         for (error in listOf(tripError, delaysError)) {
-            assertEquals("serviceDate", assertIs<SpiderError.BadRequest>(error).field)
+            val badRequest = assertIs<SpiderError.BadRequest>(error)
+            assertEquals("serviceDate", badRequest.field)
+            assertEquals("serviceDate is invalid", badRequest.message)
         }
         assertEquals(emptyList(), gateway.seen.toList())
     }

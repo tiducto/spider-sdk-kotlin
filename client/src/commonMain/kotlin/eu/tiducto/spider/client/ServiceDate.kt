@@ -16,6 +16,6 @@ internal fun isServiceDate(value: String): Boolean =
 
 internal fun requireServiceDate(value: String) {
     if (!isServiceDate(value)) {
-        throw SpiderTransportException.BadRequest("serviceDate", "serviceDate must be a YYYY-MM-DD date, got \"$value\"")
+        throw SpiderTransportException.BadRequest("serviceDate", "serviceDate is invalid")
     }
 }

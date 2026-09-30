@@ -176,7 +176,9 @@ enum class AdminLevel(val osmLevel: Int) {
 /**
  * One stop, or a station with its platforms folded into it. [modes] are the modes of the routes serving it
  * (empty when none does); a mode this SDK version doesn't know is [TransitMode.UNKNOWN].
- * [wheelchairBoarding] is null when the feed gives no information.
+ * [wheelchairBoarding] is null when the feed gives no information. [code] is the short public code riders know
+ * the stop by (GTFS `stop_code`). [locationType] is the GTFS `location_type`: `0` a stop or platform, `1` a
+ * station; null means a stop.
  */
 data class Stop(
     val gtfsId: String,
@@ -186,6 +188,8 @@ data class Stop(
     val admin: Map<AdminLevel, String> = emptyMap(),
     val wheelchairBoarding: WheelchairBoarding? = null,
     val modes: ImmutableList<TransitMode> = persistentListOf(),
+    val code: String? = null,
+    val locationType: Int? = null,
 )
 
 /**
@@ -270,7 +274,10 @@ class StopRequest {
     /** Maximum hits to return, 1 to 50. */
     var limit: Int = 20
 
-    /** Only stops served by at least one of these modes. Null or empty means no mode filter. */
+    /**
+     * Only stops served by at least one of these modes. Null or empty means no mode filter; [TransitMode.UNKNOWN]
+     * is ignored.
+     */
     var modes: Set<TransitMode>? = null
 
     fun filter(block: StopFilters.() -> Unit) {

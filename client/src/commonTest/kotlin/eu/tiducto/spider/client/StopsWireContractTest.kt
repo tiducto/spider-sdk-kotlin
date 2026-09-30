@@ -123,8 +123,9 @@ class StopsWireContractTest {
     }
 
     @Test
-    fun `an empty modes set adds no filter`() {
+    fun `an empty or UNKNOWN-only modes set adds no filter`() {
         assertNull(composeStopFilter(emptyList(), null, null, null, null, modes = emptySet()))
+        assertNull(composeStopFilter(emptyList(), null, null, null, null, modes = setOf(TransitMode.UNKNOWN)))
     }
 
     @Test

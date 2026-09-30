@@ -50,9 +50,12 @@ class RoutingStreamTest {
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z", "estimated": { "time": "2026-07-15T08:01:00Z", "delay": "PT60S" } },
                       "end":   { "scheduledTime": "2026-07-15T08:30:00Z", "estimated": { "time": "2026-07-15T08:32:00Z", "delay": "PT120S" } },
                       "realtimeState": "UPDATED", "realTime": true, "serviceDate": "2026-07-15",
-                      "from": { "name": "Origin", "stop": { "gtfsId": "1:A" } },
-                      "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B" } },
-                      "route": { "gtfsId": "1:L12", "shortName": "12" }, "trip": { "gtfsId": "1:T" }
+                      "from": { "name": "Origin", "stop": { "gtfsId": "1:A", "platformCode": "3", "zoneId": "100",
+                                                            "wheelchairBoarding": "NO_INFORMATION" } },
+                      "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B", "platformCode": "B", "zoneId": "101",
+                                                            "wheelchairBoarding": "SOMETHING_NEW" } },
+                      "route": { "gtfsId": "1:L12", "shortName": "12", "color": "0055A4", "textColor": "FFFFFF" },
+                      "trip": { "gtfsId": "1:T", "bikesAllowed": "NOT_ALLOWED" }
                     }
                   ]
                 }
@@ -76,6 +79,17 @@ class RoutingStreamTest {
         assertEquals("2026-07-15", leg.serviceDate)
         assertEquals("1:A", leg.fromGtfsId)
         assertEquals("1:B", leg.toGtfsId)
+        assertEquals("1:L12", leg.routeGtfsId)
+        assertEquals("0055A4", leg.routeColor)
+        assertEquals("FFFFFF", leg.routeTextColor)
+        assertEquals("3", leg.fromPlatformCode)
+        assertEquals("B", leg.toPlatformCode)
+        assertEquals("100", leg.fromZoneId)
+        assertEquals("101", leg.toZoneId)
+        // NO_INFORMATION is no information; a value the SDK doesn't know is UNKNOWN.
+        assertEquals(null, leg.fromWheelchair)
+        assertEquals(WheelchairBoarding.UNKNOWN, leg.toWheelchair)
+        assertEquals(BikesAllowed.NOT_ALLOWED, leg.bikesAllowed)
     }
 
     // The `pageInfo` frame is terminal: it maps to Done carrying the continuation cursors the caller feeds
@@ -138,6 +152,10 @@ class RoutingStreamTest {
         val leg = assertIs<PlanStreamEvent.Result>(parsePlanStreamRecord("chunk", data, json)).itineraries.single().legs.single()
         assertEquals(TransitMode.FUNICULAR, leg.mode)
         assertEquals(RealtimeState.UNKNOWN, leg.realtimeState)
+        assertEquals(
+            listOf(null, null, null, null, null, null, null),
+            listOf(leg.routeGtfsId, leg.routeColor, leg.routeTextColor, leg.fromPlatformCode, leg.toPlatformCode, leg.fromZoneId, leg.toZoneId),
+        )
     }
 
     // The trailing `done` telemetry frame just ends the stream — the SDK surfaces no telemetry, so it is dropped.

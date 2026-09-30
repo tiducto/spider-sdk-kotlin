@@ -60,8 +60,13 @@ internal class StopsClient(
         if (!httpResponse.status.isSuccess()) {
             val body = httpResponse.bodyAsText()
             val parsed = runCatching { json.decodeFromString<StopSearchError>(body) }.getOrNull()
-            val detail = parsed?.message ?: body.take(300)
-            throw SpiderTransportException.Http(httpResponse.status.value, "POST $url → ${httpResponse.status.value}: $detail", parsed?.code)
+            val detail = parsed?.message ?: body.take(300).trim()
+            throw SpiderTransportException.Http(
+                httpResponse.status.value,
+                "POST $url → ${httpResponse.status.value}: $detail",
+                parsed?.code,
+                detail,
+            )
         }
 
         val response: StopSearchResponse<StopHit> = httpResponse.body()
@@ -90,12 +95,14 @@ internal class StopsClient(
             lon = lon,
             admin = adminPairs.toMap(),
             wheelchairBoarding = when (wheelchairBoarding) {
+                null, 0 -> null
                 1 -> WheelchairBoarding.POSSIBLE
                 2 -> WheelchairBoarding.NOT_POSSIBLE
-                // 0 (no information), absent, or a code GTFS doesn't define.
-                else -> null
+                else -> WheelchairBoarding.UNKNOWN
             },
             modes = modes.map { transitModeFromWire(it) ?: TransitMode.UNKNOWN }.toImmutableList(),
+            code = code,
+            locationType = locationType,
         )
     }
 }
@@ -103,7 +110,7 @@ internal class StopsClient(
 private const val MAX_STOP_LIMIT = 50
 
 // Composes the Meilisearch filter expression: `field = "value" AND gtfsId = "…" AND _geoRadius(…) AND …`.
-// `modes IN [...]` matches a stop served by any of the modes.
+// `modes IN [...]` matches a stop served by any of the modes; UNKNOWN has no wire value and is left out.
 // Attribute names are bare identifiers (Meili doesn't quote them); only string values are quoted, with
 // embedded `"`/`\` escaped so a value can't break out of its clause. Coordinates are formatted via string
 // interpolation, which is Locale-invariant ('.' decimal) — never String.format, which can emit a comma
@@ -124,8 +131,8 @@ internal fun composeStopFilter(
             add("_geoRadius(${near.lat}, ${near.lng}, $radiusMeters)")
         }
         bbox?.let { add("_geoBoundingBox([${it.maxLat}, ${it.maxLng}], [${it.minLat}, ${it.minLng}])") }
-        modes?.takeIf { it.isNotEmpty() }?.let { set ->
-            add("modes IN [${set.joinToString(", ") { "\"${it.name}\"" }}]")
+        modes?.filter { it != TransitMode.UNKNOWN }?.takeIf { it.isNotEmpty() }?.let { known ->
+            add("modes IN [${known.joinToString(", ") { "\"${it.name}\"" }}]")
         }
     }
     return clauses.takeIf { it.isNotEmpty() }?.joinToString(" AND ")

@@ -52,7 +52,7 @@ internal class RealtimeClient(
     }
 
     suspend fun vehicles(tripIds: List<String>): VehiclePositions {
-        requireInRange("tripIds", tripIds.size in 1..MAX_TRIP_IDS)
+        requireInRange("tripIds", tripIds.size <= MAX_TRIP_IDS)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles") }
             parameter("tripIds", tripIds.joinToString(","))
@@ -82,7 +82,7 @@ internal class RealtimeClient(
 
     suspend fun delays(byServiceDate: Map<String, List<String>>): TripDelays {
         byServiceDate.keys.forEach(::requireServiceDate)
-        requireInRange("tripIds", byServiceDate.values.sumOf { it.size } in 1..MAX_TRIP_IDS)
+        requireInRange("tripIds", byServiceDate.values.sumOf { it.size } <= MAX_TRIP_IDS)
         val request = DelaysRequestDto(byServiceDate.map { (serviceDate, tripIds) -> DelayQueryDto(serviceDate, tripIds) })
         val response = rtPost(json.encodeToString(DelaysRequestDto.serializer(), request)) {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "delays") }
@@ -123,8 +123,8 @@ internal class RealtimeClient(
         if (!status.isSuccess()) {
             val body = bodyAsText()
             val envelope = parseErrorEnvelope(body)
-            val detail = envelope.message ?: body.take(300)
-            throw SpiderTransportException.Http(status.value, "GET $where → ${status.value}: $detail", envelope.code)
+            val detail = envelope.message ?: body.take(300).trim()
+            throw SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", envelope.code, detail)
         }
         return body()
     }

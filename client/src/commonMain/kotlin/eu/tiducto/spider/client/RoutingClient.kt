@@ -96,7 +96,7 @@ internal class RoutingClient(
             via = request.via.takeIf { it.isNotEmpty() }?.map { it.toInput() },
             modes = request.toModesInput(),
             preferences = request.toPreferencesInput(),
-            searchWindow = request.searchWindow.toSearchWindowIso(),
+            searchWindow = request.searchWindow.toIsoString(),
             before = before,
             after = after,
         )
@@ -197,6 +197,12 @@ internal class RoutingClient(
                 routeShortName = route?.shortName,
                 routeLongName = route?.longName,
                 mode = transitModeFromWire(route?.mode?.value),
+                routeGtfsId = route?.gtfsId,
+                routeColor = route?.color,
+                routeTextColor = route?.textColor,
+                stopGtfsId = st.stop?.gtfsId,
+                platformCode = st.stop?.platformCode,
+                wheelchairAccessible = wheelchairFromWire(st.trip?.wheelchairAccessible?.value),
             )
         }.toImmutableList()
     }
@@ -224,6 +230,8 @@ internal class RoutingClient(
                 realtimeDeparture = maybe(st.realtimeDeparture),
                 isRealtime = st.realtime ?: false,
                 wheelchairBoarding = wheelchairFromWire(s.wheelchairBoarding?.value),
+                platformCode = s.platformCode,
+                zoneId = s.zoneId,
             )
         }
 
@@ -240,6 +248,10 @@ internal class RoutingClient(
             stops = stops.toImmutableList(),
             geometry = trip.tripGeometry?.points?.let { decodePolyline(it).toImmutableList() }
                 ?: persistentListOf(),
+            routeGtfsId = trip.route.gtfsId,
+            routeColor = trip.route.color,
+            routeTextColor = trip.route.textColor,
+            wheelchairAccessible = wheelchairFromWire(trip.wheelchairAccessible?.value),
         )
     }
 
@@ -313,16 +325,17 @@ private fun WireRoutingError.toDomainRoutingError(): RoutingError = RoutingError
 )
 
 private fun wheelchairFromWire(raw: String?): WheelchairBoarding? = when (raw) {
+    null, "NO_INFORMATION" -> null
     "POSSIBLE" -> WheelchairBoarding.POSSIBLE
     "NOT_POSSIBLE" -> WheelchairBoarding.NOT_POSSIBLE
-    // NO_INFORMATION / absent / unknown → null (callers treat "absent" and "unknown" the same).
-    else -> null
+    else -> WheelchairBoarding.UNKNOWN
 }
 
 private fun bikesAllowedFromWire(raw: String?): BikesAllowed? = when (raw) {
+    null, "NO_INFORMATION" -> null
     "ALLOWED" -> BikesAllowed.ALLOWED
     "NOT_ALLOWED" -> BikesAllowed.NOT_ALLOWED
-    else -> null
+    else -> BikesAllowed.UNKNOWN
 }
 
 private fun durationFromWire(raw: String?): Duration? {
@@ -370,6 +383,13 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     fromWheelchair = wheelchairFromWire(from.stop?.wheelchairBoarding?.value),
     toWheelchair = wheelchairFromWire(to.stop?.wheelchairBoarding?.value),
     geometry = legGeometry?.points?.let { decodePolyline(it).toImmutableList() } ?: persistentListOf(),
+    routeGtfsId = route?.gtfsId,
+    routeColor = route?.color,
+    routeTextColor = route?.textColor,
+    fromPlatformCode = from.stop?.platformCode,
+    toPlatformCode = to.stop?.platformCode,
+    fromZoneId = from.stop?.zoneId,
+    toZoneId = to.stop?.zoneId,
 )
 
 private const val SSE_DEFAULT_EVENT = "message"
@@ -462,8 +482,8 @@ internal fun routingHttpFailure(path: String, status: Int, body: String): Spider
         else -> envelope.code
     }
     val detail = envelope.message
-        ?: if (serverCode == QUERY_RETIRED_SERVER_CODE) "persisted query is retired" else body.take(300)
-    return SpiderTransportException.Http(status, "routing $path → $status: $detail", serverCode)
+        ?: if (serverCode == QUERY_RETIRED_SERVER_CODE) "persisted query is retired" else body.take(300).trim()
+    return SpiderTransportException.Http(status, "routing $path → $status: $detail", serverCode, detail)
 }
 
 internal fun PlanRequest.toStreamVariables(
@@ -536,12 +556,6 @@ internal fun PlanRequest.toPreferencesInput(): PlanPreferencesInput? {
 
 private fun TransitMode.toWireTransitMode(): WireTransitMode? =
     WireTransitMode.entries.firstOrNull { it.name == name && it != WireTransitMode.UNKNOWN }
-
-// The wire unit is whole minutes — the scale a search window is actually reasoned about, and what the TS
-// SDK enforces by type. Floor to whole minutes, at least one, so a sub-minute Duration (5.seconds, ZERO)
-// can't collapse to a near-empty search.
-internal fun Duration.toSearchWindowIso(): String =
-    "PT${inWholeMinutes.coerceAtLeast(1L)}M"
 
 private fun Location.toInput(): PlanLabeledLocationInput = PlanLabeledLocationInput(
     location = when (this) {

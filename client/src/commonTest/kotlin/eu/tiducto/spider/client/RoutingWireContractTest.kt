@@ -16,10 +16,7 @@ import eu.tiducto.spider.contract.routing.WheelchairBoarding
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 
@@ -95,7 +92,7 @@ class RoutingWireContractTest {
             ),
             modes = request.toModesInput(),
             preferences = request.toPreferencesInput(),
-            searchWindow = request.searchWindow.toSearchWindowIso(),
+            searchWindow = request.searchWindow.toIsoString(),
         )
 
         val expected = json.parseToJsonElement(
@@ -127,16 +124,6 @@ class RoutingWireContractTest {
             StopDeparturesVariables(id = "1:S", numberOfDepartures = 30, timeRange = 86_400),
         )
         assertEquals(expected, actual)
-    }
-
-    @Test
-    fun `search window floors to whole minutes with a one-minute floor`() {
-        // A sub-minute window would search almost nothing on OTP; floor it to a usable PT1M instead.
-        assertEquals("PT1M", Duration.ZERO.toSearchWindowIso())
-        assertEquals("PT1M", 5.seconds.toSearchWindowIso())
-        assertEquals("PT1M", 90.seconds.toSearchWindowIso())
-        assertEquals("PT30M", 30.minutes.toSearchWindowIso())
-        assertEquals("PT60M", 1.hours.toSearchWindowIso())
     }
 
     @Test

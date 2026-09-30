@@ -250,8 +250,7 @@ data class PlanRequest(
     // modes and drop out. Empty and null both mean "no filter" — never emptySet-as-all.
     val allowedTransitModes: Set<TransitMode>? = null,
     val maxTransfers: Int? = null,
-    // Required by the API, up to the environment's search-window limit. Whole minutes on the wire (floored,
-    // min 1m): sub-minute windows return almost nothing.
+    // Required by the API, which checks it against the environment's search-window limit; sent as given.
     val searchWindow: Duration = 1.hours,
     val wheelchairAccessible: Boolean = false,
 )
@@ -290,6 +289,11 @@ data class Itinerary(
         other != null && stableKey == other.stableKey
 }
 
+/**
+ * One leg of an [Itinerary]. [routeColor] and [routeTextColor] are the route's GTFS colours as raw hex without
+ * `#` (e.g. `FF0000`), as the feed gives them. The platform codes and zone ids come from the boarding (`from`)
+ * and alighting (`to`) stops; all display fields are null when the feed doesn't provide them.
+ */
 @Serializable
 data class Leg(
     val mode: TransitMode?,
@@ -318,6 +322,13 @@ data class Leg(
     val toWheelchair: WheelchairBoarding? = null,
     @Serializable(with = LatLonListSerializer::class)
     val geometry: ImmutableList<LatLon> = persistentListOf(),
+    val routeGtfsId: String? = null,
+    val routeColor: String? = null,
+    val routeTextColor: String? = null,
+    val fromPlatformCode: String? = null,
+    val toPlatformCode: String? = null,
+    val fromZoneId: String? = null,
+    val toZoneId: String? = null,
 )
 
 @Serializable
@@ -349,6 +360,10 @@ data class RoutingError(
  * One row of a departures board. [serviceDate] is the GTFS service date the trip runs on ("YYYY-MM-DD"),
  * which for a night departure after midnight is the previous day; pass it with [tripGtfsId] to
  * [SpiderRouting.trip] and [SpiderRealtime.delays].
+ *
+ * [stopGtfsId] and [platformCode] are the stop the vehicle departs from (on a station's board, the
+ * platform). [routeColor] and [routeTextColor] are raw GTFS hex without `#` (e.g. `FF0000`), as the feed
+ * gives them. The display fields are null when the feed doesn't provide them.
  */
 data class Departure(
     val scheduledTime: Instant,
@@ -361,11 +376,18 @@ data class Departure(
     val routeShortName: String?,
     val routeLongName: String?,
     val mode: TransitMode?,
+    val routeGtfsId: String? = null,
+    val routeColor: String? = null,
+    val routeTextColor: String? = null,
+    val stopGtfsId: String? = null,
+    val platformCode: String? = null,
+    val wheelchairAccessible: WheelchairBoarding? = null,
 )
 
 /**
  * One trip on [serviceDate] ("YYYY-MM-DD"), the GTFS service date its times are anchored to. It is null only
- * when the trip has no stop times and the call named no date.
+ * when the trip has no stop times and the call named no date. [routeColor] and [routeTextColor] are raw GTFS
+ * hex without `#` (e.g. `FF0000`), as the feed gives them.
  */
 data class TripDetails(
     val gtfsId: String,
@@ -378,6 +400,10 @@ data class TripDetails(
     val bikesAllowed: BikesAllowed? = null,
     val stops: ImmutableList<TripStop>,
     val geometry: ImmutableList<LatLon> = persistentListOf(),
+    val routeGtfsId: String? = null,
+    val routeColor: String? = null,
+    val routeTextColor: String? = null,
+    val wheelchairAccessible: WheelchairBoarding? = null,
 )
 
 data class TripStop(
@@ -391,4 +417,6 @@ data class TripStop(
     val realtimeDeparture: Instant?,
     val isRealtime: Boolean,
     val wheelchairBoarding: WheelchairBoarding? = null,
+    val platformCode: String? = null,
+    val zoneId: String? = null,
 )

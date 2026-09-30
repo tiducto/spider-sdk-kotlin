@@ -112,7 +112,13 @@ sealed interface SpiderError {
 }
 
 internal sealed class SpiderTransportException(message: String) : RuntimeException(message) {
-    class Http(val status: Int, message: String, val serverCode: String? = null) : SpiderTransportException(message)
+    // [detail] is the server's own message, without the request prefix [message] carries.
+    class Http(
+        val status: Int,
+        message: String,
+        val serverCode: String? = null,
+        val detail: String? = null,
+    ) : SpiderTransportException(message)
     class NoData(message: String) : SpiderTransportException(message)
     class Upstream(message: String) : SpiderTransportException(message)
     class BadRequest(val field: String?, message: String) : SpiderTransportException(message)
@@ -122,6 +128,12 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
     is SpiderTransportException.Http -> if (serverCode == QUERY_RETIRED_SERVER_CODE) {
         SpiderError.QueryRetired(status, this)
     } else when (status) {
+        400 -> SpiderError.BadRequest(
+            field = detail?.let(::fieldOfBadRequest),
+            message = detail ?: message ?: SpiderErrorCode.BAD_REQUEST.wireName,
+            httpStatus = status,
+            cause = this,
+        )
         401, 403 -> SpiderError.Unauthorized(status, this)
         404 -> SpiderError.NotFound(status, this)
         408, 504 -> SpiderError.Timeout(status, this)
@@ -149,6 +161,12 @@ internal const val QUERY_RETIRED_SERVER_CODE: String = "query_retired"
 internal fun requireInRange(field: String, inRange: Boolean) {
     if (!inRange) throw SpiderTransportException.BadRequest(field, "$field is out of range")
 }
+
+// The platform words a validation 400 as "<field> is out of range|required|invalid" on every surface.
+private val BAD_REQUEST_MESSAGE = Regex("""([A-Za-z_][A-Za-z0-9_]*) is (?:out of range|required|invalid)""")
+
+internal fun fieldOfBadRequest(message: String): String? =
+    BAD_REQUEST_MESSAGE.matchEntire(message.trim())?.groupValues?.get(1)
 
 internal data class ErrorEnvelope(val code: String?, val message: String?, val error: String? = null)
 

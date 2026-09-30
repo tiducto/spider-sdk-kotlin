@@ -36,15 +36,27 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   an `Unauthorized`.
 - `Stop.modes`: the modes of the routes serving a stop, as `TransitMode` (an unrecognised mode is `UNKNOWN`),
   and a `modes` filter on stop search (`search { modes = setOf(TransitMode.TRAM) }`) matching stops served by
-  any of the given modes. `Stop.wheelchairBoarding` is now filled in from the stop's GTFS value.
+  any of the given modes (`UNKNOWN` is ignored). `Stop.code` (GTFS `stop_code`) and `Stop.locationType`
+  (GTFS `location_type`), and `Stop.wheelchairBoarding` is now filled in from the stop's GTFS value.
+- Display fields, null when the feed doesn't provide them. Colours are raw GTFS hex without `#` (e.g. `FF0000`):
+  - `Leg.routeGtfsId`, `routeColor`, `routeTextColor`, `fromPlatformCode`, `toPlatformCode`, `fromZoneId`,
+    `toZoneId`
+  - `Departure.routeGtfsId`, `routeColor`, `routeTextColor`, `stopGtfsId`, `platformCode`,
+    `wheelchairAccessible`
+  - `TripDetails.routeGtfsId`, `routeColor`, `routeTextColor`, `wheelchairAccessible`
+  - `TripStop.platformCode`, `zoneId`
+- `WheelchairBoarding.UNKNOWN` and `BikesAllowed.UNKNOWN` for a value this SDK version doesn't recognise. No
+  information (`NO_INFORMATION`) stays `null`.
 - Client-side checks of the fixed platform limits. Each returns `SpiderError.BadRequest` naming only the field,
   without sending a request: stream `maxWindow` under 2 hours, departures `timeRange` not above zero or over
-  24 hours, realtime `tripIds` outside 1–50 (counted across all service dates), stop search `limit` outside
-  1–50, and a via location with no or more than 10 stop ids or a `minimumWaitTime` outside 0–24 hours. Limits
-  the environment sets (search window, result count, departures count, via count) are checked by the API,
-  which returns the same `BadRequest`.
+  24 hours, more than 50 realtime `tripIds` (counted across all service dates; none returns an empty result
+  without a request), stop search `limit` outside 1–50, and a via location with no or more than 10 stop ids or
+  a `minimumWaitTime` outside 0–24 hours. Limits the environment sets (search window, result count, departures
+  count, via count) are checked by the API, which returns the same `BadRequest`.
 - A `planStream` the gateway rejects before streaming (a JSON `BAD_REQUEST` body instead of an event stream)
   ends in `Failure(SpiderError.BadRequest)` with the field, like `plan`.
+- An HTTP 400 from any surface is `SpiderError.BadRequest`; when its message reads `<field> is out of range`,
+  `<field> is required` or `<field> is invalid`, `field` is set to that field.
 
 ### Changed
 
@@ -62,11 +74,12 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   `timeRange` out of range is rejected instead of clamped.
 - Stop search always sends `limit`. `StopRequest.limit` and the `limit` of `near` / `within` are an `Int`
   defaulting to 20 (was nullable, unset by default).
-- Realtime `vehicles` and `delays` with no trip ids return `SpiderError.BadRequest` (field `tripIds`) instead
-  of an empty result.
 - An unknown persisted-query id (gateway `403 persisted_query_rejected`) is `SpiderError.Unauthorized` with
   that `serverCode`, and its message is the gateway's.
 - A stop search's free text also matches the stop's code, town and district (server-side).
+- `plan` sends `searchWindow` as given (ISO-8601, e.g. `PT1H`) and the API checks it; a window under a minute
+  is no longer widened to one minute.
+- A malformed `serviceDate` reads `serviceDate is invalid`, naming only the field.
 - **Realtime `delays` now resolves per trip instance** (breaking). A GTFS-RT delay is bound to a
   `(tripId, serviceDate)` instance, so `SpiderRealtime.delays` takes the service date each trip runs on —
   `delays(byServiceDate: Map<String, List<String>>)` (or `delays(tripIds, serviceDate)` for a single day) —
