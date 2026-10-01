@@ -4,9 +4,15 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
-## [Unreleased]
+## [1.0.0] - 2026-10-01
 
-Targets Spider API contract 1.0. The first stable release: from here on, breaking changes need a new major.
+Targets Spider API contract 1.0. The first stable release.
+
+**Stability:** the public API follows [semantic versioning](https://semver.org). Patch and minor
+releases don't break code that compiles against the SDK; a breaking change needs a new major.
+Removals of server-side operations follow the contract's deprecation window: a deprecated operation
+keeps working for at least 6 months after its deprecation is announced, and is removed only in a new
+major version.
 
 ### Added
 
@@ -125,10 +131,6 @@ Targets Spider API contract 1.0. The first stable release: from here on, breakin
 ## [0.1.0] - 2026-08-22
 
 Initial public pre-release; targets Spider API contract 0.1.
-
-**Stability:** this is a pre-1.0 release. While the version stays below `1.0.0`, any `0.x` minor
-bump may introduce breaking changes to the public API. Pin an exact version and review the
-changelog before upgrading.
 
 ### Covered surfaces
 

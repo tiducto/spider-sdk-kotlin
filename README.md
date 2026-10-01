@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation("eu.tiducto:spider-sdk-kotlin-client:0.1.0")
+    implementation("eu.tiducto:spider-sdk-kotlin-client:1.0.0")
 }
 ```
 
