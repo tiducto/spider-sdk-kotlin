@@ -118,9 +118,10 @@ suspend fun planWithLimits(client: SpiderClient) {
     val result = client.routing.plan(
         origin = Location.Coordinate(49.1951, 16.6068),
         destination = Location.Coordinate(49.2246, 16.5747),
-        // Widen the window scanned for departures, and cap connections at two transfers.
+        // Widen the window scanned for departures, cap connections at two transfers, and allow for usual delays.
         searchWindow = 2.hours,
         maxTransfers = 2,
+        reliability = Reliability.SAFE,
     )
 
     when (result) {

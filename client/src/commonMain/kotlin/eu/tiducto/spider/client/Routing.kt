@@ -27,10 +27,11 @@ class SpiderRouting(
         maxTransfers: Int? = null,
         searchWindow: Duration = 1.hours,
         wheelchairAccessible: Boolean = false,
+        reliability: Reliability? = null,
     ): SpiderResult<Route> = page(
         PlanRequest(
             origin, destination, time, via,
-            allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible,
+            allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible, reliability,
         ),
     )
 
@@ -76,7 +77,7 @@ class SpiderRouting(
      * count. [maxWindow] is how far the sweep may search, in either direction: at least 2 hours, up to the
      * environment's search-window limit. Both are required. A [maxWindow] under 2 hours ends the stream in a
      * [PlanStreamEvent.Failure] with [SpiderError.BadRequest] before any request; the API rejects values over
-     * the environment's limits the same way.
+     * the environment's limits the same way. [reliability] plans arrivals with typical delays, as in [plan].
      *
      * To continue, call [planStreamNext] with `after` = [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor]
      * (or [planStreamPrevious] with `before` = [RoutePageInfo.startCursor] to walk earlier). For a single
@@ -92,9 +93,10 @@ class SpiderRouting(
         wheelchairAccessible: Boolean = false,
         targetResults: Int,
         maxWindow: Duration,
+        reliability: Reliability? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, before = null, after = null,
+        wheelchairAccessible, targetResults, maxWindow, reliability, before = null, after = null,
     )
 
     /**
@@ -113,9 +115,10 @@ class SpiderRouting(
         targetResults: Int,
         maxWindow: Duration,
         after: String,
+        reliability: Reliability? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, before = null, after = after,
+        wheelchairAccessible, targetResults, maxWindow, reliability, before = null, after = after,
     )
 
     /**
@@ -134,9 +137,10 @@ class SpiderRouting(
         targetResults: Int,
         maxWindow: Duration,
         before: String,
+        reliability: Reliability? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, before = before, after = null,
+        wheelchairAccessible, targetResults, maxWindow, reliability, before = before, after = null,
     )
 
     private fun stream(
@@ -149,6 +153,7 @@ class SpiderRouting(
         wheelchairAccessible: Boolean,
         targetResults: Int,
         maxWindow: Duration,
+        reliability: Reliability?,
         before: String?,
         after: String?,
     ): Flow<PlanStreamEvent> = routing.planConnectionStream(
@@ -160,6 +165,7 @@ class SpiderRouting(
             allowedTransitModes = allowedTransitModes,
             maxTransfers = maxTransfers,
             wheelchairAccessible = wheelchairAccessible,
+            reliability = reliability,
         ),
         targetResults = targetResults,
         maxWindow = maxWindow,
@@ -253,7 +259,25 @@ data class PlanRequest(
     // Required by the API, which checks it against the environment's search-window limit; sent as given.
     val searchWindow: Duration = 1.hours,
     val wheelchairAccessible: Boolean = false,
+    // null plans on the timetable alone.
+    val reliability: Reliability? = null,
 )
+
+/**
+ * How much delay trip planning allows for at each leg's arrival, from the environment's realtime history of
+ * that trip at that stop on the service date's day type. Boarding keeps the scheduled departure, and a trip with
+ * live realtime uses its realtime times. Leaving it null plans on the timetable alone.
+ */
+enum class Reliability {
+    /** Plans arrivals with the typical (median) delay. */
+    STANDARD,
+
+    /** Plans arrivals with the delay 70% of trips stay within. */
+    SAFE,
+
+    /** Plans arrivals with the delay 90% of trips stay within. */
+    VERY_SAFE,
+}
 
 data class Route(
     val request: PlanRequest,
@@ -293,6 +317,11 @@ data class Itinerary(
  * One leg of an [Itinerary]. [routeColor] and [routeTextColor] are the route's GTFS colours as raw hex without
  * `#` (e.g. `FF0000`), as the feed gives them. The platform codes and zone ids come from the boarding (`from`)
  * and alighting (`to`) stops; all display fields are null when the feed doesn't provide them.
+ *
+ * [typicalArrivalDelay] is the delay planning applied to this leg's arrival at the request's [Reliability]; null
+ * without one, or when the trip has no history. [interlineWithPreviousLeg] is true when the rider stays on the
+ * same vehicle from the previous leg as it carries on as another trip, often under another line number; that
+ * change isn't counted in [Itinerary.numberOfTransfers].
  */
 @Serializable
 data class Leg(
@@ -329,6 +358,8 @@ data class Leg(
     val toPlatformCode: String? = null,
     val fromZoneId: String? = null,
     val toZoneId: String? = null,
+    val typicalArrivalDelay: Duration? = null,
+    val interlineWithPreviousLeg: Boolean = false,
 )
 
 @Serializable
@@ -364,6 +395,9 @@ data class RoutingError(
  * [stopGtfsId] and [platformCode] are the stop the vehicle departs from (on a station's board, the
  * platform). [routeColor] and [routeTextColor] are raw GTFS hex without `#` (e.g. `FF0000`), as the feed
  * gives them. The display fields are null when the feed doesn't provide them.
+ *
+ * [typicalDelay] is this trip's typical (median) delay at this stop on the service date's day type, from the
+ * environment's realtime history; null when unknown.
  */
 data class Departure(
     val scheduledTime: Instant,
@@ -382,6 +416,7 @@ data class Departure(
     val stopGtfsId: String? = null,
     val platformCode: String? = null,
     val wheelchairAccessible: WheelchairBoarding? = null,
+    val typicalDelay: Duration? = null,
 )
 
 /**
@@ -406,6 +441,10 @@ data class TripDetails(
     val wheelchairAccessible: WheelchairBoarding? = null,
 )
 
+/**
+ * One stop of a [TripDetails]. [typicalDelay] is the trip's typical (median) delay at this stop on the service
+ * date's day type, from the environment's realtime history; null when unknown.
+ */
 data class TripStop(
     val gtfsId: String,
     val name: String,
@@ -419,4 +458,5 @@ data class TripStop(
     val wheelchairBoarding: WheelchairBoarding? = null,
     val platformCode: String? = null,
     val zoneId: String? = null,
+    val typicalDelay: Duration? = null,
 )
