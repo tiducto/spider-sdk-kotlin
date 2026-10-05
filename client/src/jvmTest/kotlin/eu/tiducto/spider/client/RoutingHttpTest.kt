@@ -71,6 +71,24 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `plan and planStream send reliability only when set`() = runBlocking<Unit> {
+        gateway.replies = mapOf("/routing/plan" to emptyPlan, "/routing/plan-stream" to emptyDone)
+
+        routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), reliability = Reliability.SAFE)
+        routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))
+        routing.planStream(
+            Location.Stop("1:A"), Location.Stop("1:B"),
+            targetResults = 5, maxWindow = 2.hours, reliability = Reliability.STANDARD,
+        ).toList()
+        stream().toList()
+
+        val sent = gateway.seen.map {
+            Json.parseToJsonElement(it.body).jsonObject.getValue("variables").jsonObject["reliability"]?.jsonPrimitive?.content
+        }
+        assertEquals(listOf("SAFE", null, "STANDARD", null), sent)
+    }
+
+    @Test
     fun `a routing HTTP 400 is a BadRequest carrying the field`() = runBlocking<Unit> {
         gateway.replies = mapOf(
             "/routing/plan" to Reply(400, "application/json", """{"error":"bad_request","message":"searchWindow is invalid"}"""),
@@ -357,7 +375,7 @@ class RoutingHttpTest {
             "/routing/departures" to json(
                 """
                 {"data":{"asStation":{"gtfsId":"1:S","name":"Zvonařka","stoptimesWithoutPatterns":[
-                  {"serviceDay":$serviceDay,"scheduledDeparture":81000,"headsign":"Zvonařka",
+                  {"serviceDay":$serviceDay,"scheduledDeparture":81000,"headsign":"Zvonařka","typicalDelay":120,
                    "stop":{"gtfsId":"1:S1","platformCode":"B"},
                    "trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE",
                      "route":{"gtfsId":"1:L44","shortName":"44","mode":"BUS","color":"FF0000","textColor":"FFFFFF"}}},
@@ -382,6 +400,8 @@ class RoutingHttpTest {
         assertEquals(WheelchairBoarding.POSSIBLE, full.wheelchairAccessible)
         assertEquals(listOf(null, null, null, null), listOf(bare.routeColor, bare.routeTextColor, bare.stopGtfsId, bare.platformCode))
         assertEquals(null, bare.wheelchairAccessible)
+        assertEquals(2.minutes, full.typicalDelay)
+        assertEquals(null, bare.typicalDelay)
         val variables = gateway.variables()
         assertEquals(30, variables.getValue("numberOfDepartures").jsonPrimitive.int)
         assertEquals(86_400, variables.getValue("timeRange").jsonPrimitive.int)
@@ -402,7 +422,7 @@ class RoutingHttpTest {
                 """
                 {"data":{"trip":{"gtfsId":"1:N89","wheelchairAccessible":"NO_INFORMATION","bikesAllowed":"SOMETHING_NEW",
                   "route":{"gtfsId":"1:LN89","shortName":"N89","color":"00AA00","textColor":"000000"},"stoptimesForDate":[
-                  {"serviceDay":1790546400,"scheduledDeparture":88800,
+                  {"serviceDay":1790546400,"scheduledDeparture":88800,"typicalDelay":45,
                    "stop":{"gtfsId":"1:U1","name":"Líšeň","wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101"}},
                   {"serviceDay":1790546400,"scheduledDeparture":89400,"stop":{"gtfsId":"1:U2","name":"Jírova"}}
                 ]}}}
@@ -424,6 +444,8 @@ class RoutingHttpTest {
         assertEquals("101", first.zoneId)
         assertEquals(null, second.platformCode)
         assertEquals(null, second.zoneId)
+        assertEquals(45.seconds, first.typicalDelay)
+        assertEquals(null, second.typicalDelay)
     }
 
     @Test

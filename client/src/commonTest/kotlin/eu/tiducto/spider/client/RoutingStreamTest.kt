@@ -50,6 +50,7 @@ class RoutingStreamTest {
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z", "estimated": { "time": "2026-07-15T08:01:00Z", "delay": "PT60S" } },
                       "end":   { "scheduledTime": "2026-07-15T08:30:00Z", "estimated": { "time": "2026-07-15T08:32:00Z", "delay": "PT120S" } },
                       "realtimeState": "UPDATED", "realTime": true, "serviceDate": "2026-07-15",
+                      "typicalArrivalDelay": 90, "interlineWithPreviousLeg": true,
                       "from": { "name": "Origin", "stop": { "gtfsId": "1:A", "platformCode": "3", "zoneId": "100",
                                                             "wheelchairBoarding": "NO_INFORMATION" } },
                       "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B", "platformCode": "B", "zoneId": "101",
@@ -77,6 +78,8 @@ class RoutingStreamTest {
         assertEquals(true, leg.isRealtime)
         assertEquals(RealtimeState.UPDATED, leg.realtimeState)
         assertEquals("2026-07-15", leg.serviceDate)
+        assertEquals(90.seconds, leg.typicalArrivalDelay)
+        assertEquals(true, leg.interlineWithPreviousLeg)
         assertEquals("1:A", leg.fromGtfsId)
         assertEquals("1:B", leg.toGtfsId)
         assertEquals("1:L12", leg.routeGtfsId)
@@ -156,6 +159,35 @@ class RoutingStreamTest {
             listOf(null, null, null, null, null, null, null),
             listOf(leg.routeGtfsId, leg.routeColor, leg.routeTextColor, leg.fromPlatformCode, leg.toPlatformCode, leg.fromZoneId, leg.toZoneId),
         )
+    }
+
+    // Without a reliability (or history) the router sends a null typicalArrivalDelay; interline is false unless set.
+    @Test
+    fun `null or absent typical arrival delay and interline flag map to null and false`() {
+        val data = """
+            {
+              "results": [
+                {
+                  "numberOfTransfers": 0, "duration": 600,
+                  "legs": [
+                    {
+                      "mode": "TRAM", "typicalArrivalDelay": null, "interlineWithPreviousLeg": null,
+                      "start": { "scheduledTime": "2026-07-15T08:00:00Z" }, "end": { "scheduledTime": "2026-07-15T08:05:00Z" },
+                      "from": { "name": "A" }, "to": { "name": "B" }
+                    },
+                    {
+                      "mode": "TRAM",
+                      "start": { "scheduledTime": "2026-07-15T08:05:00Z" }, "end": { "scheduledTime": "2026-07-15T08:10:00Z" },
+                      "from": { "name": "B" }, "to": { "name": "C" }
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+        val legs = assertIs<PlanStreamEvent.Result>(parsePlanStreamRecord("chunk", data, json)).itineraries.single().legs
+        assertEquals(listOf(null, null), legs.map { it.typicalArrivalDelay })
+        assertEquals(listOf(false, false), legs.map { it.interlineWithPreviousLeg })
     }
 
     // The trailing `done` telemetry frame just ends the stream — the SDK surfaces no telemetry, so it is dropped.
@@ -251,6 +283,18 @@ class RoutingStreamTest {
         ).jsonObject
         assertEquals("3", obj["targetResults"]?.jsonPrimitive?.contentOrNull)
         assertEquals("PT2H", obj["maxWindow"]?.jsonPrimitive?.contentOrNull)
+    }
+
+    // Omitted reliability plans on the timetable, so the variable is only sent when set.
+    @Test
+    fun `stream variables carry reliability only when set`() {
+        fun reliabilityOf(request: PlanRequest) = json.encodeToJsonElement(
+            PlanConnectionStreamVariables.serializer(),
+            request.toStreamVariables(targetResults = 3, maxWindow = 2.hours, before = null, after = null),
+        ).jsonObject["reliability"]?.jsonPrimitive?.contentOrNull
+
+        assertEquals("VERY_SAFE", reliabilityOf(request.copy(reliability = Reliability.VERY_SAFE)))
+        assertEquals(null, reliabilityOf(request))
     }
 
     // 2 hours is the platform minimum in both directions; nothing is widened.

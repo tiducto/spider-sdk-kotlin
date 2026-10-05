@@ -9,6 +9,8 @@ internal data class Leg(
     val from: Place,
     val to: Place,
     val mode: Mode? = null,
+    /** Delay in seconds applied to this leg's arrival at the requested `reliability`; null when omitted or unknown. */
+    val typicalArrivalDelay: Int? = null,
     val realtimeState: RealtimeState? = null,
     val realTime: Boolean? = null,
     val serviceDate: String? = null,
@@ -18,5 +20,6 @@ internal data class Leg(
     val duration: Double? = null,
     val accessibilityScore: Double? = null,
     val trip: Trip? = null,
+    val interlineWithPreviousLeg: Boolean? = null,
     val legGeometry: Geometry? = null
 )

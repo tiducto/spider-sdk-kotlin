@@ -19,6 +19,7 @@ import eu.tiducto.spider.contract.routing.PlanTransitModePreferenceInput
 import eu.tiducto.spider.contract.routing.PlanTransitModesInput
 import eu.tiducto.spider.contract.routing.PlanViaLocationInput
 import eu.tiducto.spider.contract.routing.PlanVisitViaLocationInput
+import eu.tiducto.spider.contract.routing.Reliability as WireReliability
 import eu.tiducto.spider.contract.routing.RoutingError as WireRoutingError
 import eu.tiducto.spider.contract.routing.StopDeparturesData
 import eu.tiducto.spider.contract.routing.StopDeparturesVariables
@@ -97,6 +98,7 @@ internal class RoutingClient(
             modes = request.toModesInput(),
             preferences = request.toPreferencesInput(),
             searchWindow = request.searchWindow.toIsoString(),
+            reliability = request.reliability?.toWire(),
             before = before,
             after = after,
         )
@@ -203,6 +205,7 @@ internal class RoutingClient(
                 stopGtfsId = st.stop?.gtfsId,
                 platformCode = st.stop?.platformCode,
                 wheelchairAccessible = wheelchairFromWire(st.trip?.wheelchairAccessible?.value),
+                typicalDelay = st.typicalDelay?.seconds,
             )
         }.toImmutableList()
     }
@@ -232,6 +235,7 @@ internal class RoutingClient(
                 wheelchairBoarding = wheelchairFromWire(s.wheelchairBoarding?.value),
                 platformCode = s.platformCode,
                 zoneId = s.zoneId,
+                typicalDelay = st.typicalDelay?.seconds,
             )
         }
 
@@ -390,6 +394,8 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     toPlatformCode = to.stop?.platformCode,
     fromZoneId = from.stop?.zoneId,
     toZoneId = to.stop?.zoneId,
+    typicalArrivalDelay = typicalArrivalDelay?.seconds,
+    interlineWithPreviousLeg = interlineWithPreviousLeg ?: false,
 )
 
 private const val SSE_DEFAULT_EVENT = "message"
@@ -508,6 +514,7 @@ internal fun PlanRequest.toStreamVariables(
         preferences = toPreferencesInput(),
         targetResults = targetResults,
         maxWindow = maxWindow.toIsoString(),
+        reliability = reliability?.toWire(),
         before = before,
         after = after,
     )
@@ -554,6 +561,12 @@ internal fun PlanRequest.toPreferencesInput(): PlanPreferencesInput? {
     }
     return if (transit == null && accessibility == null) null
     else PlanPreferencesInput(transit = transit, accessibility = accessibility)
+}
+
+private fun Reliability.toWire(): WireReliability = when (this) {
+    Reliability.STANDARD -> WireReliability.STANDARD
+    Reliability.SAFE -> WireReliability.SAFE
+    Reliability.VERY_SAFE -> WireReliability.VERY_SAFE
 }
 
 private fun TransitMode.toWireTransitMode(): WireTransitMode? =
