@@ -4,6 +4,42 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [2.0.0] - Unreleased
+
+Targets Spider API contract 2.0.
+
+**Hard cut:** contract 2.0 serves routing as plain REST only, and this version speaks only that. Once 2.0 is
+live, routing calls from SDK 1.x return `SpiderError.QueryRetired`; their stop search and realtime keep working.
+The public API is unchanged apart from the deprecations below.
+
+### Changed
+
+- Routing is REST: `plan`, `planStream`, `departures` and `trip` POST their JSON request to `/routing/plan`,
+  `/routing/plan-stream`, `/routing/departures` and `/routing/trip`. Each request carries the same members as
+  before. `planNext` / `planPrevious` send the original request plus `after` / `before`.
+- `planStream` reads the 2.0 stream: `chunk` events, one `pageInfo`, then `done`. It skips event names it does
+  not know, so events added later don't break it. A request the API rejects is an HTTP 400 before any event,
+  mapped as for `plan`. A stream that ends before its `pageInfo` (the connection dropped) now ends in a terminal
+  `PlanStreamEvent.Failure` instead of ending without one.
+- `ViaLocation.Visit` at a `Location.Coordinate` returns `SpiderError.BadRequest` (field `via`, `via is invalid`)
+  without a request; the API never accepted it.
+- `ViaLocation.Visit.minimumWaitTime` is 0 to 1 hour (was 24 hours); a longer wait returns
+  `SpiderError.BadRequest` (field `via`) without a request.
+- `SpiderError.BadRequest.field` is the request member the API names, as a dot path from the request body root
+  (such as `preferences.transit.transfer.maximumTransfers`). It comes from the error body's `field` on every
+  surface, else from a message worded `<field> is required|invalid|out of range|not allowed`.
+- `SpiderError.QueryRetired` means the API part this SDK version calls is retired (HTTP 410); upgrade the SDK.
+- A plan-limit refusal is read from the error body's `code`, or from its `error` when it has no `code`.
+
+### Deprecated
+
+- `RouteEdge.cursor`: always `"NoCursor"`. Page with `Route.pageInfo` (`planNext` / `planPrevious`).
+- `Itinerary.accessibilityScore` and `Leg.accessibilityScore`: always `null`.
+
+### Removed
+
+- The persisted-query transport and its `persisted_query_rejected` handling.
+
 ## [1.1.0] - 2026-10-05
 
 Targets Spider API contract 1.1.
