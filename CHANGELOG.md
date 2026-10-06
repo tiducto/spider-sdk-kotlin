@@ -4,23 +4,27 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
-## [2.0.0] - Unreleased
+## [1.2.0] - Unreleased
 
-Targets Spider API contract 2.0.
+Targets Spider API contract 1.2.
 
-**Hard cut:** contract 2.0 serves routing as plain REST only, and this version speaks only that. Once 2.0 is
-live, routing calls from SDK 1.x return `SpiderError.QueryRetired`; their stop search and realtime keep working.
-The public API is unchanged apart from the deprecations below.
+**Hard cut:** contract 1.2 serves every customer operation under a versioned path, `/<surface>/v1/<operation>`,
+and routing as plain REST. This version speaks only that. SDK 1.1 and earlier call paths contract 1.2 no longer
+serves, so none of their calls work against it. The public API is unchanged apart from the deprecations below.
 
 ### Changed
 
-- Routing is REST: `plan`, `planStream`, `departures` and `trip` POST their JSON request to `/routing/plan`,
-  `/routing/plan-stream`, `/routing/departures` and `/routing/trip`. Each request carries the same members as
-  before. `planNext` / `planPrevious` send the original request plus `after` / `before`.
-- `planStream` reads the 2.0 stream: `chunk` events, one `pageInfo`, then `done`. It skips event names it does
+- Every call goes to a `/v1` path. Routing: `plan`, `planStream`, `departures` and `trip` POST their JSON request
+  to `/routing/v1/plan`, `/routing/v1/plan-stream`, `/routing/v1/departures` and `/routing/v1/trip`. Stop search:
+  `POST /stops/v1/search`. Realtime: `GET /realtime/v1/vehicles`, `GET /realtime/v1/vehicles/by-trip/{id}`,
+  `POST /realtime/v1/delays` and `GET /realtime/v1/alerts`. `warmup()` keeps `GET /ping`.
+- Routing is REST. Each request carries the same members as before. `planNext` / `planPrevious` send the
+  original request plus `after` / `before`.
+- `planStream` reads the REST stream: `chunk` events, one `pageInfo`, then `done`. It skips event names it does
   not know, so events added later don't break it. A request the API rejects is an HTTP 400 before any event,
   mapped as for `plan`. A stream that ends before its `pageInfo` (the connection dropped) now ends in a terminal
-  `PlanStreamEvent.Failure` instead of ending without one.
+  `PlanStreamEvent.Failure` with `SpiderError.Network`, the error a dropped connection gives `plan`, instead of
+  ending without one.
 - `ViaLocation.Visit` at a `Location.Coordinate` returns `SpiderError.BadRequest` (field `via`, `via is invalid`)
   without a request; the API never accepted it.
 - `ViaLocation.Visit.minimumWaitTime` is 0 to 1 hour (was 24 hours); a wait outside it returns
@@ -28,7 +32,7 @@ The public API is unchanged apart from the deprecations below.
 - `SpiderError.BadRequest.field` is the request member the API names, as a dot path from the request body root
   (such as `preferences.transit.transfer.maximumTransfers`). It comes from the error body's `field` on every
   surface, else from a message worded `<field> is required|invalid|out of range|not allowed`.
-- `SpiderError.QueryRetired` means the API part this SDK version calls is retired (HTTP 410); upgrade the SDK.
+- `SpiderError.QueryRetired` is any HTTP 410: the API part the call uses is retired; upgrade the SDK.
 - A plan-limit refusal is read from the error body's `code`, or from its `error` when it has no `code`.
 
 ### Deprecated
