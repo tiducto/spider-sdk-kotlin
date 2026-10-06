@@ -29,7 +29,7 @@ class StopsRealtimeHttpTest {
     @Test
     fun `stop search sends limit 20 by default and filters by the known modes`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/stops/search" to json(
+            "/stops/v1/search" to json(
                 """
                 {"hits":[
                   {"gtfsId":"1:U1","name":"Náměstí Svobody","code":"NS","locationType":1,"wheelchairBoarding":1,
@@ -64,7 +64,7 @@ class StopsRealtimeHttpTest {
 
     @Test
     fun `a modes filter of only UNKNOWN adds no filter`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/stops/search" to json("""{"hits":[],"query":""}"""))
+        gateway.replies = mapOf("/stops/v1/search" to json("""{"hits":[],"query":""}"""))
 
         stops.search { modes = setOf(TransitMode.UNKNOWN) }
 
@@ -76,8 +76,8 @@ class StopsRealtimeHttpTest {
     @Test
     fun `an HTTP 400 is a BadRequest carrying the field its message names`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/stops/search" to Reply(400, "application/json", """{"error":"bad_request","message":"limit is required"}"""),
-            "/realtime/vehicles" to Reply(400, "text/plain", "tripIds is out of range\n"),
+            "/stops/v1/search" to Reply(400, "application/json", """{"error":"bad_request","message":"limit is required"}"""),
+            "/realtime/v1/vehicles" to Reply(400, "text/plain", "tripIds is out of range\n"),
         )
 
         val stopsError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(stops.near(49.19, 16.61)).error)
@@ -92,9 +92,30 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
+    fun `an HTTP 400 field in the body names the field on stop search and realtime`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/stops/v1/search" to Reply(400, "application/json", """{"code":"bad_request","message":"q is invalid","field":"q"}"""),
+            "/realtime/v1/delays" to Reply(
+                400,
+                "application/json",
+                """{"code":"bad_request","message":"queries.tripIds is out of range","field":"queries.tripIds"}""",
+            ),
+        )
+
+        val stopsError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(stops.near(49.19, 16.61)).error)
+        val realtimeError = assertIs<SpiderError.BadRequest>(
+            assertIs<SpiderResult.Error>(realtime.delays(listOf("1:T"), "2026-10-07")).error,
+        )
+
+        assertEquals("q", stopsError.field)
+        assertEquals("queries.tripIds", realtimeError.field)
+        assertEquals("queries.tripIds is out of range", realtimeError.message)
+    }
+
+    @Test
     fun `an HTTP 400 in another wording is a BadRequest without a field`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/stops/search" to Reply(
+            "/stops/v1/search" to Reply(
                 400,
                 "application/json",
                 """{"message":"Attribute `name` is not filterable.","code":"invalid_search_filter","type":"invalid_request"}""",
@@ -117,7 +138,7 @@ class StopsRealtimeHttpTest {
             Triple(Reply(403, "application/json", planningLimit), SpiderErrorCode.PLANNING_LIMIT_REACHED, "trip planning limit reached"),
         )
         for ((reply, code, message) in cases) {
-            gateway.replies = mapOf("/stops/search" to reply, "/realtime/vehicles" to reply, "/realtime/alerts" to reply)
+            gateway.replies = mapOf("/stops/v1/search" to reply, "/realtime/v1/vehicles" to reply, "/realtime/v1/alerts" to reply)
 
             val errors = listOf(
                 assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
@@ -141,7 +162,7 @@ class StopsRealtimeHttpTest {
             """{"error":"agreement_inactive","message":"agreement is not active"}""" to SpiderErrorCode.AGREEMENT_INACTIVE,
         )
         for ((body, code) in cases) {
-            gateway.replies = mapOf("/realtime/vehicles/by-trip/T1" to Reply(404, "application/json", body))
+            gateway.replies = mapOf("/realtime/v1/vehicles/by-trip/T1" to Reply(404, "application/json", body))
 
             val error = assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1")).error
 
@@ -158,7 +179,7 @@ class StopsRealtimeHttpTest {
             Reply(404, "application/json", """{"error":"not_found","message":"no vehicle for trip"}"""),
             Reply(404, "text/plain", ""),
         )) {
-            gateway.replies = mapOf("/realtime/vehicles/by-trip/T1" to reply)
+            gateway.replies = mapOf("/realtime/v1/vehicles/by-trip/T1" to reply)
 
             val update = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(realtime.vehicleForTrip("T1")).data
 
@@ -176,9 +197,9 @@ class StopsRealtimeHttpTest {
             )) {
                 val reply = Reply(403, "application/json", """{"error":"$code"$extra}""")
                 gateway.replies = mapOf(
-                    "/stops/search" to reply,
-                    "/realtime/alerts" to reply,
-                    "/realtime/vehicles/by-trip/T1" to Reply(404, "application/json", """{"error":"$code"$extra}"""),
+                    "/stops/v1/search" to reply,
+                    "/realtime/v1/alerts" to reply,
+                    "/realtime/v1/vehicles/by-trip/T1" to Reply(404, "application/json", """{"error":"$code"$extra}"""),
                 )
 
                 val errors = listOf(
@@ -196,9 +217,9 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
-    fun `a plan limit code in the body code field stays Unauthorized on stop search and realtime`() = runBlocking<Unit> {
+    fun `a plan limit code in the body code field decides on stop search and realtime too`() = runBlocking<Unit> {
         val codeOnly = Reply(403, "application/json", """{"code":"agreement_inactive","message":"agreement is not active"}""")
-        gateway.replies = mapOf("/stops/search" to codeOnly, "/realtime/alerts" to codeOnly)
+        gateway.replies = mapOf("/stops/v1/search" to codeOnly, "/realtime/v1/alerts" to codeOnly)
 
         val errors = listOf(
             assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
@@ -206,15 +227,16 @@ class StopsRealtimeHttpTest {
         )
 
         for (error in errors) {
-            assertIs<SpiderError.Unauthorized>(error)
+            assertIs<SpiderError.AgreementInactive>(error)
             assertEquals(403, error.httpStatus)
+            assertEquals("agreement_inactive", error.serverCode)
         }
     }
 
     @Test
     fun `a plain 403 on stop search and realtime stays Unauthorized`() = runBlocking<Unit> {
         val plain403 = Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}""")
-        gateway.replies = mapOf("/stops/search" to plain403, "/realtime/alerts" to plain403)
+        gateway.replies = mapOf("/stops/v1/search" to plain403, "/realtime/v1/alerts" to plain403)
 
         val errors = listOf(
             assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
@@ -257,7 +279,7 @@ class StopsRealtimeHttpTest {
         assertOutOfRange("tripIds", realtime.delays(mapOf("2026-09-27" to ids.take(30), "2026-09-28" to ids.drop(30))))
         assertEquals(emptyList(), gateway.seen.toList())
 
-        gateway.replies = mapOf("/realtime/delays" to json("""{"results":[]}"""))
+        gateway.replies = mapOf("/realtime/v1/delays" to json("""{"results":[]}"""))
         assertIs<SpiderResult.Success<TripDelays>>(
             realtime.delays(mapOf("2026-09-27" to ids.take(30), "2026-09-28" to ids.drop(30).take(20))),
         )

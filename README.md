@@ -1,6 +1,6 @@
 # spider-sdk-kotlin
 
-Kotlin Multiplatform SDK for **Spider** — the managed transit API by Tiducto. Trip planning, stop search, and live realtime data behind one typed client that ships the exact queries the gateway allows and attaches auth for you.
+Kotlin Multiplatform SDK for **Spider** — the managed transit API by Tiducto. Trip planning, stop search, and live realtime data behind one typed client that speaks the published API contract and attaches auth for you.
 
 ## Supported targets
 
@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation("eu.tiducto:spider-sdk-kotlin-client:1.1.0")
+    implementation("eu.tiducto:spider-sdk-kotlin-client:1.2.0")
 }
 ```
 
@@ -52,7 +52,7 @@ Every call returns a `SpiderResult` you branch on before reading `data`; the SDK
 
 ## Contract
 
-The wire contract (persisted GraphQL queries, routes, response shapes) is owned by [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract). Its models are generated and committed into **`:client`** as `internal` wire types (the repo carries the classes, not the spec) and mapped to the public domain types. To refresh after the contract changes, run the **Pull contract updates** GitHub workflow (or `scripts/generate-contract.sh` locally, which needs Node.js and the GitHub CLI `gh`). Maintainers: see [`RELEASING.md`](RELEASING.md).
+The wire contract (operations, request and response shapes) is owned by [`tiducto/spider-contract`](https://github.com/tiducto/spider-contract). Every operation sits on a versioned path, `/<surface>/v1/<operation>` (such as `/routing/v1/plan`), which the SDK calls for you. Its models are generated and committed into **`:client`** as `internal` wire types (the repo carries the classes, not the spec) and mapped to the public domain types. To refresh after the contract changes, run the **Pull contract updates** GitHub workflow (or `scripts/generate-contract.sh` locally, which needs Node.js and the GitHub CLI `gh`). Maintainers: see [`RELEASING.md`](RELEASING.md).
 
 ## License
 

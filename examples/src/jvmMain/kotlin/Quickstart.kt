@@ -45,7 +45,7 @@ suspend fun handleErrors(client: SpiderClient) {
             is SpiderError.Unauthorized -> println("Check the apikey header — HTTP ${error.httpStatus}")
             is SpiderError.BadRequest -> println("Invalid request on ${error.field ?: "input"}: ${error.message}")
             is SpiderError.RateLimited -> println("Rate limited — back off and retry later")
-            is SpiderError.QueryRetired -> println("This query is retired: ${error.message}")
+            is SpiderError.QueryRetired -> println("The API part this SDK version calls is retired: ${error.message}")
             is SpiderError.PlanningLimitReached -> println("Trip planning is refused: ${error.message}")
             is SpiderError.AgreementInactive -> println("Every call is refused: ${error.message}")
             is SpiderError.Timeout -> println("Timed out — safe to retry")

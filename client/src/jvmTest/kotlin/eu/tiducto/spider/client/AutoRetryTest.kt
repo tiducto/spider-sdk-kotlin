@@ -29,7 +29,7 @@ class AutoRetryTest {
         ) {
             installAutoRetry(RetryConfig().apply { this.maxAttempts = maxAttempts }, sleep = { sleeps += it })
         }
-        client.get("https://env.example/realtime/alerts").status to sleeps
+        client.get("https://env.example/realtime/v1/alerts").status to sleeps
     }
 
     private fun assertWithin(expectedBase: Long, actual: Long) =

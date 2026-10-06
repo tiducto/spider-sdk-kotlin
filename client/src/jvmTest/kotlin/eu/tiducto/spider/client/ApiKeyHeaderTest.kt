@@ -47,7 +47,7 @@ class ApiKeyHeaderTest {
         var seen: Headers? = null
         val client = clientCapturing { seen = it }
 
-        client.post("https://env.example/routing/plan") { spiderHeaders() }
+        client.post("https://env.example/routing/v1/plan") { spiderHeaders() }
 
         assertEquals("test-key", seen?.get("apikey"))
         assertEquals(SpiderContract.VERSION, seen?.get(SpiderContract.HEADER))

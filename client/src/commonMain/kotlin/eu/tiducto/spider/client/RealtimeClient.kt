@@ -32,7 +32,7 @@ import kotlin.time.Instant
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
-// Live GTFS-RT read API, served from the same gateway as routing/stops under `$baseUrl/realtime/...`.
+// Live GTFS-RT read API, served from the same gateway as routing/stops under `$baseUrl/realtime/v1/...`.
 // Ids (tripId/routeId/stopId/vehicleId) are opaque, feed-prefixed and passed through unchanged, exactly like
 // the routing gtfsIds — a tripId from routing departures/plan/trip feeds straight back into these calls.
 internal class RealtimeClient(
@@ -54,10 +54,10 @@ internal class RealtimeClient(
     suspend fun vehicles(tripIds: List<String>): VehiclePositions {
         requireInRange("tripIds", tripIds.size <= MAX_TRIP_IDS)
         val response = rtGet {
-            url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles") }
+            url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "vehicles") }
             parameter("tripIds", tripIds.joinToString(","))
         }
-        val dto: VehiclesResponseDto = response.decodeOrThrow("realtime/vehicles")
+        val dto: VehiclesResponseDto = response.decodeOrThrow("realtime/v1/vehicles")
         return VehiclePositions(
             vehicles = dto.vehicles.map { it.toDomain() }.toImmutableList(),
             missing = dto.missing.toImmutableList(),
@@ -67,7 +67,7 @@ internal class RealtimeClient(
 
     suspend fun vehicleForTrip(tripId: String): LiveVehicleUpdate {
         val response = rtGet {
-            url { takeFrom(baseUrl); appendPathSegments("realtime", "vehicles", "by-trip", tripId) }
+            url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "vehicles", "by-trip", tripId) }
         }
         // No vehicle currently reporting for this trip is a normal state, not a failure; a plan-limit code in
         // the body still decides, whatever status a proxy passes on.
@@ -88,9 +88,9 @@ internal class RealtimeClient(
         requireInRange("tripIds", byServiceDate.values.sumOf { it.size } <= MAX_TRIP_IDS)
         val request = DelaysRequestDto(byServiceDate.map { (serviceDate, tripIds) -> DelayQueryDto(serviceDate, tripIds) })
         val response = rtPost(json.encodeToString(DelaysRequestDto.serializer(), request)) {
-            url { takeFrom(baseUrl); appendPathSegments("realtime", "delays") }
+            url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "delays") }
         }
-        val dto: DelaysResponseDto = response.decodeOrThrow("realtime/delays")
+        val dto: DelaysResponseDto = response.decodeOrThrow("realtime/v1/delays")
         return TripDelays(
             groups = dto.results.map { it.toDomain() }.toImmutableList(),
             freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
@@ -99,9 +99,9 @@ internal class RealtimeClient(
 
     suspend fun alerts(): ServiceAlerts {
         val response = rtGet {
-            url { takeFrom(baseUrl); appendPathSegments("realtime", "alerts") }
+            url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "alerts") }
         }
-        val dto: AlertsResponseDto = response.decodeOrThrow("realtime/alerts")
+        val dto: AlertsResponseDto = response.decodeOrThrow("realtime/v1/alerts")
         return ServiceAlerts(
             alerts = dto.alerts.map { it.toDomain() }.toImmutableList(),
             freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
@@ -131,12 +131,12 @@ internal class RealtimeClient(
         val envelope = parseErrorEnvelope(body)
         envelope.planLimitCode?.let { return planLimitFailure(where, status.value, it, envelope.message) }
         val detail = envelope.message ?: body.take(300).trim()
-        return SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", envelope.code, detail)
+        return SpiderTransportException.Http(status.value, "$where → ${status.value}: $detail", envelope.code, detail, envelope.field)
     }
 }
 
 private const val MAX_TRIP_IDS = 50
-private const val BY_TRIP = "realtime/vehicles/by-trip"
+private const val BY_TRIP = "realtime/v1/vehicles/by-trip"
 
 // Epoch seconds → Instant; nulls (feed hasn't reported a timestamp) stay null.
 private fun Long?.toInstantOrNull(): Instant? = this?.let { Instant.fromEpochSeconds(it) }

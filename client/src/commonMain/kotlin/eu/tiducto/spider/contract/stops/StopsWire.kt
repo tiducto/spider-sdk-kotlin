@@ -18,7 +18,7 @@ import kotlinx.serialization.Serializable
  */
 
 /**
- * POST body for `/stops/search`. [filter] is a stop-search filter expression the client composes;
+ * POST body for `/stops/v1/search`. [filter] is a stop-search filter expression the client composes;
  * [sort] carries index sort directives (e.g. `_geoPoint(lat, lng):asc` for nearest-first); both are omitted
  * from the wire when null (the encoder drops defaults). [limit] caps the hit count and is always sent.
  */

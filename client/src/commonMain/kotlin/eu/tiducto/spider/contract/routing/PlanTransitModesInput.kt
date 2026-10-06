@@ -2,10 +2,11 @@ package eu.tiducto.spider.contract.routing
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Transit modes the search may use.
+ */
 @Serializable
 internal data class PlanTransitModesInput(
-    val access: List<PlanAccessMode>? = null,
-    val egress: List<PlanEgressMode>? = null,
-    val transfer: List<PlanTransferMode>? = null,
+    /** The modes an itinerary may ride, each with an optional reluctance. Absent means every mode. */
     val transit: List<PlanTransitModePreferenceInput>? = null
 )

@@ -62,36 +62,33 @@ class SpiderErrorTest {
     }
 
     @Test
-    fun topLevelBadRequestErrorBecomesBadRequestWithFieldAndMessage() {
-        // A GraphQL top-level BAD_REQUEST (over-cap searchWindow / bad via / missing required) as plan()
-        // sees it: errors[] → the transport exception → the typed SpiderError.
-        val errors = listOf(
-            GraphQlErrorPayload(
-                message = "searchWindow exceeds the maximum of PT2H",
-                extensions = GraphQlErrorExtensions(code = "BAD_REQUEST", field = "searchWindow"),
-            ),
-        )
-        val error = errors.toTransportException("plan").toSpiderError()
+    fun routing400IsBadRequestWithTheBodyFieldAndMessage() {
+        val error = routingHttpFailure(
+            "plan",
+            400,
+            """{"code":"bad_request","message":"preferences.street.bicycle is not allowed","field":"preferences.street.bicycle"}""",
+        ).toSpiderError()
         assertEquals(SpiderErrorCode.BAD_REQUEST, error.code)
         assertEquals("bad_request", error.code.wireName)
         error as SpiderError.BadRequest
-        assertEquals("searchWindow", error.field)
-        assertEquals("searchWindow exceeds the maximum of PT2H", error.message)
+        assertEquals("preferences.street.bicycle", error.field)
+        assertEquals("preferences.street.bicycle is not allowed", error.message)
+        assertEquals(400, error.httpStatus)
+        assertEquals("bad_request", error.serverCode)
     }
 
     @Test
-    fun badRequestWithoutAFieldStillMapsWithItsMessage() {
-        val errors = listOf(GraphQlErrorPayload("bad via", GraphQlErrorExtensions(code = "BAD_REQUEST")))
-        val error = errors.toTransportException("plan").toSpiderError()
+    fun theBodyFieldWinsOverTheFieldTheMessageNames() {
+        val error = SpiderTransportException.Http(400, "x", detail = "via is invalid", field = "via.visit").toSpiderError()
+        assertEquals("via.visit", (error as SpiderError.BadRequest).field)
+    }
+
+    @Test
+    fun aBadRequestWithoutAFieldStillMapsWithItsMessage() {
+        val error = routingHttpFailure("plan", 400, """{"code":"bad_request","message":"Request is too large"}""").toSpiderError()
         assertEquals(SpiderErrorCode.BAD_REQUEST, error.code)
         assertNull((error as SpiderError.BadRequest).field)
-        assertEquals("bad via", error.message)
-    }
-
-    @Test
-    fun otherTopLevelErrorsStayServer() {
-        val errors = listOf(GraphQlErrorPayload("internal boom", extensions = null))
-        assertEquals(SpiderErrorCode.SERVER, errors.toTransportException("plan").toSpiderError().code)
+        assertEquals("Request is too large", error.message)
     }
 
     @Test
@@ -100,6 +97,8 @@ class SpiderErrorTest {
             "limit is out of range" to "limit",
             "maxWindow is required" to "maxWindow",
             "serviceDate is invalid" to "serviceDate",
+            "preferences.transit.transfer.maximumTransfers is out of range" to "preferences.transit.transfer.maximumTransfers",
+            "via.visit.coordinate is not allowed" to "via.visit.coordinate",
             "Attribute `name` is not filterable." to null,
         )) {
             val error = SpiderTransportException.Http(400, "POST /x → 400: $detail", detail = detail).toSpiderError()
@@ -111,25 +110,19 @@ class SpiderErrorTest {
     }
 
     @Test
-    fun retiredQueryMapsToQueryRetiredFromTheBodyOrA410() {
-        val fromBody = routingHttpFailure("plan", 410, """{"error":"query_retired","message":"persisted query is retired"}""")
+    fun a410MapsToQueryRetired() {
+        val withBody = routingHttpFailure("plan", 410, """{"code":"gone","message":"this operation is retired"}""")
             .toSpiderError()
         val bare410 = routingHttpFailure("trip", 410, "").toSpiderError()
-        for (error in listOf(fromBody, bare410)) {
+        for (error in listOf(withBody, bare410)) {
+            assertIs<SpiderError.QueryRetired>(error)
             assertEquals(SpiderErrorCode.QUERY_RETIRED, error.code)
             assertEquals("query_retired", error.code.wireName)
+            assertEquals("query_retired", error.serverCode)
             assertEquals(410, error.httpStatus)
         }
-        assertEquals("routing trip → 410: persisted query is retired", bare410.message)
-    }
-
-    @Test
-    fun unknownQueryIdStaysUnauthorizedWithTheGatewayCode() {
-        val error = routingHttpFailure("plan", 403, """{"error":"persisted_query_rejected","message":"unknown persisted-query id: abc"}""")
-            .toSpiderError()
-        assertEquals(SpiderErrorCode.UNAUTHORIZED, error.code)
-        assertEquals("persisted_query_rejected", error.serverCode)
-        assertEquals("routing plan → 403: unknown persisted-query id: abc", error.message)
+        assertEquals("routing plan → 410: this operation is retired", withBody.message)
+        assertEquals("routing trip → 410: the API this call uses is retired", bare410.message)
     }
 
     private val planningLimit = """{"error":"planning_limit_reached","message":"trip planning limit reached"}"""
@@ -187,14 +180,27 @@ class SpiderErrorTest {
     }
 
     @Test
+    fun thePlanLimitCodeReadsTheBodyCodeBeforeItsError() {
+        val inactive = routingHttpFailure("plan", 403, """{"code":"agreement_inactive","message":"agreement is not active"}""")
+            .toSpiderError()
+        assertIs<SpiderError.AgreementInactive>(inactive)
+        assertEquals("agreement_inactive", inactive.serverCode)
+        val both = routingHttpFailure("plan", 403, """{"code":"planning_limit_reached","error":"planning_limit_reached"}""")
+            .toSpiderError()
+        assertIs<SpiderError.PlanningLimitReached>(both)
+        assertEquals("trip planning limit reached", both.message)
+        val codeWins = routingHttpFailure("plan", 403, """{"code":"forbidden","error":"planning_limit_reached"}""")
+            .toSpiderError()
+        assertIs<SpiderError.Unauthorized>(codeWins)
+    }
+
+    @Test
     fun a403WithoutAPlanLimitCodeStaysUnauthorized() {
         for (body in listOf(
             "",
             "Forbidden",
             """{"message":"Access to this API has been disallowed"}""",
             """{"error":"forbidden"}""",
-            """{"code":"agreement_inactive","message":"agreement is not active"}""",
-            """{"code":"planning_limit_reached"}""",
         )) {
             val error = routingHttpFailure("plan", 403, body).toSpiderError()
             assertIs<SpiderError.Unauthorized>(error)
@@ -210,10 +216,11 @@ class SpiderErrorTest {
     }
 
     @Test
-    fun parseErrorEnvelopeReadsCodeAndMessageAndToleratesNonJson() {
-        val envelope = parseErrorEnvelope("""{"code":"forbidden","message":"nope"}""")
-        assertEquals("forbidden", envelope.code)
-        assertEquals("nope", envelope.message)
+    fun parseErrorEnvelopeReadsCodeMessageAndFieldAndToleratesNonJson() {
+        val envelope = parseErrorEnvelope("""{"code":"bad_request","message":"id is required","field":"id"}""")
+        assertEquals("bad_request", envelope.code)
+        assertEquals("id is required", envelope.message)
+        assertEquals("id", envelope.field)
         val empty = parseErrorEnvelope("plain text")
         assertNull(empty.code)
         assertNull(empty.message)

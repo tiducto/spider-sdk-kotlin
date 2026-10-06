@@ -9,6 +9,8 @@ internal data class TripStop(
     val lat: Double? = null,
     val lon: Double? = null,
     val wheelchairBoarding: WheelchairBoarding? = null,
+    /** Null when the feed has none. */
     val platformCode: String? = null,
+    /** Null when the feed has none. */
     val zoneId: String? = null
 )

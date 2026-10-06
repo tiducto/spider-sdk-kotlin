@@ -63,10 +63,7 @@ sealed interface SpiderError {
         override val cause: Throwable? = null,
     ) : SpiderError
 
-    /**
-     * The key was missing or rejected (401/403). A 403 whose [serverCode] is `persisted_query_rejected`
-     * means the gateway doesn't recognise the persisted-query id the call sent.
-     */
+    /** The key was missing or rejected (401/403). */
     data class Unauthorized(
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
@@ -74,9 +71,10 @@ sealed interface SpiderError {
 
     /**
      * The request is invalid: a required value is missing, a value is out of range, or an input is
-     * malformed (such as `via`). [field] names the offending input; [message] names only the field, never
-     * the limit. The SDK returns this without sending a request when a value breaks a fixed platform limit;
-     * the API returns it for limits the environment sets.
+     * malformed (such as `via`). [field] names the offending input as a dot path from the request body root
+     * (such as `preferences.transit.transfer.maximumTransfers`); [message] names only the field, never the
+     * limit. The SDK returns this without sending a request when a value breaks a fixed platform limit; the API
+     * returns it for limits the environment sets.
      */
     data class BadRequest(
         val field: String? = null,
@@ -101,8 +99,8 @@ sealed interface SpiderError {
     ) : SpiderError
 
     /**
-     * The persisted query this call sends is retired: the API no longer serves it (HTTP 410). This is the
-     * query's state, not a problem with the key or the request.
+     * The API part this SDK version calls is retired (HTTP 410); upgrade the SDK. This is the API's state,
+     * not a problem with the key or the request.
      */
     data class QueryRetired(
         override val httpStatus: Int? = null,
@@ -151,6 +149,7 @@ internal sealed class SpiderTransportException(message: String) : RuntimeExcepti
         message: String,
         val serverCode: String? = null,
         val detail: String? = null,
+        val field: String? = null,
     ) : SpiderTransportException(message)
     // A plan limit refused the key: [code] is the body's `error`, [detail] the message the error reports.
     class PlanLimit(val status: Int, message: String, val code: String, val detail: String) :
@@ -169,7 +168,7 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
         QUERY_RETIRED_SERVER_CODE -> SpiderError.QueryRetired(status, this)
         else -> when (status) {
             400 -> SpiderError.BadRequest(
-                field = detail?.let(::fieldOfBadRequest),
+                field = field ?: detail?.let(::fieldOfBadRequest),
                 message = detail ?: message ?: SpiderErrorCode.BAD_REQUEST.wireName,
                 httpStatus = status,
                 cause = this,
@@ -193,19 +192,16 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
     else -> SpiderError.Unknown(cause = this)
 }
 
-// The gateway's `error` codes for a persisted-query id: one it never had (403), and one it retired (410).
-internal const val UNKNOWN_QUERY_SERVER_CODE: String = "persisted_query_rejected"
 internal const val QUERY_RETIRED_SERVER_CODE: String = "query_retired"
 
-// The gateway's `error` codes when a plan limit refuses the key (403, before any upstream call). Only the body's
-// `error` decides, whatever the status a proxy passes on; a 403 without one stays Unauthorized.
+// Only the body's `code` (else its `error`) decides a plan limit, whatever status a proxy passes on.
 internal const val PLANNING_LIMIT_REACHED_SERVER_CODE: String = "planning_limit_reached"
 internal const val AGREEMENT_INACTIVE_SERVER_CODE: String = "agreement_inactive"
 private const val PLANNING_LIMIT_REACHED_MESSAGE = "trip planning limit reached"
 private const val AGREEMENT_INACTIVE_MESSAGE = "agreement is not active"
 
 internal val ErrorEnvelope.planLimitCode: String?
-    get() = error?.takeIf { it == PLANNING_LIMIT_REACHED_SERVER_CODE || it == AGREEMENT_INACTIVE_SERVER_CODE }
+    get() = (code ?: error)?.takeIf { it == PLANNING_LIMIT_REACHED_SERVER_CODE || it == AGREEMENT_INACTIVE_SERVER_CODE }
 
 // The refusal carries the body's message when it has one, else the fixed wording for [code]. [where] prefixes
 // the transport message the same way the surface's other HTTP failures do.
@@ -221,16 +217,21 @@ internal fun requireInRange(field: String, inRange: Boolean) {
     if (!inRange) throw SpiderTransportException.BadRequest(field, "$field is out of range")
 }
 
-// The platform words a validation 400 as "<field> is out of range|required|invalid" on every surface.
-private val BAD_REQUEST_MESSAGE = Regex("""([A-Za-z_][A-Za-z0-9_]*) is (?:out of range|required|invalid)""")
+// The platform words a validation 400 as "<field> is out of range|required|invalid|not allowed" on every surface.
+private val BAD_REQUEST_MESSAGE = Regex("""([A-Za-z_][A-Za-z0-9_.]*) is (?:out of range|required|invalid|not allowed)""")
 
 internal fun fieldOfBadRequest(message: String): String? =
     BAD_REQUEST_MESSAGE.matchEntire(message.trim())?.groupValues?.get(1)
 
-internal data class ErrorEnvelope(val code: String?, val message: String?, val error: String? = null)
+internal data class ErrorEnvelope(
+    val code: String?,
+    val message: String?,
+    val error: String? = null,
+    val field: String? = null,
+)
 
 internal fun parseErrorEnvelope(body: String): ErrorEnvelope = runCatching {
     val obj = Json.parseToJsonElement(body).jsonObject
     fun string(key: String) = (obj[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
-    ErrorEnvelope(string("code"), string("message"), string("error"))
+    ErrorEnvelope(string("code"), string("message"), string("error"), string("field"))
 }.getOrDefault(ErrorEnvelope(null, null))

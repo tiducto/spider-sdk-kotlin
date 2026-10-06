@@ -1,13 +1,6 @@
 package eu.tiducto.spider.client
 
-import eu.tiducto.spider.contract.routing.PlanConnectionStreamVariables
-import eu.tiducto.spider.contract.routing.PlanCoordinateInput
-import eu.tiducto.spider.contract.routing.PlanDateTimeInput
-import eu.tiducto.spider.contract.routing.PlanLabeledLocationInput
-import eu.tiducto.spider.contract.routing.PlanLocationInput
-import eu.tiducto.spider.contract.routing.PlanPassThroughViaLocationInput
-import eu.tiducto.spider.contract.routing.PlanStopLocationInput
-import eu.tiducto.spider.contract.routing.PlanViaLocationInput
+import eu.tiducto.spider.contract.routing.PlanStreamRequest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -21,12 +14,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/**
- * Guards the SSE `plan-stream` handling: the record parser that turns `chunk`/`pageInfo`/`error` events into
- * [PlanStreamEvent]s (including realtime-delay mapping onto legs), and the stream request's wire shape (the
- * initial call plus the `after`/`before` continuation cursors). The Json config mirrors RoutingClient's
- * exactly — the two must stay in lockstep.
- */
+/** The Json config mirrors RoutingClient's exactly; the two must stay in lockstep. */
 class RoutingStreamTest {
 
     private val json = Json {
@@ -40,6 +28,7 @@ class RoutingStreamTest {
     fun `chunk maps itineraries with realtime delays`() {
         val data = """
             {
+              "frontier": 1800, "found": 1, "finalized": 1,
               "results": [
                 {
                   "numberOfTransfers": 1,
@@ -99,7 +88,7 @@ class RoutingStreamTest {
     // to planStreamNext / planStreamPrevious.
     @Test
     fun `pageInfo maps to the terminal Done with continuation cursors`() {
-        val data = """{ "startCursor": "c-prev", "endCursor": "c-next", "hasNextPage": true, "hasPreviousPage": false, "searchWindowUsed": "PT1H" }"""
+        val data = """{ "startCursor": "c-prev", "endCursor": "c-next", "hasNextPage": true, "hasPreviousPage": false, "searchWindowUsed": "PT1H", "routingErrors": [] }"""
         val event = assertIs<PlanStreamEvent.Done>(parsePlanStreamRecord("pageInfo", data, json))
         assertEquals("c-prev", event.pageInfo.startCursor)
         assertEquals("c-next", event.pageInfo.endCursor)
@@ -138,6 +127,7 @@ class RoutingStreamTest {
     fun `unknown realtime state and new modes map to typed values`() {
         val data = """
             {
+              "frontier": 300, "found": 1, "finalized": 1,
               "results": [
                 {
                   "numberOfTransfers": 0, "duration": 300,
@@ -166,6 +156,7 @@ class RoutingStreamTest {
     fun `null or absent typical arrival delay and interline flag map to null and false`() {
         val data = """
             {
+              "frontier": 600, "found": 1, "finalized": 1,
               "results": [
                 {
                   "numberOfTransfers": 0, "duration": 600,
@@ -190,45 +181,36 @@ class RoutingStreamTest {
         assertEquals(listOf(false, false), legs.map { it.interlineWithPreviousLeg })
     }
 
-    // The trailing `done` telemetry frame just ends the stream — the SDK surfaces no telemetry, so it is dropped.
     @Test
     fun `done telemetry frame is ignored`() {
         val data = """{ "iterations": 3, "windowSeconds": 3600, "resultCount": 5, "stoppedBy": "targetResults" }"""
         assertEquals(null, parsePlanStreamRecord("done", data, json))
     }
 
-    // A stream `error` record is the GraphQL error envelope; a top-level BAD_REQUEST becomes a typed BadRequest.
-    @Test
-    fun `error event maps to a typed BadRequest failure`() {
-        val data = """{ "data": null, "errors": [ { "message": "searchWindow exceeds the cap", "extensions": { "code": "BAD_REQUEST", "field": "searchWindow" } } ] }"""
-        val event = assertIs<PlanStreamEvent.Failure>(parsePlanStreamRecord("error", data, json))
-        val error = assertIs<SpiderError.BadRequest>(event.error)
-        assertEquals("searchWindow", error.field)
-        assertEquals("searchWindow exceeds the cap", error.message)
-    }
-
     @Test
     fun `heartbeats and unknown events are ignored`() {
         assertEquals(null, parsePlanStreamRecord("message", "", json))
         assertEquals(null, parsePlanStreamRecord("weird", """{ "x": 1 }""", json))
+        assertEquals(null, parsePlanStreamRecord("error", """{ "code": "server", "message": "boom" }""", json))
     }
 
-    // Pins the initial stream request wire shape (targetResults/maxWindow + via, no cursors) so a contract
-    // regen can't silently rename or reorder the fields the SDK sends to /routing/plan-stream.
     @Test
-    fun `initial stream variables serialize to the plan-stream wire shape`() {
-        val variables = PlanConnectionStreamVariables(
-            dateTime = PlanDateTimeInput(earliestDeparture = "2026-07-15T08:00:00Z"),
-            origin = PlanLabeledLocationInput(
-                location = PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = "1:A")),
-            ),
-            destination = PlanLabeledLocationInput(
-                location = PlanLocationInput(coordinate = PlanCoordinateInput(latitude = 49.2, longitude = 16.6)),
-            ),
-            via = listOf(PlanViaLocationInput(passThrough = PlanPassThroughViaLocationInput(stopLocationIds = listOf("1:V")))),
-            targetResults = 5,
-            maxWindow = "PT3H",
-        )
+    fun `a malformed chunk or pageInfo is a terminal Decoding failure`() {
+        for ((event, data) in listOf(
+            "chunk" to """{ "results": [] }""",
+            "pageInfo" to """{ "hasNextPage": "yes" }""",
+        )) {
+            val failure = assertIs<PlanStreamEvent.Failure>(parsePlanStreamRecord(event, data, json))
+            assertIs<SpiderError.Decoding>(failure.error)
+        }
+    }
+
+    @Test
+    fun `initial stream body serializes to the plan-stream wire shape`() {
+        val body = request.copy(
+            destination = Location.Coordinate(49.2, 16.6),
+            via = listOf(ViaLocation.PassThrough("1:V")),
+        ).toPlanStreamRequest(targetResults = 5, maxWindow = 3.hours, before = null, after = null)
         val expected = json.parseToJsonElement(
             """
             {
@@ -241,8 +223,7 @@ class RoutingStreamTest {
             }
             """.trimIndent(),
         )
-        val actual = json.encodeToJsonElement(PlanConnectionStreamVariables.serializer(), variables)
-        assertEquals(expected, actual)
+        assertEquals(expected, json.encodeToJsonElement(PlanStreamRequest.serializer(), body))
     }
 
     // planStreamNext continues from a prior Done.pageInfo.endCursor: the cursor rides as `after`, and
@@ -250,8 +231,8 @@ class RoutingStreamTest {
     @Test
     fun `planStreamNext continuation sends only after`() {
         val obj = json.encodeToJsonElement(
-            PlanConnectionStreamVariables.serializer(),
-            streamContinuationVariables(after = "c-next", before = null),
+            PlanStreamRequest.serializer(),
+            request.toPlanStreamRequest(targetResults = 5, maxWindow = 3.hours, before = null, after = "c-next"),
         ).jsonObject
         assertEquals("c-next", obj["after"]?.jsonPrimitive?.contentOrNull)
         assertEquals(null, obj["before"])
@@ -262,8 +243,8 @@ class RoutingStreamTest {
     @Test
     fun `planStreamPrevious continuation sends only before`() {
         val obj = json.encodeToJsonElement(
-            PlanConnectionStreamVariables.serializer(),
-            streamContinuationVariables(after = null, before = "c-prev"),
+            PlanStreamRequest.serializer(),
+            request.toPlanStreamRequest(targetResults = 5, maxWindow = 3.hours, before = "c-prev", after = null),
         ).jsonObject
         assertEquals("c-prev", obj["before"]?.jsonPrimitive?.contentOrNull)
         assertEquals(null, obj["after"])
@@ -276,10 +257,10 @@ class RoutingStreamTest {
     )
 
     @Test
-    fun `stream variables always carry targetResults and maxWindow`() {
+    fun `stream body always carries targetResults and maxWindow`() {
         val obj = json.encodeToJsonElement(
-            PlanConnectionStreamVariables.serializer(),
-            request.toStreamVariables(targetResults = 3, maxWindow = 2.hours, before = null, after = null),
+            PlanStreamRequest.serializer(),
+            request.toPlanStreamRequest(targetResults = 3, maxWindow = 2.hours, before = null, after = null),
         ).jsonObject
         assertEquals("3", obj["targetResults"]?.jsonPrimitive?.contentOrNull)
         assertEquals("PT2H", obj["maxWindow"]?.jsonPrimitive?.contentOrNull)
@@ -287,10 +268,10 @@ class RoutingStreamTest {
 
     // Omitted reliability plans on the timetable, so the variable is only sent when set.
     @Test
-    fun `stream variables carry reliability only when set`() {
+    fun `stream body carries reliability only when set`() {
         fun reliabilityOf(request: PlanRequest) = json.encodeToJsonElement(
-            PlanConnectionStreamVariables.serializer(),
-            request.toStreamVariables(targetResults = 3, maxWindow = 2.hours, before = null, after = null),
+            PlanStreamRequest.serializer(),
+            request.toPlanStreamRequest(targetResults = 3, maxWindow = 2.hours, before = null, after = null),
         ).jsonObject["reliability"]?.jsonPrimitive?.contentOrNull
 
         assertEquals("VERY_SAFE", reliabilityOf(request.copy(reliability = Reliability.VERY_SAFE)))
@@ -301,23 +282,9 @@ class RoutingStreamTest {
     @Test
     fun `a maxWindow under two hours is rejected with only the field named`() {
         val error = assertFailsWith<SpiderTransportException.BadRequest> {
-            request.toStreamVariables(targetResults = 5, maxWindow = 119.minutes, before = null, after = null)
+            request.toPlanStreamRequest(targetResults = 5, maxWindow = 119.minutes, before = null, after = null)
         }
         assertEquals("maxWindow", error.field)
         assertEquals("maxWindow is out of range", error.message)
     }
-
-    private fun streamContinuationVariables(after: String?, before: String?) = PlanConnectionStreamVariables(
-        dateTime = PlanDateTimeInput(earliestDeparture = "2026-07-15T08:00:00Z"),
-        origin = PlanLabeledLocationInput(
-            location = PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = "1:A")),
-        ),
-        destination = PlanLabeledLocationInput(
-            location = PlanLocationInput(stopLocation = PlanStopLocationInput(stopLocationId = "1:B")),
-        ),
-        targetResults = 5,
-        maxWindow = "PT3H",
-        before = before,
-        after = after,
-    )
 }

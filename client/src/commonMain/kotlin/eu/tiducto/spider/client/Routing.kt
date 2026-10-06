@@ -56,7 +56,7 @@ class SpiderRouting(
         before: String? = null,
         after: String? = null,
     ): SpiderResult<Route> = context(log) {
-        spiderCatch(
+        spiderCall(
             tag = "SpiderRouting",
             message = {
                 "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} before=$before after=$after)"
@@ -184,7 +184,7 @@ class SpiderRouting(
         startTime: Instant? = null,
         timeRange: Duration = 24.hours,
     ): SpiderResult<ImmutableList<Departure>> = context(log) {
-        spiderCatch(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
+        spiderCall(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
             routing.stopDepartures(id, numberOfDepartures, startTime, timeRange)
         }
     }
@@ -198,7 +198,7 @@ class SpiderRouting(
         tripId: String,
         serviceDate: String? = null,
     ): SpiderResult<TripDetails> = context(log) {
-        spiderCatch(tag = "SpiderRouting", message = { "trip failed against $baseUrl (tripId=$tripId)" }) {
+        spiderCall(tag = "SpiderRouting", message = { "trip failed against $baseUrl (tripId=$tripId)" }) {
             routing.trip(tripId, serviceDate)
         }
     }
@@ -232,8 +232,9 @@ sealed interface ViaLocation {
     }
 
     /**
-     * Passenger must be at [location] (becomes a leg boundary). [minimumWaitTime]
-     * (0 to 24 hours) forces at least that dwell between arriving and leaving the via stop.
+     * Passenger must be at [location] (becomes a leg boundary), which must be a [Location.Stop]; a
+     * [Location.Coordinate] returns [SpiderError.BadRequest] for `via` without a request. [minimumWaitTime]
+     * (0 to 1 hour) forces at least that dwell between arriving and leaving the via stop.
      */
     data class Visit(
         val location: Location,
@@ -288,6 +289,7 @@ data class Route(
 )
 
 data class RouteEdge(
+    @Deprecated("Always \"NoCursor\"; page with Route.pageInfo.")
     val cursor: String,
     val itinerary: Itinerary,
 )
@@ -299,6 +301,7 @@ data class Itinerary(
     val durationSeconds: Long,
     val waitingTimeSeconds: Long?,
     val numberOfTransfers: Int,
+    @Deprecated("Always null.")
     val accessibilityScore: Double? = null,
     @Serializable(with = LegListSerializer::class)
     val legs: ImmutableList<Leg>,
@@ -346,6 +349,7 @@ data class Leg(
     val durationSeconds: Double?,
     val tripGtfsId: String?,
     val bikesAllowed: BikesAllowed? = null,
+    @Deprecated("Always null.")
     val accessibilityScore: Double? = null,
     val fromWheelchair: WheelchairBoarding? = null,
     val toWheelchair: WheelchairBoarding? = null,
