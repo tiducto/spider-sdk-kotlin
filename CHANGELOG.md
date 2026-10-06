@@ -23,8 +23,8 @@ The public API is unchanged apart from the deprecations below.
   `PlanStreamEvent.Failure` instead of ending without one.
 - `ViaLocation.Visit` at a `Location.Coordinate` returns `SpiderError.BadRequest` (field `via`, `via is invalid`)
   without a request; the API never accepted it.
-- `ViaLocation.Visit.minimumWaitTime` is 0 to 1 hour (was 24 hours); a longer wait returns
-  `SpiderError.BadRequest` (field `via`) without a request.
+- `ViaLocation.Visit.minimumWaitTime` is 0 to 1 hour (was 24 hours); a wait outside it returns
+  `SpiderError.BadRequest` (field `via.visit.minimumWaitTime`, as the API names it) without a request.
 - `SpiderError.BadRequest.field` is the request member the API names, as a dot path from the request body root
   (such as `preferences.transit.transfer.maximumTransfers`). It comes from the error body's `field` on every
   surface, else from a message worded `<field> is required|invalid|out of range|not allowed`.

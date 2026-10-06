@@ -464,11 +464,11 @@ internal fun PlanRequest.toPlanStreamRequest(
 // The fixed platform limits on each via location. How many via locations are allowed is an environment
 // setting, which the API checks.
 internal fun PlanRequest.requireValidVia() = via.forEach { location ->
-    val valid = when (location) {
-        is ViaLocation.PassThrough -> location.stopIds.size in 1..MAX_VIA_STOP_IDS
-        is ViaLocation.Visit -> location.minimumWaitTime in Duration.ZERO..MAX_VIA_WAIT
+    when (location) {
+        is ViaLocation.PassThrough -> requireInRange("via", location.stopIds.size in 1..MAX_VIA_STOP_IDS)
+        is ViaLocation.Visit ->
+            requireInRange("via.visit.minimumWaitTime", location.minimumWaitTime in Duration.ZERO..MAX_VIA_WAIT)
     }
-    requireInRange("via", valid)
 }
 
 private val MIN_STREAM_WINDOW = 2.hours

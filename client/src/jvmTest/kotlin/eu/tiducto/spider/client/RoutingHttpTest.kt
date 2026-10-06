@@ -282,16 +282,17 @@ class RoutingHttpTest {
 
     @Test
     fun `via limits are checked before any request on plan and planStream`() = runBlocking<Unit> {
+        val wait = "via.visit.minimumWaitTime"
         val invalid = listOf(
-            ViaLocation.PassThrough(emptyList()),
-            ViaLocation.PassThrough((1..11).map { "1:S$it" }),
-            ViaLocation.Visit(Location.Stop("1:V"), minimumWaitTime = (-1).seconds),
-            ViaLocation.Visit(Location.Stop("1:V"), minimumWaitTime = 1.hours + 1.seconds),
+            ViaLocation.PassThrough(emptyList()) to "via",
+            ViaLocation.PassThrough((1..11).map { "1:S$it" }) to "via",
+            ViaLocation.Visit(Location.Stop("1:V"), minimumWaitTime = (-1).seconds) to wait,
+            ViaLocation.Visit(Location.Stop("1:V"), minimumWaitTime = 1.hours + 1.seconds) to wait,
         )
-        for (via in invalid) {
+        for ((via, field) in invalid) {
             val planError = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), via = listOf(via))).error
-            assertBadRequest("via", planError)
-            assertBadRequest("via", assertIs<PlanStreamEvent.Failure>(stream(via = listOf(via)).toList().single()).error)
+            assertBadRequest(field, planError)
+            assertBadRequest(field, assertIs<PlanStreamEvent.Failure>(stream(via = listOf(via)).toList().single()).error)
         }
         assertEquals(emptyList(), gateway.seen.toList())
 
