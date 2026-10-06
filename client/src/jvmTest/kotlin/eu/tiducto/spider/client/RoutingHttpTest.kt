@@ -73,7 +73,7 @@ class RoutingHttpTest {
     @Test
     fun `plan posts the request body itself and maps itineraries to edges`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/plan" to json(
+            "/routing/v1/plan" to json(
                 """
                 {"itineraries":[{"numberOfTransfers":0,"duration":600,"legs":[
                   {"mode":"TRAM","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},"from":{"name":"A"},"to":{"name":"B"}}
@@ -86,7 +86,7 @@ class RoutingHttpTest {
 
         val route = assertIs<SpiderResult.Success<Route>>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))).data
 
-        assertEquals("/routing/plan", gateway.seen.single().path)
+        assertEquals("/routing/v1/plan", gateway.seen.single().path)
         val body = gateway.body()
         assertEquals(setOf("dateTime", "origin", "destination", "searchWindow"), body.keys)
         val edge = route.edges.single()
@@ -99,7 +99,7 @@ class RoutingHttpTest {
 
     @Test
     fun `plan sends searchWindow as given`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/plan" to emptyPlan)
+        gateway.replies = mapOf("/routing/v1/plan" to emptyPlan)
 
         routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), searchWindow = 90.seconds)
         routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))
@@ -110,7 +110,7 @@ class RoutingHttpTest {
     @Test
     fun `planNext and planPrevious send the original body plus one cursor`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/plan" to json(
+            "/routing/v1/plan" to json(
                 """{"itineraries":[],"pageInfo":{"hasNextPage":true,"hasPreviousPage":true,"startCursor":"c-prev","endCursor":"c-next"},"routingErrors":[]}""",
             ),
         )
@@ -128,7 +128,7 @@ class RoutingHttpTest {
 
     @Test
     fun `plan and planStream send reliability only when set`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/plan" to emptyPlan, "/routing/plan-stream" to emptyDone)
+        gateway.replies = mapOf("/routing/v1/plan" to emptyPlan, "/routing/v1/plan-stream" to emptyDone)
 
         routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), reliability = Reliability.SAFE)
         routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))
@@ -146,9 +146,9 @@ class RoutingHttpTest {
         val field = "preferences.transit.transfer.maximumTransfers"
         val invalid = Reply(400, "application/json", """{"code":"bad_request","message":"$field is out of range","field":"$field"}""")
         gateway.replies = mapOf(
-            "/routing/plan" to invalid,
-            "/routing/plan-stream" to invalid,
-            "/routing/departures" to Reply(400, "application/json", """{"code":"bad_request","message":"id is required","field":"id"}"""),
+            "/routing/v1/plan" to invalid,
+            "/routing/v1/plan-stream" to invalid,
+            "/routing/v1/departures" to Reply(400, "application/json", """{"code":"bad_request","message":"id is required","field":"id"}"""),
         )
 
         val errors = listOf(
@@ -166,7 +166,7 @@ class RoutingHttpTest {
     @Test
     fun `a routing HTTP 400 without a field names the one its message names`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/plan" to Reply(400, "application/json", """{"code":"bad_request","message":"via.visit.coordinate is not allowed"}"""),
+            "/routing/v1/plan" to Reply(400, "application/json", """{"code":"bad_request","message":"via.visit.coordinate is not allowed"}"""),
         )
 
         val error = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))).error
@@ -177,12 +177,12 @@ class RoutingHttpTest {
     @Test
     fun `planStream posts the body with an event-stream Accept and always sends targetResults and maxWindow`() =
         runBlocking<Unit> {
-            gateway.replies = mapOf("/routing/plan-stream" to emptyDone)
+            gateway.replies = mapOf("/routing/v1/plan-stream" to emptyDone)
 
             assertIs<PlanStreamEvent.Done>(stream(maxWindow = 2.hours, targetResults = 3).toList().single())
 
             val seen = gateway.seen.single()
-            assertEquals("/routing/plan-stream", seen.path)
+            assertEquals("/routing/v1/plan-stream", seen.path)
             assertEquals(setOf("text/event-stream"), seen.accept.flatMap { it.split(',') }.map { it.trim() }.toSet())
             val body = gateway.body()
             assertEquals(3, body.getValue("targetResults").jsonPrimitive.int)
@@ -200,7 +200,7 @@ class RoutingHttpTest {
 
     @Test
     fun `a stream maps chunks to Results then ends at Done and skips the done frame`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/plan-stream" to events(chunkEvent + chunkEvent + pageInfoEvent + doneEvent))
+        gateway.replies = mapOf("/routing/v1/plan-stream" to events(chunkEvent + chunkEvent + pageInfoEvent + doneEvent))
 
         val received = stream().toList()
 
@@ -213,7 +213,7 @@ class RoutingHttpTest {
     @Test
     fun `a stream skips event names it does not know`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/plan-stream" to events(
+            "/routing/v1/plan-stream" to events(
                 "event: progress\ndata: {\"frontier\":60}\n\n" +
                     chunkEvent +
                     "event: error\ndata: {\"code\":\"server\",\"message\":\"boom\"}\n\n" +
@@ -232,7 +232,7 @@ class RoutingHttpTest {
     @Test
     fun `a stream cut before pageInfo ends in a transport Failure`() = runBlocking<Unit> {
         for (cut in listOf("", chunkEvent, "event: error\ndata: {\"message\":\"boom\"}\n\n")) {
-            gateway.replies = mapOf("/routing/plan-stream" to events(cut))
+            gateway.replies = mapOf("/routing/v1/plan-stream" to events(cut))
 
             val received = stream().toList()
 
@@ -245,7 +245,7 @@ class RoutingHttpTest {
     @Test
     fun `stream routing errors arrive on Done`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/plan-stream" to events(
+            "/routing/v1/plan-stream" to events(
                 "event: pageInfo\ndata: {\"hasNextPage\":false,\"hasPreviousPage\":false,\"routingErrors\":" +
                     "[{\"code\":\"LOCATION_NOT_FOUND\",\"description\":\"no such stop\",\"inputField\":\"FROM\"}]}\n\n" +
                     "event: done\ndata: {\"iterations\":0,\"windowSeconds\":0,\"resultCount\":0,\"stoppedBy\":\"rejected\"}\n\n",
@@ -262,10 +262,10 @@ class RoutingHttpTest {
     fun `an unknown via stop is a LOCATION_NOT_FOUND routing error on VIA`() = runBlocking<Unit> {
         val viaNotFound = """[{"code":"LOCATION_NOT_FOUND","description":"unknown via stop","inputField":"VIA"}]"""
         gateway.replies = mapOf(
-            "/routing/plan" to json(
+            "/routing/v1/plan" to json(
                 """{"itineraries":[],"pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":$viaNotFound}""",
             ),
-            "/routing/plan-stream" to events(
+            "/routing/v1/plan-stream" to events(
                 "event: pageInfo\ndata: {\"hasNextPage\":false,\"hasPreviousPage\":false,\"routingErrors\":$viaNotFound}\n\n" +
                     doneEvent,
             ),
@@ -296,7 +296,7 @@ class RoutingHttpTest {
         }
         assertEquals(emptyList(), gateway.seen.toList())
 
-        gateway.replies = mapOf("/routing/plan" to emptyPlan)
+        gateway.replies = mapOf("/routing/v1/plan" to emptyPlan)
         val atTheLimits = listOf(
             ViaLocation.PassThrough((1..10).map { "1:S$it" }),
             ViaLocation.Visit(Location.Stop("1:V"), minimumWaitTime = 1.hours),
@@ -324,7 +324,7 @@ class RoutingHttpTest {
             Reply(410, "application/json", """{"code":"query_retired","message":"persisted queries are retired"}"""),
             Reply(410, "application/json", """{"error":"query_retired","message":"persisted queries are retired"}"""),
         )) {
-            gateway.replies = listOf("/routing/plan", "/routing/plan-stream", "/routing/departures", "/routing/trip")
+            gateway.replies = listOf("/routing/v1/plan", "/routing/v1/plan-stream", "/routing/v1/departures", "/routing/v1/trip")
                 .associateWith { retired }
 
             val errors = listOf(
@@ -348,7 +348,7 @@ class RoutingHttpTest {
 
     @Test
     fun `a bare 410 is QueryRetired too`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/departures" to Reply(410, "text/plain", ""))
+        gateway.replies = mapOf("/routing/v1/departures" to Reply(410, "text/plain", ""))
 
         val error = assertIs<SpiderResult.Error>(routing.departures("1:S")).error
 
@@ -359,7 +359,7 @@ class RoutingHttpTest {
     @Test
     fun `a plain 403 stays a key problem`() = runBlocking<Unit> {
         val plain403 = Reply(403, "application/json", """{"message":"Access to this API has been disallowed"}""")
-        gateway.replies = mapOf("/routing/plan" to plain403, "/routing/plan-stream" to plain403)
+        gateway.replies = mapOf("/routing/v1/plan" to plain403, "/routing/v1/plan-stream" to plain403)
 
         for (error in listOf(planError(), streamError())) {
             assertIs<SpiderError.Unauthorized>(error)
@@ -379,7 +379,7 @@ class RoutingHttpTest {
 
     @Test
     fun `a planning limit refusal is PlanningLimitReached on plan and planStream`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/plan" to planningLimit(), "/routing/plan-stream" to planningLimit())
+        gateway.replies = mapOf("/routing/v1/plan" to planningLimit(), "/routing/v1/plan-stream" to planningLimit())
 
         for (error in listOf(planError(), streamError())) {
             assertIs<SpiderError.PlanningLimitReached>(error)
@@ -393,7 +393,7 @@ class RoutingHttpTest {
 
     @Test
     fun `an inactive agreement is AgreementInactive on every routing call`() = runBlocking<Unit> {
-        gateway.replies = listOf("/routing/plan", "/routing/plan-stream", "/routing/departures", "/routing/trip")
+        gateway.replies = listOf("/routing/v1/plan", "/routing/v1/plan-stream", "/routing/v1/departures", "/routing/v1/trip")
             .associateWith { agreementInactive() }
 
         val errors = listOf(
@@ -420,10 +420,10 @@ class RoutingHttpTest {
             val limited = Reply(403, "application/json", """{"error":"planning_limit_reached"$extra}""")
             val inactive = Reply(403, "application/json", """{"error":"agreement_inactive"$extra}""")
             gateway.replies = mapOf(
-                "/routing/plan" to limited,
-                "/routing/plan-stream" to limited,
-                "/routing/departures" to inactive,
-                "/routing/trip" to inactive,
+                "/routing/v1/plan" to limited,
+                "/routing/v1/plan-stream" to limited,
+                "/routing/v1/departures" to inactive,
+                "/routing/v1/trip" to inactive,
             )
 
             for (error in listOf(planError(), streamError())) {
@@ -442,7 +442,7 @@ class RoutingHttpTest {
     @Test
     fun `a plan limit code in the body code field decides too`() = runBlocking<Unit> {
         val codeOnly = Reply(403, "application/json", """{"code":"agreement_inactive","message":"agreement is not active"}""")
-        gateway.replies = mapOf("/routing/plan" to codeOnly, "/routing/plan-stream" to codeOnly)
+        gateway.replies = mapOf("/routing/v1/plan" to codeOnly, "/routing/v1/plan-stream" to codeOnly)
 
         for (error in listOf(planError(), streamError())) {
             assertIs<SpiderError.AgreementInactive>(error)
@@ -454,10 +454,10 @@ class RoutingHttpTest {
     @Test
     fun `a plan limit code decides over a status a proxy rewrote`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/plan" to planningLimit(400),
-            "/routing/plan-stream" to planningLimit(429),
-            "/routing/departures" to agreementInactive(429),
-            "/routing/trip" to agreementInactive(410),
+            "/routing/v1/plan" to planningLimit(400),
+            "/routing/v1/plan-stream" to planningLimit(429),
+            "/routing/v1/departures" to agreementInactive(429),
+            "/routing/v1/trip" to agreementInactive(410),
         )
 
         val limited = listOf(planError() to 400, streamError() to 429)
@@ -484,7 +484,7 @@ class RoutingHttpTest {
     fun `departures send the defaults and carry the service date for every row`() = runBlocking<Unit> {
         val serviceDay = 1_790_546_400L // 2026-09-28 in Europe/Prague
         gateway.replies = mapOf(
-            "/routing/departures" to json(
+            "/routing/v1/departures" to json(
                 """
                 {"stop":{"gtfsId":"1:S","name":"Zvonařka","wheelchairBoarding":null,"stoptimesWithoutPatterns":[
                   {"serviceDay":$serviceDay,"scheduledDeparture":81000,"headsign":"Zvonařka","typicalDelay":120,
@@ -523,13 +523,13 @@ class RoutingHttpTest {
     @Test
     fun `an unknown stop or trip id is NotFound`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/departures" to json("""{"stop":null}"""),
-            "/routing/trip" to json("""{"trip":null}"""),
+            "/routing/v1/departures" to json("""{"stop":null}"""),
+            "/routing/v1/trip" to json("""{"trip":null}"""),
         )
 
         assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.departures("1:NOPE")).error)
         assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.trip("1:NOPE")).error)
-        assertEquals(listOf("""{"id":"1:NOPE"}"""), gateway.seen.filter { it.path == "/routing/trip" }.map { it.body })
+        assertEquals(listOf("""{"id":"1:NOPE"}"""), gateway.seen.filter { it.path == "/routing/v1/trip" }.map { it.body })
     }
 
     @Test
@@ -543,7 +543,7 @@ class RoutingHttpTest {
     @Test
     fun `trip reports its service date and display fields`() = runBlocking<Unit> {
         gateway.replies = mapOf(
-            "/routing/trip" to json(
+            "/routing/v1/trip" to json(
                 """
                 {"trip":{"gtfsId":"1:N89","wheelchairAccessible":"NO_INFORMATION","bikesAllowed":"SOMETHING_NEW",
                   "route":{"gtfsId":"1:LN89","shortName":"N89","color":"00AA00","textColor":"000000"},"stoptimesForDate":[

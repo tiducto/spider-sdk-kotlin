@@ -9,7 +9,7 @@ import kotlin.test.assertNull
 import kotlinx.serialization.json.Json
 
 /**
- * Guards the `/stops/search` wire format. Mirrors RoutingWireContractTest, but the Json config mirrors
+ * Guards the `/stops/v1/search` wire format. Mirrors RoutingWireContractTest, but the Json config mirrors
  * StopsClient's own — `ignoreUnknownKeys = true`, and NOT `explicitNulls = false` (StopsClient doesn't
  * set it; the only optional request field, `filter`, is dropped by its `= null` default anyway).
  *

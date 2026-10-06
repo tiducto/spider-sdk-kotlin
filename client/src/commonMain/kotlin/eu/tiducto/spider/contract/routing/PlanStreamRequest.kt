@@ -3,7 +3,7 @@ package eu.tiducto.spider.contract.routing
 import kotlinx.serialization.Serializable
 
 /**
- * POST body for `/routing/plan-stream`: the Plan Trip search, streamed. Instead of a fixed window, the stream widens its search until it has sent `targetResults` itineraries or has searched `maxWindow`. To continue, send the `pageInfo` event's `endCursor` as `after` (later) or its `startCursor` as `before` (earlier); `before` and `after` are exclusive. A key not listed here, at any depth, is a 400 `<path> is not allowed`. Every bound is rejected, never clamped. `null` on an optional member means absent.
+ * POST body for `/routing/v1/plan-stream`: the Plan Trip search, streamed. Instead of a fixed window, the stream widens its search until it has sent `targetResults` itineraries or has searched `maxWindow`. To continue, send the `pageInfo` event's `endCursor` as `after` (later) or its `startCursor` as `before` (earlier); `before` and `after` are exclusive. A key not listed here, at any depth, is a 400 `<path> is not allowed`. Every bound is rejected, never clamped. `null` on an optional member means absent.
  */
 @Serializable
 internal data class PlanStreamRequest(

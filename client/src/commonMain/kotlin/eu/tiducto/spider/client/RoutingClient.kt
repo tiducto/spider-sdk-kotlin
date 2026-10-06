@@ -118,7 +118,7 @@ internal class RoutingClient(
             http.sse(
                 request = {
                     method = HttpMethod.Post
-                    url("$baseUrl/routing/$PLAN_STREAM")
+                    url("$baseUrl/$ROUTING/$PLAN_STREAM")
                     contentType(ContentType.Application.Json)
                     accept(ContentType.Text.EventStream)
                     spiderHeaders()
@@ -257,7 +257,7 @@ internal class RoutingClient(
 
     private suspend inline fun <reified B, reified R> postJson(op: String, body: B): R {
         val response = http.post {
-            url("$baseUrl/routing/$op")
+            url("$baseUrl/$ROUTING/$op")
             contentType(ContentType.Application.Json)
             spiderHeaders()
             setBody(json.encodeToString(body))
@@ -268,6 +268,7 @@ internal class RoutingClient(
     }
 }
 
+private const val ROUTING = "routing/v1"
 private const val PLAN = "plan"
 private const val PLAN_STREAM = "plan-stream"
 private const val DEPARTURES = "departures"

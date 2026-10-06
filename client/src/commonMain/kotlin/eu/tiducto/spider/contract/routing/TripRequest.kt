@@ -3,7 +3,7 @@ package eu.tiducto.spider.contract.routing
 import kotlinx.serialization.Serializable
 
 /**
- * POST body for `/routing/trip`. A key not listed here is a 400 `<key> is not allowed`.
+ * POST body for `/routing/v1/trip`. A key not listed here is a 400 `<key> is not allowed`.
  */
 @Serializable
 internal data class TripRequest(

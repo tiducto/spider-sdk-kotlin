@@ -47,7 +47,7 @@ internal class StopsClient(
         modes: Set<TransitMode>? = null,
     ): ImmutableList<Stop> {
         requireInRange("limit", limit in 1..MAX_STOP_LIMIT)
-        val url = "$baseUrl/stops/search"
+        val url = "$baseUrl/stops/v1/search"
         val filterExpr = composeStopFilter(filters, idFilter, near, radiusMeters, bbox, modes)
         val sort = composeStopSort(near, sortByDistance)
         val httpResponse = http.post {
