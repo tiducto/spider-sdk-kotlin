@@ -34,11 +34,6 @@ sealed interface PlanStreamEvent {
         val routingErrors: ImmutableList<RoutingError> = persistentListOf(),
     ) : PlanStreamEvent
 
-    /**
-     * Terminal failure — an invalid request ([SpiderError.BadRequest], whether the SDK or the API rejected
-     * it), a transport/HTTP problem (a stream cut before [Done] is [SpiderError.Network]), or a decoding
-     * error. [error] is the same [SpiderError] taxonomy the one-shot calls return. A search that simply finds
-     * nothing ends in [Done] with [Done.routingErrors] instead.
-     */
+    /** Terminal failure in the one-shot calls' [SpiderError] taxonomy; a stream cut before [Done] is [SpiderError.Network]. */
     data class Failure(val error: SpiderError) : PlanStreamEvent
 }

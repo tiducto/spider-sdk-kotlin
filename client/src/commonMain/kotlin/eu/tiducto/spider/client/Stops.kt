@@ -56,9 +56,7 @@ class SpiderStops(
     private val stops = StopsClient(baseUrl, apiKey, retry, log)
 
     suspend fun search(block: StopRequest.() -> Unit): SpiderResult<ImmutableList<Stop>> {
-        // Build + validate outside spiderCall so misuse (radius/sort without `near`) throws
-        // IllegalArgumentException eagerly rather than being folded into a SpiderResult.Error. An
-        // out-of-range limit is a request the API would reject, so it is a BadRequest result instead.
+        // Misuse throws here, outside spiderCall; an out-of-range limit is a BadRequest result.
         val request = StopRequest().apply(block)
         request.validate()
         val name = request.nameQuery.orEmpty()
