@@ -178,7 +178,7 @@ suspend fun planVia(client: SpiderClient) {
         destination = Location.Coordinate(49.2246, 16.5747),
         via = listOf(
             ViaLocation.Visit(
-                location = Location.Coordinate(49.2100, 16.5900),
+                location = Location.Stop("1:U1234"),
                 minimumWaitTime = 10.minutes,
             ),
         ),
@@ -298,7 +298,7 @@ suspend fun wheelchairPlan(client: SpiderClient) {
         is SpiderResult.Success ->
             result.data.edges.forEach { edge ->
                 val itinerary = edge.itinerary
-                println("accessibility ${itinerary.accessibilityScore ?: "n/a"}  ·  ${itinerary.numberOfTransfers} transfers")
+                println("${itinerary.start} → ${itinerary.end}  ·  ${itinerary.numberOfTransfers} transfers")
                 for (leg in itinerary.legs) {
                     println("  ${leg.mode}: board ${leg.fromWheelchair ?: "unknown"} → alight ${leg.toWheelchair ?: "unknown"}")
                 }
@@ -365,7 +365,7 @@ suspend fun streamVia(client: SpiderClient) {
         destination = Location.Coordinate(49.2246, 16.5747),
         via = listOf(
             ViaLocation.Visit(
-                location = Location.Coordinate(49.2100, 16.5900),
+                location = Location.Stop("1:U1234"),
                 minimumWaitTime = 10.minutes,
             ),
         ),
