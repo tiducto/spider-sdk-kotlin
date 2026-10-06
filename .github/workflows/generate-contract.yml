@@ -26,7 +26,6 @@ jobs:
         client/src/commonMain/kotlin/eu/tiducto/spider/contract/routing
         version.properties
         client/src/commonMain/kotlin/eu/tiducto/spider/client/ContractVersion.kt
-        client/src/commonMain/kotlin/eu/tiducto/spider/client/PersistedQueries.kt
         client/src/jvmTest/resources/stops-openapi.json
         client/src/jvmTest/resources/realtime-openapi.json
     secrets: inherit
