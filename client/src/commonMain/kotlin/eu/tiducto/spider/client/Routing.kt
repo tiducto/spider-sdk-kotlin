@@ -56,7 +56,7 @@ class SpiderRouting(
         before: String? = null,
         after: String? = null,
     ): SpiderResult<Route> = context(log) {
-        spiderCatch(
+        spiderCall(
             tag = "SpiderRouting",
             message = {
                 "plan failed against $baseUrl (origin=${request.origin} destination=${request.destination} before=$before after=$after)"
@@ -184,7 +184,7 @@ class SpiderRouting(
         startTime: Instant? = null,
         timeRange: Duration = 24.hours,
     ): SpiderResult<ImmutableList<Departure>> = context(log) {
-        spiderCatch(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
+        spiderCall(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
             routing.stopDepartures(id, numberOfDepartures, startTime, timeRange)
         }
     }
@@ -198,7 +198,7 @@ class SpiderRouting(
         tripId: String,
         serviceDate: String? = null,
     ): SpiderResult<TripDetails> = context(log) {
-        spiderCatch(tag = "SpiderRouting", message = { "trip failed against $baseUrl (tripId=$tripId)" }) {
+        spiderCall(tag = "SpiderRouting", message = { "trip failed against $baseUrl (tripId=$tripId)" }) {
             routing.trip(tripId, serviceDate)
         }
     }

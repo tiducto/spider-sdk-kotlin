@@ -6,6 +6,8 @@ import co.touchlab.kermit.platformLogWriter
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.logging.LogLevel
 import kotlin.coroutines.cancellation.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import co.touchlab.kermit.Logger as KermitLogger
 import io.ktor.client.plugins.logging.Logger as KtorLogger
 import io.ktor.client.plugins.logging.Logging as KtorLogging
@@ -62,13 +64,15 @@ internal fun HttpClientConfig<*>.installSpiderLogging(log: SpiderLog, tag: Strin
     }
 }
 
+// Every public call runs through here. It runs on Dispatchers.Default, so decoding and mapping a response
+// never lands on the caller's UI thread, and a failure is folded into a SpiderResult.
 context(log: SpiderLog)
-internal inline fun <T> spiderCatch(
+internal suspend inline fun <T> spiderCall(
     tag: String,
     noinline message: () -> String,
-    block: () -> T,
+    crossinline block: suspend () -> T,
 ): SpiderResult<T> = try {
-    SpiderResult.Success(block())
+    SpiderResult.Success(withContext(Dispatchers.Default) { block() })
 } catch (e: CancellationException) {
     throw e
 } catch (e: Exception) {

@@ -34,6 +34,8 @@ serves, so none of their calls work against it. The public API is unchanged apar
   surface, else from a message worded `<field> is required|invalid|out of range|not allowed`.
 - `SpiderError.QueryRetired` is any HTTP 410: the API part the call uses is retired; upgrade the SDK.
 - A plan-limit refusal is read from the error body's `code`, or from its `error` when it has no `code`.
+- Every call is safe from the main thread. It decodes and maps its response on `Dispatchers.Default`, as does
+  `planStream`, so a UI dispatcher never spends a frame on a large plan.
 
 ### Deprecated
 

@@ -54,8 +54,10 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.io.IOException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -146,7 +148,7 @@ internal class RoutingClient(
         } catch (e: Exception) {
             if (!ended) emit(PlanStreamEvent.Failure(e.toSpiderError()))
         }
-    }
+    }.flowOn(Dispatchers.Default)
 
     suspend fun stopDepartures(
         id: String,

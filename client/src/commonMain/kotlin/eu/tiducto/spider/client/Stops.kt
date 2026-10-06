@@ -56,7 +56,7 @@ class SpiderStops(
     private val stops = StopsClient(baseUrl, apiKey, retry, log)
 
     suspend fun search(block: StopRequest.() -> Unit): SpiderResult<ImmutableList<Stop>> {
-        // Build + validate outside spiderCatch so misuse (radius/sort without `near`) throws
+        // Build + validate outside spiderCall so misuse (radius/sort without `near`) throws
         // IllegalArgumentException eagerly rather than being folded into a SpiderResult.Error. An
         // out-of-range limit is a request the API would reject, so it is a BadRequest result instead.
         val request = StopRequest().apply(block)
@@ -64,7 +64,7 @@ class SpiderStops(
         val name = request.nameQuery.orEmpty()
         val filters = request.nonNameFilters
         return context(log) {
-            spiderCatch(
+            spiderCall(
                 tag = "SpiderStops",
                 message = { "search failed against $baseUrl (q=$name, filters=${filters.size})" },
             ) {
@@ -87,7 +87,7 @@ class SpiderStops(
      * or `null` when no stop carries that id. Transport failures surface as [SpiderResult.Error].
      */
     suspend fun byId(gtfsId: String): SpiderResult<Stop?> = context(log) {
-        spiderCatch(
+        spiderCall(
             tag = "SpiderStops",
             message = { "byId failed against $baseUrl (gtfsId=$gtfsId)" },
         ) {
