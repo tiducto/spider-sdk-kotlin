@@ -64,8 +64,6 @@ internal fun HttpClientConfig<*>.installSpiderLogging(log: SpiderLog, tag: Strin
     }
 }
 
-// Every public call runs through here. It runs on Dispatchers.Default, so decoding and mapping a response
-// never lands on the caller's UI thread, and a failure is folded into a SpiderResult.
 context(log: SpiderLog)
 internal suspend inline fun <T> spiderCall(
     tag: String,
