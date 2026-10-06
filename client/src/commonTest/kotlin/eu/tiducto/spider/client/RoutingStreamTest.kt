@@ -265,7 +265,7 @@ class RoutingStreamTest {
     )
 
     @Test
-    fun `stream variables always carry targetResults and maxWindow`() {
+    fun `stream body always carries targetResults and maxWindow`() {
         val obj = json.encodeToJsonElement(
             PlanStreamRequest.serializer(),
             request.toPlanStreamRequest(targetResults = 3, maxWindow = 2.hours, before = null, after = null),
@@ -276,7 +276,7 @@ class RoutingStreamTest {
 
     // Omitted reliability plans on the timetable, so the variable is only sent when set.
     @Test
-    fun `stream variables carry reliability only when set`() {
+    fun `stream body carries reliability only when set`() {
         fun reliabilityOf(request: PlanRequest) = json.encodeToJsonElement(
             PlanStreamRequest.serializer(),
             request.toPlanStreamRequest(targetResults = 3, maxWindow = 2.hours, before = null, after = null),

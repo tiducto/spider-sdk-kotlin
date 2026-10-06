@@ -41,7 +41,7 @@ class RoutingWireContractTest {
     )
 
     @Test
-    fun `plan body serializes to the 1_1 variables shape without nulls or label`() {
+    fun `plan body serializes without nulls or label`() {
         val body = request.copy(via = listOf(ViaLocation.PassThrough("1:U999"))).toPlanTripRequest(before = null, after = null)
 
         val expected = json.parseToJsonElement(
