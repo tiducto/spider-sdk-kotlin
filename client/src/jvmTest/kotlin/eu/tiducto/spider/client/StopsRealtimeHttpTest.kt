@@ -92,6 +92,27 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
+    fun `an HTTP 400 field in the body names the field on stop search and realtime`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/stops/search" to Reply(400, "application/json", """{"code":"bad_request","message":"q is invalid","field":"q"}"""),
+            "/realtime/delays" to Reply(
+                400,
+                "application/json",
+                """{"code":"bad_request","message":"queries.tripIds is out of range","field":"queries.tripIds"}""",
+            ),
+        )
+
+        val stopsError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(stops.near(49.19, 16.61)).error)
+        val realtimeError = assertIs<SpiderError.BadRequest>(
+            assertIs<SpiderResult.Error>(realtime.delays(listOf("1:T"), "2026-10-07")).error,
+        )
+
+        assertEquals("q", stopsError.field)
+        assertEquals("queries.tripIds", realtimeError.field)
+        assertEquals("queries.tripIds is out of range", realtimeError.message)
+    }
+
+    @Test
     fun `an HTTP 400 in another wording is a BadRequest without a field`() = runBlocking<Unit> {
         gateway.replies = mapOf(
             "/stops/search" to Reply(
@@ -196,7 +217,7 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
-    fun `a plan limit code in the body code field stays Unauthorized on stop search and realtime`() = runBlocking<Unit> {
+    fun `a plan limit code in the body code field decides on stop search and realtime too`() = runBlocking<Unit> {
         val codeOnly = Reply(403, "application/json", """{"code":"agreement_inactive","message":"agreement is not active"}""")
         gateway.replies = mapOf("/stops/search" to codeOnly, "/realtime/alerts" to codeOnly)
 
@@ -206,8 +227,9 @@ class StopsRealtimeHttpTest {
         )
 
         for (error in errors) {
-            assertIs<SpiderError.Unauthorized>(error)
+            assertIs<SpiderError.AgreementInactive>(error)
             assertEquals(403, error.httpStatus)
+            assertEquals("agreement_inactive", error.serverCode)
         }
     }
 

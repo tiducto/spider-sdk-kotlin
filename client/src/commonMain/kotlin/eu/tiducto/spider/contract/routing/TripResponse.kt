@@ -2,8 +2,10 @@ package eu.tiducto.spider.contract.routing
 
 import kotlinx.serialization.Serializable
 
+/**
+ * `trip` is null for an unknown id.
+ */
 @Serializable
 internal data class TripResponse(
-    val data: TripData? = null,
-    val errors: List<GraphQLError>? = null
+    val trip: TripTimetable? = null
 )

@@ -36,9 +36,9 @@ sealed interface PlanStreamEvent {
 
     /**
      * Terminal failure — an invalid request ([SpiderError.BadRequest], whether the SDK or the API rejected
-     * it), a transport/HTTP problem, or a decoding error. [error] is the same [SpiderError] taxonomy the
-     * one-shot calls return. A search that simply finds nothing ends in [Done] with [Done.routingErrors]
-     * instead.
+     * it), a transport/HTTP problem (including a stream cut before [Done]), or a decoding error. [error] is
+     * the same [SpiderError] taxonomy the one-shot calls return. A search that simply finds nothing ends in
+     * [Done] with [Done.routingErrors] instead.
      */
     data class Failure(val error: SpiderError) : PlanStreamEvent
 }

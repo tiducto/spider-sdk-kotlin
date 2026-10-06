@@ -70,6 +70,7 @@ internal class StopsClient(
                 "POST $url → ${httpResponse.status.value}: $detail",
                 parsed?.code,
                 detail,
+                envelope.field,
             )
         }
 

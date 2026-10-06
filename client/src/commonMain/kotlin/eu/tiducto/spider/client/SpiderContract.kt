@@ -9,8 +9,8 @@ package eu.tiducto.spider.client
  * tracks the contract it was generated from — it cannot drift.
  *
  * Every request carries [VERSION] in the [HEADER]. It is informational (telemetry): the SDK never checks
- * a version the gateway declares back. Older SDKs keep working across contract majors until a query they
- * send is retired; that call then returns [SpiderError.QueryRetired].
+ * a version the gateway declares back. An older SDK keeps working until an API part it calls is retired;
+ * that call then returns [SpiderError.QueryRetired].
  */
 internal object SpiderContract {
 
