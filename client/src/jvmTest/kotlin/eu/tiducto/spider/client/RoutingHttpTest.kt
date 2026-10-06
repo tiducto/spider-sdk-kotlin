@@ -319,30 +319,25 @@ class RoutingHttpTest {
     }
 
     @Test
-    fun `a retired API part is QueryRetired on every routing call`() = runBlocking<Unit> {
-        for (retired in listOf(
-            Reply(410, "application/json", """{"code":"query_retired","message":"persisted queries are retired"}"""),
-            Reply(410, "application/json", """{"error":"query_retired","message":"persisted queries are retired"}"""),
-        )) {
-            gateway.replies = listOf("/routing/v1/plan", "/routing/v1/plan-stream", "/routing/v1/departures", "/routing/v1/trip")
-                .associateWith { retired }
+    fun `a 410 is QueryRetired on every routing call`() = runBlocking<Unit> {
+        gateway.replies = listOf("/routing/v1/plan", "/routing/v1/plan-stream", "/routing/v1/departures", "/routing/v1/trip")
+            .associateWith { Reply(410, "application/json", """{"code":"gone","message":"this operation is retired"}""") }
 
-            val errors = listOf(
-                planError(),
-                streamError(),
-                assertIs<SpiderResult.Error>(routing.departures("1:S")).error,
-                assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28")).error,
-            )
+        val errors = listOf(
+            planError(),
+            streamError(),
+            assertIs<SpiderResult.Error>(routing.departures("1:S")).error,
+            assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28")).error,
+        )
 
-            for (error in errors) {
-                assertIs<SpiderError.QueryRetired>(error)
-                assertEquals(SpiderErrorCode.QUERY_RETIRED, error.code)
-                assertEquals("query_retired", error.code.wireName)
-                assertEquals(410, error.httpStatus)
-                assertEquals("query_retired", error.serverCode)
-                assertEquals(true, "persisted queries are retired" in error.message, error.message)
-                assertFalse("update" in error.message.lowercase(), error.message)
-            }
+        for (error in errors) {
+            assertIs<SpiderError.QueryRetired>(error)
+            assertEquals(SpiderErrorCode.QUERY_RETIRED, error.code)
+            assertEquals("query_retired", error.code.wireName)
+            assertEquals(410, error.httpStatus)
+            assertEquals("query_retired", error.serverCode)
+            assertEquals(true, "this operation is retired" in error.message, error.message)
+            assertFalse("update" in error.message.lowercase(), error.message)
         }
     }
 

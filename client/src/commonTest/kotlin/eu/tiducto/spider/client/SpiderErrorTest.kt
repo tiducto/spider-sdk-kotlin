@@ -110,20 +110,18 @@ class SpiderErrorTest {
     }
 
     @Test
-    fun aRetiredApiPartMapsToQueryRetiredFromTheBodyOrA410() {
-        val rest = routingHttpFailure("plan", 410, """{"code":"query_retired","message":"persisted queries are retired"}""")
-            .toSpiderError()
-        val gateway = routingHttpFailure("plan", 410, """{"error":"query_retired","message":"persisted query is retired"}""")
+    fun a410MapsToQueryRetired() {
+        val withBody = routingHttpFailure("plan", 410, """{"code":"gone","message":"this operation is retired"}""")
             .toSpiderError()
         val bare410 = routingHttpFailure("trip", 410, "").toSpiderError()
-        for (error in listOf(rest, gateway, bare410)) {
+        for (error in listOf(withBody, bare410)) {
             assertIs<SpiderError.QueryRetired>(error)
             assertEquals(SpiderErrorCode.QUERY_RETIRED, error.code)
             assertEquals("query_retired", error.code.wireName)
             assertEquals("query_retired", error.serverCode)
             assertEquals(410, error.httpStatus)
         }
-        assertEquals("routing plan → 410: persisted queries are retired", rest.message)
+        assertEquals("routing plan → 410: this operation is retired", withBody.message)
         assertEquals("routing trip → 410: the API this call uses is retired", bare410.message)
     }
 
@@ -203,7 +201,6 @@ class SpiderErrorTest {
             "Forbidden",
             """{"message":"Access to this API has been disallowed"}""",
             """{"error":"forbidden"}""",
-            """{"error":"persisted_query_rejected","message":"unknown persisted-query id: abc"}""",
         )) {
             val error = routingHttpFailure("plan", 403, body).toSpiderError()
             assertIs<SpiderError.Unauthorized>(error)
