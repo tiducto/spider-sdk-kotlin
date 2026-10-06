@@ -67,9 +67,12 @@ class SpiderRealtime(
     suspend fun alerts(): SpiderResult<ServiceAlerts> =
         runCatchingRealtime("alerts") { realtime.alerts() }
 
-    private inline fun <T> runCatchingRealtime(op: String, block: () -> T): SpiderResult<T> =
+    private suspend inline fun <T> runCatchingRealtime(
+        op: String,
+        crossinline block: suspend () -> T,
+    ): SpiderResult<T> =
         context(log) {
-            spiderCatch(tag = "SpiderRealtime", message = { "$op failed against $baseUrl" }, block = block)
+            spiderCall(tag = "SpiderRealtime", message = { "$op failed against $baseUrl" }, block = block)
         }
 }
 
