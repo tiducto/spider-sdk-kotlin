@@ -14,12 +14,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/**
- * Guards the SSE `plan-stream` handling: the record parser that turns `chunk`/`pageInfo` events into
- * [PlanStreamEvent]s (including realtime-delay mapping onto legs) and skips every other event, and the stream
- * body's wire shape (the initial call plus the `after`/`before` continuation cursors). The Json config mirrors
- * RoutingClient's exactly — the two must stay in lockstep.
- */
+/** The Json config mirrors RoutingClient's exactly; the two must stay in lockstep. */
 class RoutingStreamTest {
 
     private val json = Json {
@@ -186,14 +181,12 @@ class RoutingStreamTest {
         assertEquals(listOf(false, false), legs.map { it.interlineWithPreviousLeg })
     }
 
-    // The closing `done` reports the search work used; the SDK surfaces none of it, so it is skipped.
     @Test
     fun `done telemetry frame is ignored`() {
         val data = """{ "iterations": 3, "windowSeconds": 3600, "resultCount": 5, "stoppedBy": "targetResults" }"""
         assertEquals(null, parsePlanStreamRecord("done", data, json))
     }
 
-    // The 2.0 stream has no error event; any event name the SDK does not know, `error` included, is skipped.
     @Test
     fun `heartbeats and unknown events are ignored`() {
         assertEquals(null, parsePlanStreamRecord("message", "", json))
@@ -212,7 +205,6 @@ class RoutingStreamTest {
         }
     }
 
-    // Pins the initial stream body (targetResults/maxWindow + via, no cursors): the 1.1 stream `variables` object.
     @Test
     fun `initial stream body serializes to the plan-stream wire shape`() {
         val body = request.copy(

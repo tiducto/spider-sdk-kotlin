@@ -127,7 +127,7 @@ internal class RoutingClient(
                 },
             ) {
                 incoming.collect { record ->
-                    // Read on past Done: the gateway meters the stream from its closing `done`.
+                    // Drained past Done: the gateway meters the stream off its closing `done`.
                     if (ended) return@collect
                     val event = parsePlanStreamRecord(record.event ?: SSE_DEFAULT_EVENT, record.data.orEmpty(), json)
                         ?: return@collect
@@ -327,7 +327,6 @@ private fun durationFromWire(raw: String?): Duration? {
         ?: raw.toLongOrNull()?.seconds
 }
 
-// Shared by the batch plan and the stream: a `chunk`'s `results` are the same itineraries as a plan's.
 private fun WireItinerary.toDomainItinerary(): Itinerary = Itinerary(
     start = start,
     end = end,
@@ -375,7 +374,6 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
 
 private const val SSE_DEFAULT_EVENT = "message"
 
-// Null for heartbeats, `done` and event names the SDK does not know; a malformed payload is a terminal Failure.
 internal fun parsePlanStreamRecord(event: String, data: String, json: Json): PlanStreamEvent? {
     if (data.isBlank()) return null
     return when (event) {
@@ -402,7 +400,7 @@ internal fun parsePlanStreamRecord(event: String, data: String, json: Json): Pla
     }
 }
 
-// The SSE plugin raises this for a response that isn't a 2xx event stream, and for a failure mid-stream.
+// Raised for a non-2xx answer and for a failure after a 2xx head.
 private suspend fun SSEClientException.toStreamFailure(): SpiderError {
     val response = response?.takeUnless { it.status.isSuccess() } ?: return (cause ?: this).toSpiderError()
     val body = runCatching { response.bodyAsText() }
@@ -412,7 +410,6 @@ private suspend fun SSEClientException.toStreamFailure(): SpiderError {
     return routingHttpFailure(PLAN_STREAM, response.status.value, body).toSpiderError()
 }
 
-// A 410 (or a `query_retired` code) means the API part this call uses is retired; a plan limit keeps its own code.
 internal fun routingHttpFailure(path: String, status: Int, body: String): SpiderTransportException {
     val envelope = parseErrorEnvelope(body)
     envelope.planLimitCode?.let { return planLimitFailure("routing $path", status, it, envelope.message) }

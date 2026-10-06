@@ -19,11 +19,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 
-/**
- * Pins the routing REST bodies the client POSTs and the responses it parses, so a contract regeneration can't
- * silently change the wire. Each request body is the 1.1 `variables` object the persisted-query transport sent,
- * so the expected JSON here is that object. The Json config mirrors RoutingClient's exactly.
- */
+/** The Json config mirrors RoutingClient's exactly; the two must stay in lockstep. */
 class RoutingWireContractTest {
 
     private val json = Json {
@@ -127,8 +123,6 @@ class RoutingWireContractTest {
         }
     }
 
-    // The next page is the body plus `after`; the previous page is the body plus `before`. The SDK sends no
-    // page size, so neither carries `first` or `last`.
     @Test
     fun `paging adds exactly one cursor to the original body`() {
         val first = encode(request.toPlanTripRequest(before = null, after = null))

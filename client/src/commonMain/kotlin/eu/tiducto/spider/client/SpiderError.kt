@@ -194,8 +194,7 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
 
 internal const val QUERY_RETIRED_SERVER_CODE: String = "query_retired"
 
-// The gateway's codes when a plan limit refuses the key (403, before any upstream call). Only the body's `code`
-// (or, without one, its `error`) decides, whatever the status a proxy passes on; a 403 without one stays Unauthorized.
+// Only the body's `code` (else its `error`) decides a plan limit, whatever status a proxy passes on.
 internal const val PLANNING_LIMIT_REACHED_SERVER_CODE: String = "planning_limit_reached"
 internal const val AGREEMENT_INACTIVE_SERVER_CODE: String = "agreement_inactive"
 private const val PLANNING_LIMIT_REACHED_MESSAGE = "trip planning limit reached"
