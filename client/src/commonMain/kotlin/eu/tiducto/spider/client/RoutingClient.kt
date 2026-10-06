@@ -56,6 +56,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.io.IOException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -135,7 +136,7 @@ internal class RoutingClient(
                 }
             }
             if (!ended) {
-                val cut = SpiderTransportException.Upstream("routing $PLAN_STREAM ended before pageInfo")
+                val cut = IOException("routing $PLAN_STREAM ended before pageInfo")
                 emit(PlanStreamEvent.Failure(cut.toSpiderError()))
             }
         } catch (e: CancellationException) {

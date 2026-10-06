@@ -230,14 +230,14 @@ class RoutingHttpTest {
     }
 
     @Test
-    fun `a stream cut before pageInfo ends in a transport Failure`() = runBlocking<Unit> {
+    fun `a stream cut before pageInfo ends in a Network Failure`() = runBlocking<Unit> {
         for (cut in listOf("", chunkEvent, "event: error\ndata: {\"message\":\"boom\"}\n\n")) {
             gateway.replies = mapOf("/routing/v1/plan-stream" to events(cut))
 
             val received = stream().toList()
 
             val failure = assertIs<PlanStreamEvent.Failure>(received.last())
-            assertIs<SpiderError.Server>(failure.error)
+            assertIs<SpiderError.Network>(failure.error)
             assertEquals(received.dropLast(1), received.filterIsInstance<PlanStreamEvent.Result>())
         }
     }
