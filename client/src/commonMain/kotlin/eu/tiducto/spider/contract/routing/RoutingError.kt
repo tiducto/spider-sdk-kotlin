@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -11,5 +10,5 @@ internal data class RoutingError(
     val code: RoutingErrorCode,
     val description: String,
     /** The request member at fault; null when it is none in particular. */
-    val inputField: kotlinx.serialization.json.JsonElement
+    val inputField: InputField?
 )

@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,5 +7,5 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class DeparturesResponse(
-    val stop: kotlinx.serialization.json.JsonElement
+    val stop: DepartureBoard?
 )

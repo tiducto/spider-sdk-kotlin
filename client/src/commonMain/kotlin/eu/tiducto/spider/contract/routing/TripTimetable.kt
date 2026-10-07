@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -18,5 +17,5 @@ internal data class TripTimetable(
     val route: TripRoute,
     val stoptimesForDate: List<Stoptime>,
     /** The trip's path; null when the feed has no shapes. */
-    val tripGeometry: kotlinx.serialization.json.JsonElement
+    val tripGeometry: TripGeometry?
 )

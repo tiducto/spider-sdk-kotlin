@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -19,12 +18,12 @@ internal data class PlanStreamRequest(
     val maxWindow: String,
     /** Locations the journey must visit or pass through, in the order given, all of one kind: every entry `visit` or every entry `passThrough`; mixing them is a 400 `via is invalid`. How many a request takes is an environment setting, and an environment set to 0 has via turned off; more is a 400 `via is out of range`. A via stop id that resolves to no stop or station is a 200 with the `routingErrors` code `LOCATION_NOT_FOUND` on `VIA`. */
     val via: List<PlanViaLocationInput>? = null,
-    val modes: kotlinx.serialization.json.JsonElement? = null,
-    val preferences: kotlinx.serialization.json.JsonElement? = null,
+    val modes: PlanModesInput? = null,
+    val preferences: PlanPreferencesInput? = null,
     /** `pageInfo.startCursor` of a page, to fetch the page before it. Never with `after`. An `endCursor` here is a 400 `before is invalid`. */
     val before: String? = null,
     /** `pageInfo.endCursor` of a page, to fetch the page after it. Never with `before`. A `startCursor` here is a 400 `after is invalid`. */
     val after: String? = null,
     /** Delay-aware planning level; omitted or null plans on the timetable alone. */
-    val reliability: kotlinx.serialization.json.JsonElement? = null
+    val reliability: Reliability? = null
 )

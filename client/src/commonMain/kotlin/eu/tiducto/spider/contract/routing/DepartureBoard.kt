@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -11,6 +10,6 @@ internal data class DepartureBoard(
     val gtfsId: String,
     val name: String,
     /** Null on a station board. */
-    val wheelchairBoarding: kotlinx.serialization.json.JsonElement,
+    val wheelchairBoarding: WheelchairBoarding?,
     val stoptimesWithoutPatterns: List<StopDeparturesStoptime>
 )

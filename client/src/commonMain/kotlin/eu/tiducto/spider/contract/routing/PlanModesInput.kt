@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -12,5 +11,5 @@ internal data class PlanModesInput(
     val directOnly: Boolean? = null,
     /** Never a journey without a transit leg. */
     val transitOnly: Boolean? = null,
-    val transit: kotlinx.serialization.json.JsonElement? = null
+    val transit: PlanTransitModesInput? = null
 )

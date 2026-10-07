@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -9,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class PlanViaLocationInput(
     /** The journey passes the location, on board or by changing vehicles there. */
-    val passThrough: kotlinx.serialization.json.JsonElement? = null,
+    val passThrough: PlanPassThroughViaLocationInput? = null,
     /** The journey stops at the location: it alights there and boards again after `minimumWaitTime`. */
-    val visit: kotlinx.serialization.json.JsonElement? = null
+    val visit: PlanVisitViaLocationInput? = null
 )

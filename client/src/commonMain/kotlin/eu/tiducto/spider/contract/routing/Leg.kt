@@ -1,6 +1,5 @@
 package eu.tiducto.spider.contract.routing
 
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -21,7 +20,7 @@ internal data class Leg(
     val from: Place,
     val to: Place,
     /** Null on a walk leg. */
-    val route: kotlinx.serialization.json.JsonElement,
+    val route: Route?,
     /** Null on a walk leg and when the feed has none. */
     val headsign: String?,
     /** Metres. */
@@ -29,7 +28,7 @@ internal data class Leg(
     /** Seconds. */
     val duration: Long,
     /** Null on a walk leg. */
-    val trip: kotlinx.serialization.json.JsonElement,
+    val trip: Trip?,
     /** True on a transit leg ridden in the same vehicle as the previous leg: the vehicle carries on as another trip, often under another line number, and the rider stays on board. That change is not counted in `numberOfTransfers`. False on every other leg. */
     val interlineWithPreviousLeg: Boolean,
     val legGeometry: Geometry
