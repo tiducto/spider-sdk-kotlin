@@ -1,5 +1,6 @@
 package eu.tiducto.spider.contract.stops
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -40,9 +41,9 @@ internal data class StopSearchRequest(
 internal data class StopSearchResponse<T>(val hits: List<T>, val query: String)
 
 /**
- * One stop document as indexed. [gtfsId]/[name] are always present; coordinates and the admin-geography
- * levels ([country]…[suburb]) are populated only where the deployment enriched them, so all are
- * nullable. [locationType] and [wheelchairBoarding] are raw GTFS integer codes; [modes] are routing mode
+ * One stop document as indexed. [gtfsId], [name] and the coordinates are always present; the admin-geography
+ * levels ([country]…[suburb]) are populated only where the deployment enriched them. [geoDistance] is the
+ * distance in metres from a geo sort's point, present only under one. [locationType] and [wheelchairBoarding] are raw GTFS integer codes; [modes] are routing mode
  * names. These field names must match the index builder (`seed-stops.sh`).
  */
 @Serializable
@@ -53,20 +54,12 @@ internal data class StopHit(
     val locationType: Int? = null,
     val wheelchairBoarding: Int? = null,
     val modes: List<String> = emptyList(),
-    val lat: Double? = null,
-    val lon: Double? = null,
+    val lat: Double,
+    val lon: Double,
     val country: String? = null,
     val region: String? = null,
     val district: String? = null,
     val city: String? = null,
     val suburb: String? = null,
-)
-
-/** Stop-search error envelope, parsed on a non-2xx to surface a useful message. */
-@Serializable
-internal data class StopSearchError(
-    val message: String,
-    val code: String? = null,
-    val type: String? = null,
-    val link: String? = null,
+    @SerialName("_geoDistance") val geoDistance: Int? = null,
 )

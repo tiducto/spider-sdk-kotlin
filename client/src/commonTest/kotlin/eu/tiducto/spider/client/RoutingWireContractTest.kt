@@ -180,10 +180,12 @@ class RoutingWireContractTest {
             """
             {
               "itineraries":[{
-                "numberOfTransfers":1,"duration":600,
+                "start":"t1","end":"t2","numberOfTransfers":1,"duration":600,"waitingTime":0,
                 "legs":[{
                   "mode":"BUS",
                   "start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
+                  "realtimeState":"SCHEDULED","realTime":false,"distance":1200.5,"duration":600,
+                  "interlineWithPreviousLeg":false,"legGeometry":{"points":""},
                   "from":{"name":"A","stop":{"gtfsId":"1:U1","wheelchairBoarding":"POSSIBLE"}},
                   "to":{"name":"B"},
                   "route":{"gtfsId":"1:L12","shortName":"12","longName":"Line 12"},
@@ -212,15 +214,18 @@ class RoutingWireContractTest {
             """
             {
               "itineraries":[{
-                "numberOfTransfers":0,"duration":1,
+                "start":"t1","end":"t2","numberOfTransfers":0,"duration":1,"waitingTime":0,
                 "legs":[{
                   "mode":"HELICOPTER",
                   "start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
+                  "realtimeState":"SCHEDULED","realTime":false,"distance":10.0,"duration":1,
+                  "interlineWithPreviousLeg":false,"legGeometry":{"points":""},
                   "from":{"name":"A"},"to":{"name":"B"}
                 }]
               }],
               "pageInfo":{"hasNextPage":false,"hasPreviousPage":false},
-              "routingErrors":[]
+              "routingErrors":[],
+              "searchDateTime":"2026-10-07T08:00:00+02:00"
             }
             """.trimIndent()
 
@@ -240,7 +245,8 @@ class RoutingWireContractTest {
 
         val trip = json.decodeFromString(
             TripResponse.serializer(),
-            """{"trip":{"gtfsId":"1:T","route":{"gtfsId":"1:L1"},"stoptimesForDate":[]}}""",
+            """{"trip":{"gtfsId":"1:T","bikesAllowed":"NO_INFORMATION","wheelchairAccessible":"NO_INFORMATION",
+              |"route":{"gtfsId":"1:L1","mode":"TRAM"},"stoptimesForDate":[]}}""".trimMargin(),
         ).trip!!
         assertEquals("1:L1", trip.route.gtfsId)
         assertNull(json.decodeFromString(TripResponse.serializer(), """{"trip":null}""").trip)

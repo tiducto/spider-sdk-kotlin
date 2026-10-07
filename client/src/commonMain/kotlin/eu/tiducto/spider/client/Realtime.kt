@@ -19,8 +19,8 @@ import kotlinx.collections.immutable.persistentListOf
  *     is SpiderResult.Error -> Unit // keep the last known position
  * }
  *
- * // Delays for a set of trips running on one service date (pass the leg's serviceDate through).
- * val delays = client.realtime.delays(visibleTripIds, serviceDate = "2026-09-22")
+ * // Delays for trips running on one service date (pass the leg's serviceDate through).
+ * val delays = client.realtime.delays(serviceDate = "2026-09-22", tripIds = listOf("1:1012_7_260922"))
  * ```
  */
 class SpiderRealtime(
@@ -49,19 +49,14 @@ class SpiderRealtime(
         runCatchingRealtime("vehicleForTrip($tripId)") { realtime.vehicleForTrip(tripId) }
 
     /**
-     * Live delays, resolved per `(tripId, serviceDate)` instance: group trip ids by the GTFS service date
-     * (`YYYY-MM-DD`) they run on — pass each [Leg.serviceDate] or [Departure.serviceDate] through. A call
-     * takes up to 50 trip ids, counted across all dates. No trip ids returns an empty result without a
-     * request; more than 50, or a malformed date, returns [SpiderError.BadRequest] without a request.
+     * Live delays for [tripIds] running on one GTFS [serviceDate] (`YYYY-MM-DD`); pass the [Leg.serviceDate] or
+     * [Departure.serviceDate] through, and the trip ids exactly as routing returns them (`<feedId>:<id>`). Trips
+     * on several dates take one call per date. Duplicate ids are sent once and the ids are sent sorted, so equal
+     * calls share one cached response. No ids, a blank id, more than 50 distinct ids or a malformed date returns
+     * [SpiderError.BadRequest] without a request.
      */
-    suspend fun delays(byServiceDate: Map<String, List<String>>): SpiderResult<TripDelays> {
-        if (byServiceDate.all { it.value.isEmpty() }) return SpiderResult.Success(TripDelays.EMPTY)
-        return runCatchingRealtime("delays(${byServiceDate.size} dates)") { realtime.delays(byServiceDate) }
-    }
-
-    /** Live delays for [tripIds] all on one [serviceDate] (`YYYY-MM-DD`) — the common single-day case. */
-    suspend fun delays(tripIds: List<String>, serviceDate: String): SpiderResult<TripDelays> =
-        delays(mapOf(serviceDate to tripIds))
+    suspend fun delays(serviceDate: String, tripIds: List<String>): SpiderResult<TripDelays> =
+        runCatchingRealtime("delays(${tripIds.size})") { realtime.delays(serviceDate, tripIds) }
 
     /** All active service alerts for the environment. */
     suspend fun alerts(): SpiderResult<ServiceAlerts> =
@@ -93,19 +88,19 @@ data class FeedFreshness(
 )
 
 /**
- * A vehicle's live position. All fields are nullable — GTFS-RT producers populate wildly different
- * subsets. The ids ([tripId], [routeId], [vehicleId], [stopId]) are feed-prefixed like routing's. [latitude]/[longitude] are the only fields worth much without the others; guard on them
- * before drawing. [bearing] is degrees clockwise from north; [currentStatus] is the raw GTFS-RT
+ * A vehicle's live position. [tripId], [latitude] and [longitude] are always present; the other fields are
+ * null when the producer doesn't report them. The ids ([tripId], [routeId], [vehicleId], [stopId]) are
+ * feed-prefixed (`<feedId>:<id>`), exactly as routing returns them. [bearing] is degrees clockwise from north; [currentStatus] is the raw GTFS-RT
  * `VehicleStopStatus` string (`INCOMING_AT` / `STOPPED_AT` / `IN_TRANSIT_TO`), passed through
  * unchanged so a producer's newer values still surface.
  */
 data class LiveVehicle(
-    val tripId: String?,
+    val tripId: String,
     val routeId: String?,
     val vehicleId: String?,
     val label: String?,
-    val latitude: Double?,
-    val longitude: Double?,
+    val latitude: Double,
+    val longitude: Double,
     val bearing: Double?,
     val speed: Double?,
     val stopId: String?,
@@ -166,11 +161,12 @@ data class VehiclePositions(
 }
 
 /**
- * Live schedule deviation for a trip. [delaySeconds] is the trip-level delay (positive = late,
- * negative = early); [scheduleRelationship] is the raw GTFS-RT value (`SCHEDULED` / `CANCELED` / …).
+ * Live schedule deviation for a trip. [tripId] and [routeId] are feed-prefixed (`<feedId>:<id>`).
+ * [delaySeconds] is the trip-level delay (positive = late, negative = early), null when the updates give only
+ * absolute times; [scheduleRelationship] is the raw GTFS-RT value (`SCHEDULED` / `CANCELED` / …).
  */
 data class TripDelay(
-    val tripId: String?,
+    val tripId: String,
     val routeId: String?,
     val delaySeconds: Int?,
     val scheduleRelationship: String?,
@@ -186,35 +182,26 @@ data class StopTimeUpdate(
 )
 
 /**
- * Result of [SpiderRealtime.delays]: delays grouped by service date (the same `tripId` on two dates is two
- * distinct instances), plus feed freshness. Look up with [delayFor].
+ * Result of [SpiderRealtime.delays] for one [serviceDate]: the delays the feed reported, the [missing] trip ids
+ * it didn't (exactly as sent), and feed freshness. Look up with [delayFor].
  */
 data class TripDelays(
-    val groups: ImmutableList<ServiceDateDelays>,
-    val freshness: FeedFreshness,
-) {
-    /** The delay for the ([tripId], [serviceDate]) instance, if the feed reported one. */
-    fun delayFor(tripId: String, serviceDate: String): TripDelay? =
-        groups.firstOrNull { it.serviceDate == serviceDate }?.delays?.firstOrNull { it.tripId == tripId }
-
-    internal companion object {
-        val EMPTY = TripDelays(persistentListOf(), FeedFreshness(null, null))
-    }
-}
-
-/** Delays for one GTFS service date: those the feed reported, and the [missing] trip ids it didn't. */
-data class ServiceDateDelays(
     val serviceDate: String,
     val delays: ImmutableList<TripDelay>,
     val missing: ImmutableList<String>,
-)
+    val freshness: FeedFreshness,
+) {
+    /** The delay for [tripId] on [serviceDate], if the feed reported one. */
+    fun delayFor(tripId: String): TripDelay? = delays.firstOrNull { it.tripId == tripId }
+}
 
 /**
- * A service alert. Text fields are already resolved to a single language by the gateway.
- * [cause]/[effect]/[severityLevel] are raw GTFS-RT enum strings, passed through unchanged.
+ * A service alert. [id] and the informed entities' ids are feed-prefixed (`<feedId>:<id>`). Text fields are
+ * already resolved to a single language by the gateway. [cause]/[effect]/[severityLevel] are raw GTFS-RT enum
+ * strings, passed through unchanged.
  */
 data class ServiceAlert(
-    val id: String?,
+    val id: String,
     val cause: String?,
     val effect: String?,
     val severityLevel: String?,

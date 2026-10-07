@@ -26,6 +26,12 @@ class StopsRealtimeHttpTest {
         assertEquals("$field is out of range", error.message)
     }
 
+    private fun assertBadRequest(message: String, result: SpiderResult<*>) {
+        val error = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(result).error)
+        assertEquals("tripIds", error.field)
+        assertEquals(message, error.message)
+    }
+
     @Test
     fun `stop search sends limit 20 by default and filters by the known modes`() = runBlocking<Unit> {
         gateway.replies = mapOf(
@@ -33,9 +39,9 @@ class StopsRealtimeHttpTest {
                 """
                 {"hits":[
                   {"gtfsId":"1:U1","name":"Náměstí Svobody","code":"NS","locationType":1,"wheelchairBoarding":1,
-                   "modes":["TRAM","FUNICULAR","HOVERCRAFT"]},
-                  {"gtfsId":"1:U2","name":"Náměstí Míru","wheelchairBoarding":0},
-                  {"gtfsId":"1:U3","name":"Náměstí Republiky","wheelchairBoarding":7}
+                   "modes":["TRAM","FUNICULAR","HOVERCRAFT"],"lat":49.19,"lon":16.61},
+                  {"gtfsId":"1:U2","name":"Náměstí Míru","wheelchairBoarding":0,"lat":49.2,"lon":16.59},
+                  {"gtfsId":"1:U3","name":"Náměstí Republiky","wheelchairBoarding":7,"lat":49.21,"lon":16.6}
                 ],"query":"Náměstí"}
                 """.trimIndent(),
             ),
@@ -98,18 +104,18 @@ class StopsRealtimeHttpTest {
             "/realtime/v1/delays" to Reply(
                 400,
                 "application/json",
-                """{"code":"bad_request","message":"queries.tripIds is out of range","field":"queries.tripIds"}""",
+                """{"code":"bad_request","message":"serviceDate is out of range","field":"serviceDate"}""",
             ),
         )
 
         val stopsError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(stops.near(49.19, 16.61)).error)
         val realtimeError = assertIs<SpiderError.BadRequest>(
-            assertIs<SpiderResult.Error>(realtime.delays(listOf("1:T"), "2026-10-07")).error,
+            assertIs<SpiderResult.Error>(realtime.delays("2026-10-07", listOf("1:T"))).error,
         )
 
         assertEquals("q", stopsError.field)
-        assertEquals("queries.tripIds", realtimeError.field)
-        assertEquals("queries.tripIds is out of range", realtimeError.message)
+        assertEquals("serviceDate", realtimeError.field)
+        assertEquals("serviceDate is out of range", realtimeError.message)
     }
 
     @Test
@@ -260,14 +266,18 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
-    fun `no realtime trip ids is an empty result without a request`() = runBlocking<Unit> {
+    fun `no vehicle trip ids is an empty result without a request`() = runBlocking<Unit> {
         val vehicles = assertIs<SpiderResult.Success<VehiclePositions>>(realtime.vehicles(emptyList())).data
-        val delays = assertIs<SpiderResult.Success<TripDelays>>(realtime.delays(emptyMap())).data
-        val oneDay = assertIs<SpiderResult.Success<TripDelays>>(realtime.delays(emptyList(), "2026-09-28")).data
 
         assertEquals(emptyList(), vehicles.vehicles)
-        assertEquals(emptyList(), delays.groups)
-        assertEquals(emptyList(), oneDay.groups)
+        assertEquals(emptyList(), gateway.seen.toList())
+    }
+
+    @Test
+    fun `delays with no ids or a blank id is a BadRequest without a request`() = runBlocking<Unit> {
+        assertBadRequest("tripIds is required", realtime.delays("2026-09-28", emptyList()))
+        assertBadRequest("tripIds is invalid", realtime.delays("2026-09-28", listOf("1:T1", " ")))
+        assertBadRequest("tripIds is invalid", realtime.delays("2026-09-28", listOf("")))
         assertEquals(emptyList(), gateway.seen.toList())
     }
 
@@ -275,13 +285,40 @@ class StopsRealtimeHttpTest {
     fun `more than 50 realtime trip ids is a BadRequest without a request`() = runBlocking<Unit> {
         val ids = (1..51).map { "1:T$it" }
         assertOutOfRange("tripIds", realtime.vehicles(ids))
-        // Counted across all service dates: 30 + 21 is over the limit even though each group is under it.
-        assertOutOfRange("tripIds", realtime.delays(mapOf("2026-09-27" to ids.take(30), "2026-09-28" to ids.drop(30))))
+        assertOutOfRange("tripIds", realtime.delays("2026-09-28", ids))
         assertEquals(emptyList(), gateway.seen.toList())
 
-        gateway.replies = mapOf("/realtime/v1/delays" to json("""{"results":[]}"""))
-        assertIs<SpiderResult.Success<TripDelays>>(
-            realtime.delays(mapOf("2026-09-27" to ids.take(30), "2026-09-28" to ids.drop(30).take(20))),
+        gateway.replies = mapOf("/realtime/v1/delays" to json("""{"serviceDate":"2026-09-28","delays":[],"missing":[]}"""))
+        assertIs<SpiderResult.Success<TripDelays>>(realtime.delays("2026-09-28", ids.take(50) + ids.take(50)))
+    }
+
+    @Test
+    fun `delays is one GET with distinct sorted prefixed ids and maps the flat response`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/realtime/v1/delays" to json(
+                """
+                {"serviceDate":"2026-09-28",
+                 "delays":[{"tripId":"1:T2","routeId":"1:R1","delaySeconds":90,"scheduleRelationship":"SCHEDULED",
+                   "stopTimeUpdates":[{"stopId":"1:S1","departureDelay":90}]}],
+                 "missing":["1:T10"],
+                 "feedTimestamp":1721385600,"staleSeconds":4}
+                """.trimIndent(),
+            ),
         )
+
+        val delays = assertIs<SpiderResult.Success<TripDelays>>(
+            realtime.delays("2026-09-28", listOf("1:T2", "1:T10", "1:T2", "1:T1")),
+        ).data
+
+        val request = gateway.seen.single()
+        assertEquals("GET", request.method)
+        assertEquals("serviceDate=2026-09-28&tripIds=1%3AT1%2C1%3AT10%2C1%3AT2", request.query)
+        assertEquals("2026-09-28", delays.serviceDate)
+        assertEquals(listOf("1:T10"), delays.missing)
+        val delay = assertIs<TripDelay>(delays.delayFor("1:T2"))
+        assertEquals(90, delay.delaySeconds)
+        assertEquals("1:S1", delay.stopTimeUpdates.single().stopId)
+        assertEquals(null, delays.delayFor("1:T10"))
+        assertEquals(4, delays.freshness.staleSeconds)
     }
 }

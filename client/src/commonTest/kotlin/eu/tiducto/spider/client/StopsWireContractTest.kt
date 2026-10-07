@@ -63,11 +63,10 @@ class StopsWireContractTest {
     }
 
     @Test
-    fun `absent coordinates and admin levels decode to null`() {
-        val body = """{"hits":[{"gtfsId":"1:U999","name":"Zastávka bez metadat"}],"query":"x"}"""
+    fun `absent admin levels decode to null and a geo distance decodes`() {
+        val body = """{"hits":[{"gtfsId":"1:U999","name":"Zastávka bez metadat","lat":49.2,"lon":16.6,"_geoDistance":7}],"query":"x"}"""
         val hit = json.decodeFromString(StopSearchResponse.serializer(StopHit.serializer()), body).hits.single()
-        assertNull(hit.lat)
-        assertNull(hit.lon)
+        assertEquals(7, hit.geoDistance)
         assertNull(hit.country)
         assertNull(hit.city)
         assertEquals(emptyList(), hit.modes)

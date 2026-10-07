@@ -17,7 +17,6 @@ enum class SpiderErrorCode(val wireName: String) {
     NOT_FOUND("not_found"),
     SERVER("server"),
     RATE_LIMITED("rate_limited"),
-    QUERY_RETIRED("query_retired"),
     PLANNING_LIMIT_REACHED("planning_limit_reached"),
     AGREEMENT_INACTIVE("agreement_inactive"),
     DECODING("decoding"),
@@ -47,7 +46,6 @@ sealed interface SpiderError {
             is NotFound -> SpiderErrorCode.NOT_FOUND
             is Server -> SpiderErrorCode.SERVER
             is RateLimited -> SpiderErrorCode.RATE_LIMITED
-            is QueryRetired -> SpiderErrorCode.QUERY_RETIRED
             is PlanningLimitReached -> SpiderErrorCode.PLANNING_LIMIT_REACHED
             is AgreementInactive -> SpiderErrorCode.AGREEMENT_INACTIVE
             is Decoding -> SpiderErrorCode.DECODING
@@ -94,15 +92,6 @@ sealed interface SpiderError {
     ) : SpiderError
 
     data class RateLimited(
-        override val httpStatus: Int? = null,
-        override val cause: Throwable? = null,
-    ) : SpiderError
-
-    /**
-     * The API part this SDK version calls is retired (HTTP 410); upgrade the SDK. This is the API's state,
-     * not a problem with the key or the request.
-     */
-    data class QueryRetired(
         override val httpStatus: Int? = null,
         override val cause: Throwable? = null,
     ) : SpiderError
@@ -164,22 +153,19 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
         PLANNING_LIMIT_REACHED_SERVER_CODE -> SpiderError.PlanningLimitReached(status, this)
         else -> SpiderError.AgreementInactive(status, this)
     }
-    is SpiderTransportException.Http -> when (serverCode) {
-        QUERY_RETIRED_SERVER_CODE -> SpiderError.QueryRetired(status, this)
-        else -> when (status) {
-            400 -> SpiderError.BadRequest(
-                field = field ?: detail?.let(::fieldOfBadRequest),
-                message = detail ?: message ?: SpiderErrorCode.BAD_REQUEST.wireName,
-                httpStatus = status,
-                cause = this,
-            )
-            401, 403 -> SpiderError.Unauthorized(status, this)
-            404 -> SpiderError.NotFound(status, this)
-            408, 504 -> SpiderError.Timeout(status, this)
-            429 -> SpiderError.RateLimited(status, this)
-            in 500..599 -> SpiderError.Server(status, this)
-            else -> SpiderError.Unknown(httpStatus = status, cause = this)
-        }
+    is SpiderTransportException.Http -> when (status) {
+        400 -> SpiderError.BadRequest(
+            field = field ?: detail?.let(::fieldOfBadRequest),
+            message = detail ?: message ?: SpiderErrorCode.BAD_REQUEST.wireName,
+            httpStatus = status,
+            cause = this,
+        )
+        401, 403 -> SpiderError.Unauthorized(status, this)
+        404 -> SpiderError.NotFound(status, this)
+        408, 504 -> SpiderError.Timeout(status, this)
+        429 -> SpiderError.RateLimited(status, this)
+        in 500..599 -> SpiderError.Server(status, this)
+        else -> SpiderError.Unknown(httpStatus = status, cause = this)
     }
     is SpiderTransportException.NoData -> SpiderError.NotFound(cause = this)
     is SpiderTransportException.BadRequest ->
@@ -191,8 +177,6 @@ internal fun Throwable.toSpiderError(): SpiderError = when (this) {
     is IOException -> SpiderError.Network(this)
     else -> SpiderError.Unknown(cause = this)
 }
-
-internal const val QUERY_RETIRED_SERVER_CODE: String = "query_retired"
 
 // Only the body's `code` (else its `error`) decides a plan limit, whatever status a proxy passes on.
 internal const val PLANNING_LIMIT_REACHED_SERVER_CODE: String = "planning_limit_reached"

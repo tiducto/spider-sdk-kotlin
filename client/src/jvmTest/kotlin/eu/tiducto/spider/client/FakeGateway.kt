@@ -13,7 +13,13 @@ import kotlinx.serialization.json.jsonObject
  */
 internal class FakeGateway : AutoCloseable {
 
-    data class Seen(val path: String, val body: String, val accept: List<String> = emptyList())
+    data class Seen(
+        val path: String,
+        val body: String,
+        val accept: List<String> = emptyList(),
+        val method: String = "",
+        val query: String? = null,
+    )
 
     class Reply(val status: Int, val contentType: String, val body: String)
 
@@ -26,7 +32,13 @@ internal class FakeGateway : AutoCloseable {
         createContext("/") { exchange ->
             val path = exchange.requestURI.path
             val accept = exchange.requestHeaders["Accept"].orEmpty()
-            seen += Seen(path, exchange.requestBody.readBytes().decodeToString(), accept)
+            seen += Seen(
+                path,
+                exchange.requestBody.readBytes().decodeToString(),
+                accept,
+                exchange.requestMethod,
+                exchange.requestURI.rawQuery,
+            )
             val reply = replies[path] ?: Reply(404, "application/json", "{}")
             val bytes = reply.body.encodeToByteArray()
             exchange.responseHeaders.add("Content-Type", reply.contentType)

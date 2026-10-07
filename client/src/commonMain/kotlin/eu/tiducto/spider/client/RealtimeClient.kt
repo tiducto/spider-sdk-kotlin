@@ -3,9 +3,6 @@ package eu.tiducto.spider.client
 import eu.tiducto.spider.contract.realtime.AlertDto
 import eu.tiducto.spider.contract.realtime.AlertsResponseDto
 import eu.tiducto.spider.contract.realtime.DelayDto
-import eu.tiducto.spider.contract.realtime.DelayGroupResultDto
-import eu.tiducto.spider.contract.realtime.DelayQueryDto
-import eu.tiducto.spider.contract.realtime.DelaysRequestDto
 import eu.tiducto.spider.contract.realtime.DelaysResponseDto
 import eu.tiducto.spider.contract.realtime.StopTimeUpdateDto
 import eu.tiducto.spider.contract.realtime.VehicleByTripResponseDto
@@ -17,14 +14,10 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.appendPathSegments
-import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
@@ -83,16 +76,19 @@ internal class RealtimeClient(
         )
     }
 
-    suspend fun delays(byServiceDate: Map<String, List<String>>): TripDelays {
-        byServiceDate.keys.forEach(::requireServiceDate)
-        requireInRange("tripIds", byServiceDate.values.sumOf { it.size } <= MAX_TRIP_IDS)
-        val request = DelaysRequestDto(byServiceDate.map { (serviceDate, tripIds) -> DelayQueryDto(serviceDate, tripIds) })
-        val response = rtPost(json.encodeToString(DelaysRequestDto.serializer(), request)) {
+    suspend fun delays(serviceDate: String, tripIds: List<String>): TripDelays {
+        requireServiceDate(serviceDate)
+        val ids = delayTripIdsParam(tripIds)
+        val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "delays") }
+            parameter("serviceDate", serviceDate)
+            parameter("tripIds", ids)
         }
         val dto: DelaysResponseDto = response.decodeOrThrow("realtime/v1/delays")
         return TripDelays(
-            groups = dto.results.map { it.toDomain() }.toImmutableList(),
+            serviceDate = dto.serviceDate,
+            delays = dto.delays.map { it.toDomain() }.toImmutableList(),
+            missing = dto.missing.toImmutableList(),
             freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
         )
     }
@@ -114,14 +110,6 @@ internal class RealtimeClient(
             spiderHeaders()
         }
 
-    private suspend fun rtPost(payload: String, block: HttpRequestBuilder.() -> Unit): HttpResponse =
-        http.post {
-            block()
-            contentType(ContentType.Application.Json)
-            spiderHeaders()
-            setBody(payload)
-        }
-
     private suspend inline fun <reified T> HttpResponse.decodeOrThrow(where: String): T {
         if (!status.isSuccess()) throw httpFailure(where, status, bodyAsText())
         return body()
@@ -136,6 +124,15 @@ internal class RealtimeClient(
 }
 
 private const val MAX_TRIP_IDS = 50
+
+// Distinct, ordinal-sorted and comma-joined, so equal requests share one URL and its CDN cache entry.
+internal fun delayTripIdsParam(tripIds: List<String>): String {
+    if (tripIds.isEmpty()) throw SpiderTransportException.BadRequest("tripIds", "tripIds is required")
+    if (tripIds.any { it.isBlank() }) throw SpiderTransportException.BadRequest("tripIds", "tripIds is invalid")
+    val distinct = tripIds.distinct().sorted()
+    requireInRange("tripIds", distinct.size <= MAX_TRIP_IDS)
+    return distinct.joinToString(",")
+}
 private const val BY_TRIP = "realtime/v1/vehicles/by-trip"
 
 // Epoch seconds → Instant; nulls (feed hasn't reported a timestamp) stay null.
@@ -154,12 +151,6 @@ private fun VehicleDto.toDomain(): LiveVehicle = LiveVehicle(
     currentStatus = currentStatus,
     occupancy = OccupancyStatus.fromWire(occupancyStatus),
     timestamp = timestamp.toInstantOrNull(),
-)
-
-private fun DelayGroupResultDto.toDomain(): ServiceDateDelays = ServiceDateDelays(
-    serviceDate = serviceDate,
-    delays = delays.map { it.toDomain() }.toImmutableList(),
-    missing = missing.toImmutableList(),
 )
 
 private fun DelayDto.toDomain(): TripDelay = TripDelay(
