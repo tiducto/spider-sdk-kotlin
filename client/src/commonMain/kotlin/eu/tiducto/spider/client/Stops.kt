@@ -181,8 +181,8 @@ enum class AdminLevel(val osmLevel: Int) {
 data class Stop(
     val gtfsId: String,
     val name: String,
-    val lat: Double? = null,
-    val lon: Double? = null,
+    val lat: Double,
+    val lon: Double,
     val admin: Map<AdminLevel, String> = emptyMap(),
     val wheelchairBoarding: WheelchairBoarding? = null,
     val modes: ImmutableList<TransitMode> = persistentListOf(),

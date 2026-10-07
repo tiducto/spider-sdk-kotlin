@@ -1,8 +1,6 @@
 package eu.tiducto.spider.client
 
 import eu.tiducto.spider.contract.realtime.AlertsResponseDto
-import eu.tiducto.spider.contract.realtime.DelayQueryDto
-import eu.tiducto.spider.contract.realtime.DelaysRequestDto
 import eu.tiducto.spider.contract.realtime.DelaysResponseDto
 import eu.tiducto.spider.contract.realtime.VehicleByTripResponseDto
 import eu.tiducto.spider.contract.realtime.VehiclesResponseDto
@@ -13,8 +11,7 @@ import kotlin.test.assertTrue
 import kotlinx.serialization.json.Json
 
 /**
- * Guards the Realtime (GTFS-RT) wire format — the grouped delays request body plus every response
- * shape: partial/absent fields decode, extra fields are tolerated, and the enum-ish strings
+ * Guards the Realtime (GTFS-RT) wire format — every response shape: absent optional fields decode, extra fields are tolerated, and the enum-ish strings
  * pass through verbatim (a producer's newer value must survive, never throw or get rewritten). Also pins
  * the domain OccupancyStatus tolerance, the one realtime enum the SDK maps rather than passes through.
  *
@@ -33,7 +30,7 @@ class RealtimeWireContractTest {
               "vehicles": [
                 {"tripId":"1:T1","latitude":49.2,"longitude":16.6,"currentStatus":"IN_TRANSIT_TO",
                  "occupancyStatus":"MANY_SEATS_AVAILABLE","provider":"idsjmk"},
-                {"tripId":"1:T2"}
+                {"tripId":"1:T2","latitude":49.21,"longitude":16.61}
               ],
               "missing": ["1:T3"],
               "feedTimestamp": 1721385600,
@@ -46,13 +43,13 @@ class RealtimeWireContractTest {
         assertEquals(listOf("1:T3"), dto.missing)
         assertEquals(1721385600L, dto.feedTimestamp)
         assertEquals("IN_TRANSIT_TO", dto.vehicles[0].currentStatus)
-        assertNull(dto.vehicles[1].latitude)
+        assertNull(dto.vehicles[1].currentStatus)
     }
 
     @Test
     fun `an unknown enum-ish string passes through unchanged instead of throwing`() {
         // A currentStatus value not in the GTFS-RT vocabulary this SDK version knows must still decode.
-        val body = """{"vehicles":[{"tripId":"1:T1","currentStatus":"TELEPORTING"}]}"""
+        val body = """{"vehicles":[{"tripId":"1:T1","latitude":49.2,"longitude":16.6,"currentStatus":"TELEPORTING"}],"missing":[]}"""
         val dto = json.decodeFromString(VehiclesResponseDto.serializer(), body)
         assertEquals("TELEPORTING", dto.vehicles.single().currentStatus)
     }
@@ -68,37 +65,29 @@ class RealtimeWireContractTest {
     }
 
     @Test
-    fun `delays request encodes grouped queries and round-trips`() {
-        val request = DelaysRequestDto(listOf(DelayQueryDto(serviceDate = "20260719", tripIds = listOf("1:T1", "1:T2"))))
-        val encoded = json.encodeToString(DelaysRequestDto.serializer(), request)
-        assertTrue("\"queries\"" in encoded && "\"serviceDate\":\"20260719\"" in encoded)
-        assertEquals(request, json.decodeFromString(DelaysRequestDto.serializer(), encoded))
-    }
-
-    @Test
-    fun `delays response decodes grouped results with nested stop-time updates`() {
+    fun `delays response decodes the flat shape with nested stop-time updates`() {
         val body =
             """
-            {"results":[{"serviceDate":"20260719",
-              "delays":[{"tripId":"1:T1","delaySeconds":90,"scheduleRelationship":"SCHEDULED",
-                "stopTimeUpdates":[{"stopId":"1:S1","departureDelay":90}]}],
-              "missing":["1:T2"]}],
+            {"serviceDate":"2026-07-19",
+             "delays":[{"tripId":"1:T1","delaySeconds":90,"scheduleRelationship":"SCHEDULED",
+               "stopTimeUpdates":[{"stopId":"1:S1","departureDelay":90}]}],
+             "missing":["1:T2"],
              "feedTimestamp":1721385600}
             """.trimIndent()
         val dto = json.decodeFromString(DelaysResponseDto.serializer(), body)
-        val group = dto.results.single()
-        assertEquals("20260719", group.serviceDate)
-        assertEquals(listOf("1:T2"), group.missing)
-        val delay = group.delays.single()
+        assertEquals("2026-07-19", dto.serviceDate)
+        assertEquals(listOf("1:T2"), dto.missing)
+        val delay = dto.delays.single()
         assertEquals(90, delay.delaySeconds)
         assertEquals("1:S1", delay.stopTimeUpdates.single().stopId)
+        assertNull(dto.staleSeconds)
     }
 
     @Test
     fun `alerts response decodes with active periods and informed entities`() {
         val body =
             """
-            {"alerts":[{"id":"a1","cause":"CONSTRUCTION","effect":"DETOUR","severityLevel":"WARNING",
+            {"alerts":[{"id":"1:a1","cause":"CONSTRUCTION","effect":"DETOUR","severityLevel":"WARNING",
               "headerText":"Detour","activePeriods":[{"start":1721385600,"end":1721389200}],
               "informedEntities":[{"routeId":"1:R1"}]}]}
             """.trimIndent()

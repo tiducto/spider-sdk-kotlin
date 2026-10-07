@@ -3,7 +3,7 @@ package eu.tiducto.spider.contract.routing
 import kotlinx.serialization.Serializable
 
 /**
- * Exactly one of `coordinate`, `stopLocation`.
+ * Exactly one of `coordinate`, `stopLocation`; neither or both is a 400 naming `origin.location` or `destination.location`.
  */
 @Serializable
 internal data class PlanLocationInput(

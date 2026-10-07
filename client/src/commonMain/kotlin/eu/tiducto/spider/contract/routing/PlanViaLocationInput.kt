@@ -3,7 +3,7 @@ package eu.tiducto.spider.contract.routing
 import kotlinx.serialization.Serializable
 
 /**
- * Exactly one of `passThrough`, `visit`.
+ * Exactly one of `passThrough`, `visit`; neither or both is a 400 `via is invalid`.
  */
 @Serializable
 internal data class PlanViaLocationInput(

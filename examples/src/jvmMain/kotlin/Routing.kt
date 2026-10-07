@@ -76,8 +76,7 @@ suspend fun departures(client: SpiderClient) {
     when (result) {
         is SpiderResult.Success ->
             result.data.forEach { departure ->
-                // realtimeTime is null until the feed reports; fall back to the schedule.
-                val time = departure.realtimeTime ?: departure.scheduledTime
+                val time = departure.realtimeTime
                 val status = if (departure.isRealtime) "live (${departure.realtimeState})" else "scheduled"
                 val line = departure.routeShortName ?: departure.routeLongName
                 println("${departure.mode} $line → ${departure.headsign} at $time [$status] · trip ${departure.tripGtfsId}")

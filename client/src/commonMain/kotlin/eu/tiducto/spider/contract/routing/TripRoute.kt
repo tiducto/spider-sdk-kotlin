@@ -5,11 +5,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class TripRoute(
     val gtfsId: String,
-    val shortName: String? = null,
-    val longName: String? = null,
-    val mode: TransitMode? = null,
+    /** Null when the feed has none. */
+    val shortName: String?,
+    /** Null when the feed has none. */
+    val longName: String?,
+    val mode: TransitMode,
     /** Hex without `#`; null when the feed has none. */
-    val color: String? = null,
+    val color: String?,
     /** Hex without `#`; null when the feed has none. */
-    val textColor: String? = null
+    val textColor: String?
 )

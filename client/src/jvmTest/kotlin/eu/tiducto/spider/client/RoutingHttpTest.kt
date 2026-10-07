@@ -42,11 +42,14 @@ class RoutingHttpTest {
 
     private val chunkEvent =
         "event: chunk\ndata: {\"frontier\":600,\"found\":1,\"finalized\":1,\"results\":[{\"numberOfTransfers\":0," +
+            "\"start\":\"t1\",\"end\":\"t2\",\"waitingTime\":0," +
             "\"duration\":600,\"legs\":[{\"mode\":\"TRAM\",\"start\":{\"scheduledTime\":\"t1\"}," +
-            "\"end\":{\"scheduledTime\":\"t2\"},\"from\":{\"name\":\"A\"},\"to\":{\"name\":\"B\"}}]}]}\n\n"
+            "\"end\":{\"scheduledTime\":\"t2\"},\"realtimeState\":\"SCHEDULED\",\"realTime\":false," +
+            "\"distance\":1000.0,\"duration\":600,\"interlineWithPreviousLeg\":false,\"legGeometry\":{\"points\":\"\"}," +
+            "\"from\":{\"name\":\"A\"},\"to\":{\"name\":\"B\"}}]}]}\n\n"
 
     private val emptyPlan = json(
-        """{"itineraries":[],"pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":[]}""",
+        """{"itineraries":[],"pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
     )
 
     private fun stream(
@@ -75,8 +78,10 @@ class RoutingHttpTest {
         gateway.replies = mapOf(
             "/routing/v1/plan" to json(
                 """
-                {"itineraries":[{"numberOfTransfers":0,"duration":600,"legs":[
-                  {"mode":"TRAM","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},"from":{"name":"A"},"to":{"name":"B"}}
+                {"itineraries":[{"start":"t1","end":"t2","numberOfTransfers":0,"duration":600,"waitingTime":0,"legs":[
+                  {"mode":"TRAM","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},"from":{"name":"A"},"to":{"name":"B"},
+                   "realtimeState":"SCHEDULED","realTime":false,"distance":1000.0,"duration":600,
+                   "interlineWithPreviousLeg":false,"legGeometry":{"points":""}}
                 ]}],
                 "pageInfo":{"hasNextPage":true,"hasPreviousPage":false,"startCursor":"c-prev","endCursor":"c-next","searchWindowUsed":"PT1H"},
                 "routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}
@@ -111,7 +116,7 @@ class RoutingHttpTest {
     fun `planNext and planPrevious send the original body plus one cursor`() = runBlocking<Unit> {
         gateway.replies = mapOf(
             "/routing/v1/plan" to json(
-                """{"itineraries":[],"pageInfo":{"hasNextPage":true,"hasPreviousPage":true,"startCursor":"c-prev","endCursor":"c-next"},"routingErrors":[]}""",
+                """{"itineraries":[],"pageInfo":{"hasNextPage":true,"hasPreviousPage":true,"startCursor":"c-prev","endCursor":"c-next"},"routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
             ),
         )
 
@@ -263,7 +268,7 @@ class RoutingHttpTest {
         val viaNotFound = """[{"code":"LOCATION_NOT_FOUND","description":"unknown via stop","inputField":"VIA"}]"""
         gateway.replies = mapOf(
             "/routing/v1/plan" to json(
-                """{"itineraries":[],"pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":$viaNotFound}""",
+                """{"itineraries":[],"pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":$viaNotFound,"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
             ),
             "/routing/v1/plan-stream" to events(
                 "event: pageInfo\ndata: {\"hasNextPage\":false,\"hasPreviousPage\":false,\"routingErrors\":$viaNotFound}\n\n" +
@@ -316,39 +321,6 @@ class RoutingHttpTest {
             assertEquals(null, error.httpStatus)
         }
         assertEquals(emptyList(), gateway.seen.toList())
-    }
-
-    @Test
-    fun `a 410 is QueryRetired on every routing call`() = runBlocking<Unit> {
-        gateway.replies = listOf("/routing/v1/plan", "/routing/v1/plan-stream", "/routing/v1/departures", "/routing/v1/trip")
-            .associateWith { Reply(410, "application/json", """{"code":"gone","message":"this operation is retired"}""") }
-
-        val errors = listOf(
-            planError(),
-            streamError(),
-            assertIs<SpiderResult.Error>(routing.departures("1:S")).error,
-            assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28")).error,
-        )
-
-        for (error in errors) {
-            assertIs<SpiderError.QueryRetired>(error)
-            assertEquals(SpiderErrorCode.QUERY_RETIRED, error.code)
-            assertEquals("query_retired", error.code.wireName)
-            assertEquals(410, error.httpStatus)
-            assertEquals("query_retired", error.serverCode)
-            assertEquals(true, "this operation is retired" in error.message, error.message)
-            assertFalse("update" in error.message.lowercase(), error.message)
-        }
-    }
-
-    @Test
-    fun `a bare 410 is QueryRetired too`() = runBlocking<Unit> {
-        gateway.replies = mapOf("/routing/v1/departures" to Reply(410, "text/plain", ""))
-
-        val error = assertIs<SpiderResult.Error>(routing.departures("1:S")).error
-
-        assertIs<SpiderError.QueryRetired>(error)
-        assertEquals(true, "the API this call uses is retired" in error.message, error.message)
     }
 
     @Test
@@ -482,12 +454,15 @@ class RoutingHttpTest {
             "/routing/v1/departures" to json(
                 """
                 {"stop":{"gtfsId":"1:S","name":"Zvonařka","wheelchairBoarding":null,"stoptimesWithoutPatterns":[
-                  {"serviceDay":$serviceDay,"scheduledDeparture":81000,"headsign":"Zvonařka","typicalDelay":120,
+                  {"serviceDay":$serviceDay,"scheduledDeparture":81000,"realtimeDeparture":81060,"realtime":true,
+                   "realtimeState":"UPDATED","headsign":"Zvonařka","typicalDelay":120,
                    "stop":{"gtfsId":"1:S1","platformCode":"B"},
-                   "trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE",
+                   "trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE","bikesAllowed":"ALLOWED",
                      "route":{"gtfsId":"1:L44","shortName":"44","mode":"BUS","color":"FF0000","textColor":"FFFFFF"}}},
-                  {"serviceDay":$serviceDay,"scheduledDeparture":88800,"realtimeState":"CANCELED","headsign":"Líšeň",
-                   "trip":{"gtfsId":"1:N89","route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS"}}}
+                  {"serviceDay":$serviceDay,"scheduledDeparture":88800,"realtimeDeparture":88800,"realtime":false,
+                   "realtimeState":"CANCELED","headsign":"Líšeň","stop":{"gtfsId":"1:S2"},
+                   "trip":{"gtfsId":"1:N89","wheelchairAccessible":"NO_INFORMATION","bikesAllowed":"NO_INFORMATION",
+                     "route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS"}}}
                 ]}}
                 """.trimIndent(),
             ),
@@ -505,7 +480,10 @@ class RoutingHttpTest {
         assertEquals("1:S1", full.stopGtfsId)
         assertEquals("B", full.platformCode)
         assertEquals(WheelchairBoarding.POSSIBLE, full.wheelchairAccessible)
-        assertEquals(listOf(null, null, null, null), listOf(bare.routeColor, bare.routeTextColor, bare.stopGtfsId, bare.platformCode))
+        assertEquals(listOf(null, null, null), listOf(bare.routeColor, bare.routeTextColor, bare.platformCode))
+        assertEquals("1:S2", bare.stopGtfsId)
+        assertEquals(full.scheduledTime + 1.minutes, full.realtimeTime)
+        assertEquals(bare.scheduledTime, bare.realtimeTime)
         assertEquals(null, bare.wheelchairAccessible)
         assertEquals(2.minutes, full.typicalDelay)
         assertEquals(null, bare.typicalDelay)
@@ -541,10 +519,13 @@ class RoutingHttpTest {
             "/routing/v1/trip" to json(
                 """
                 {"trip":{"gtfsId":"1:N89","wheelchairAccessible":"NO_INFORMATION","bikesAllowed":"SOMETHING_NEW",
-                  "route":{"gtfsId":"1:LN89","shortName":"N89","color":"00AA00","textColor":"000000"},"stoptimesForDate":[
-                  {"serviceDay":1790546400,"scheduledDeparture":88800,"typicalDelay":45,
-                   "stop":{"gtfsId":"1:U1","name":"Líšeň","wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101"}},
-                  {"serviceDay":1790546400,"scheduledDeparture":89400,"stop":{"gtfsId":"1:U2","name":"Jírova"}}
+                  "route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS","color":"00AA00","textColor":"000000"},"stoptimesForDate":[
+                  {"serviceDay":1790546400,"scheduledArrival":88800,"scheduledDeparture":88800,"realtimeArrival":88800,
+                   "realtimeDeparture":88800,"realtime":false,"realtimeState":"SCHEDULED","typicalDelay":45,
+                   "stop":{"gtfsId":"1:U1","name":"Líšeň","lat":49.21,"lon":16.68,"wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101"}},
+                  {"serviceDay":1790546400,"scheduledArrival":89400,"scheduledDeparture":89400,"realtimeArrival":89400,
+                   "realtimeDeparture":89400,"realtime":false,"realtimeState":"SCHEDULED",
+                   "stop":{"gtfsId":"1:U2","name":"Jírova","lat":49.22,"lon":16.69,"wheelchairBoarding":"NO_INFORMATION"}}
                 ]}}
                 """.trimIndent(),
             ),
@@ -573,7 +554,7 @@ class RoutingHttpTest {
     fun `a malformed service date is a BadRequest without a request`() = runBlocking<Unit> {
         val tripError = assertIs<SpiderResult.Error>(routing.trip("1:T", "20260928")).error
         val delaysError = assertIs<SpiderResult.Error>(
-            SpiderRealtime(gateway.baseUrl, "test-key").delays(listOf("1:T"), "2026-02-30"),
+            SpiderRealtime(gateway.baseUrl, "test-key").delays("2026-02-30", listOf("1:T")),
         ).error
 
         for (error in listOf(tripError, delaysError)) {

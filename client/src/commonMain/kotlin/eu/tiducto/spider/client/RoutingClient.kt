@@ -167,27 +167,25 @@ internal class RoutingClient(
         val stop = postJson<DeparturesRequest, DeparturesResponse>(DEPARTURES, body).stop
             ?: throw SpiderTransportException.NoData("routing returned no stop or station for id=$id")
 
-        return stop.stoptimesWithoutPatterns.orEmpty().mapNotNull { st ->
-            val serviceDay = st.serviceDay ?: return@mapNotNull null
-            val scheduledOffset = st.scheduledDeparture ?: return@mapNotNull null
-            val route = st.trip?.route
+        return stop.stoptimesWithoutPatterns.map { st ->
+            val route = st.trip.route
             Departure(
-                scheduledTime = Instant.fromEpochSeconds(serviceDay + scheduledOffset),
-                realtimeTime = st.realtimeDeparture?.let { Instant.fromEpochSeconds(serviceDay + it) },
-                isRealtime = st.realtime ?: false,
-                realtimeState = realtimeStateFromWire(st.realtimeState?.value),
+                scheduledTime = Instant.fromEpochSeconds(st.serviceDay + st.scheduledDeparture),
+                realtimeTime = Instant.fromEpochSeconds(st.serviceDay + st.realtimeDeparture),
+                isRealtime = st.realtime,
+                realtimeState = realtimeStateFromWire(st.realtimeState.value),
                 headsign = st.headsign,
-                tripGtfsId = st.trip?.gtfsId,
-                serviceDate = serviceDateOf(serviceDay),
-                routeShortName = route?.shortName,
-                routeLongName = route?.longName,
-                mode = transitModeFromWire(route?.mode?.value),
-                routeGtfsId = route?.gtfsId,
-                routeColor = route?.color,
-                routeTextColor = route?.textColor,
-                stopGtfsId = st.stop?.gtfsId,
-                platformCode = st.stop?.platformCode,
-                wheelchairAccessible = wheelchairFromWire(st.trip?.wheelchairAccessible?.value),
+                tripGtfsId = st.trip.gtfsId,
+                serviceDate = serviceDateOf(st.serviceDay),
+                routeShortName = route.shortName,
+                routeLongName = route.longName,
+                mode = modeFromWire(route.mode.value),
+                routeGtfsId = route.gtfsId,
+                routeColor = route.color,
+                routeTextColor = route.textColor,
+                stopGtfsId = st.stop.gtfsId,
+                platformCode = st.stop.platformCode,
+                wheelchairAccessible = wheelchairFromWire(st.trip.wheelchairAccessible.value),
                 typicalDelay = st.typicalDelay?.seconds,
             )
         }.toImmutableList()
@@ -199,22 +197,20 @@ internal class RoutingClient(
         val trip = postJson<TripRequest, TripResponse>(TRIP, TripRequest(id = tripId, serviceDate = serviceDate)).trip
             ?: throw SpiderTransportException.NoData("routing returned no trip for id=$tripId")
 
-        val stops = trip.stoptimesForDate.orEmpty().mapNotNull { st ->
-            val s = st.stop ?: return@mapNotNull null
-            val day = st.serviceDay
-            fun maybe(offset: Int?): Instant? =
-                if (offset != null && day != null) Instant.fromEpochSeconds(day + offset) else null
+        val stops = trip.stoptimesForDate.map { st ->
+            val s = st.stop
+            fun at(offset: Int): Instant = Instant.fromEpochSeconds(st.serviceDay + offset)
             TripStop(
                 gtfsId = s.gtfsId,
                 name = s.name,
                 lat = s.lat,
                 lon = s.lon,
-                scheduledArrival = maybe(st.scheduledArrival),
-                scheduledDeparture = maybe(st.scheduledDeparture),
-                realtimeArrival = maybe(st.realtimeArrival),
-                realtimeDeparture = maybe(st.realtimeDeparture),
-                isRealtime = st.realtime ?: false,
-                wheelchairBoarding = wheelchairFromWire(s.wheelchairBoarding?.value),
+                scheduledArrival = at(st.scheduledArrival),
+                scheduledDeparture = at(st.scheduledDeparture),
+                realtimeArrival = at(st.realtimeArrival),
+                realtimeDeparture = at(st.realtimeDeparture),
+                isRealtime = st.realtime,
+                wheelchairBoarding = wheelchairFromWire(s.wheelchairBoarding.value),
                 platformCode = s.platformCode,
                 zoneId = s.zoneId,
                 typicalDelay = st.typicalDelay?.seconds,
@@ -223,21 +219,20 @@ internal class RoutingClient(
 
         return TripDetails(
             gtfsId = trip.gtfsId,
-            serviceDate = trip.stoptimesForDate.orEmpty().firstNotNullOfOrNull { it.serviceDay }
-                ?.let(::serviceDateOf) ?: serviceDate,
+            serviceDate = trip.stoptimesForDate.firstOrNull()?.serviceDay?.let(::serviceDateOf) ?: serviceDate,
             routeShortName = trip.route.shortName,
             routeLongName = trip.route.longName,
-            mode = transitModeFromWire(trip.route.mode?.value),
+            mode = modeFromWire(trip.route.mode.value),
             headsign = trip.tripHeadsign,
             directionId = trip.directionId,
-            bikesAllowed = bikesAllowedFromWire(trip.bikesAllowed?.value),
+            bikesAllowed = bikesAllowedFromWire(trip.bikesAllowed.value),
             stops = stops.toImmutableList(),
             geometry = trip.tripGeometry?.points?.let { decodePolyline(it).toImmutableList() }
                 ?: persistentListOf(),
             routeGtfsId = trip.route.gtfsId,
             routeColor = trip.route.color,
             routeTextColor = trip.route.textColor,
-            wheelchairAccessible = wheelchairFromWire(trip.wheelchairAccessible?.value),
+            wheelchairAccessible = wheelchairFromWire(trip.wheelchairAccessible.value),
         )
     }
 
@@ -300,8 +295,10 @@ internal fun transitModeFromWire(raw: String?): TransitMode? = when (raw) {
     else -> TransitMode.UNKNOWN
 }
 
-private fun realtimeStateFromWire(raw: String?): RealtimeState? =
-    raw?.let { RealtimeState.entries.firstOrNull { e -> e.name == it } ?: RealtimeState.UNKNOWN }
+private fun modeFromWire(raw: String): TransitMode = transitModeFromWire(raw) ?: TransitMode.UNKNOWN
+
+private fun realtimeStateFromWire(raw: String): RealtimeState =
+    RealtimeState.entries.firstOrNull { it.name == raw } ?: RealtimeState.UNKNOWN
 
 private fun WireRoutingError.toDomainRoutingError(): RoutingError = RoutingError(
     code = RoutingErrorCode.entries.firstOrNull { it.name == code.value } ?: RoutingErrorCode.UNKNOWN,
@@ -323,8 +320,8 @@ private fun bikesAllowedFromWire(raw: String?): BikesAllowed? = when (raw) {
     else -> BikesAllowed.UNKNOWN
 }
 
-private fun durationFromWire(raw: String?): Duration? {
-    if (raw.isNullOrBlank()) return null
+private fun durationFromWire(raw: String): Duration? {
+    if (raw.isBlank()) return null
     return runCatching { Duration.parseIsoString(raw) }.getOrNull()
         ?: raw.toLongOrNull()?.seconds
 }
@@ -332,22 +329,22 @@ private fun durationFromWire(raw: String?): Duration? {
 private fun WireItinerary.toDomainItinerary(): Itinerary = Itinerary(
     start = start,
     end = end,
-    durationSeconds = duration ?: 0L,
+    durationSeconds = duration,
     waitingTimeSeconds = waitingTime,
     numberOfTransfers = numberOfTransfers,
     legs = legs.map { it.toDomainLeg() }.toImmutableList(),
 )
 
 private fun WireLeg.toDomainLeg(): Leg = Leg(
-    mode = transitModeFromWire(mode?.value),
+    mode = modeFromWire(mode.value),
     startScheduled = start.scheduledTime,
     endScheduled = end.scheduledTime,
     startEstimated = start.estimated?.time,
     endEstimated = end.estimated?.time,
-    startDelay = durationFromWire(start.estimated?.delay),
-    endDelay = durationFromWire(end.estimated?.delay),
-    isRealtime = realTime ?: false,
-    realtimeState = realtimeStateFromWire(realtimeState?.value),
+    startDelay = start.estimated?.delay?.let(::durationFromWire),
+    endDelay = end.estimated?.delay?.let(::durationFromWire),
+    isRealtime = realTime,
+    realtimeState = realtimeStateFromWire(realtimeState.value),
     serviceDate = serviceDate,
     fromName = from.name,
     toName = to.name,
@@ -359,10 +356,10 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     distanceMeters = distance,
     durationSeconds = duration,
     tripGtfsId = trip?.gtfsId,
-    bikesAllowed = bikesAllowedFromWire(trip?.bikesAllowed?.value),
-    fromWheelchair = wheelchairFromWire(from.stop?.wheelchairBoarding?.value),
-    toWheelchair = wheelchairFromWire(to.stop?.wheelchairBoarding?.value),
-    geometry = legGeometry?.points?.let { decodePolyline(it).toImmutableList() } ?: persistentListOf(),
+    bikesAllowed = trip?.let { bikesAllowedFromWire(it.bikesAllowed.value) },
+    fromWheelchair = from.stop?.let { wheelchairFromWire(it.wheelchairBoarding.value) },
+    toWheelchair = to.stop?.let { wheelchairFromWire(it.wheelchairBoarding.value) },
+    geometry = decodePolyline(legGeometry.points).toImmutableList(),
     routeGtfsId = route?.gtfsId,
     routeColor = route?.color,
     routeTextColor = route?.textColor,
@@ -371,7 +368,7 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     fromZoneId = from.stop?.zoneId,
     toZoneId = to.stop?.zoneId,
     typicalArrivalDelay = typicalArrivalDelay?.seconds,
-    interlineWithPreviousLeg = interlineWithPreviousLeg ?: false,
+    interlineWithPreviousLeg = interlineWithPreviousLeg,
 )
 
 private const val SSE_DEFAULT_EVENT = "message"
@@ -415,13 +412,9 @@ private suspend fun SSEClientException.toStreamFailure(): SpiderError {
 internal fun routingHttpFailure(path: String, status: Int, body: String): SpiderTransportException {
     val envelope = parseErrorEnvelope(body)
     envelope.planLimitCode?.let { return planLimitFailure("routing $path", status, it, envelope.message) }
-    val retired = status == 410 || (envelope.code ?: envelope.error) == QUERY_RETIRED_SERVER_CODE
-    val serverCode = if (retired) QUERY_RETIRED_SERVER_CODE else envelope.code
-    val detail = envelope.message ?: if (retired) RETIRED_MESSAGE else body.take(300).trim()
-    return SpiderTransportException.Http(status, "routing $path → $status: $detail", serverCode, detail, envelope.field)
+    val detail = envelope.message ?: body.take(300).trim()
+    return SpiderTransportException.Http(status, "routing $path → $status: $detail", envelope.code, detail, envelope.field)
 }
-
-private const val RETIRED_MESSAGE = "the API this call uses is retired"
 
 internal fun PlanRequest.toPlanTripRequest(before: String?, after: String?): PlanTripRequest {
     requireValidVia()

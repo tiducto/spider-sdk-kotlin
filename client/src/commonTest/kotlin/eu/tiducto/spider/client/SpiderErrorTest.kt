@@ -109,22 +109,6 @@ class SpiderErrorTest {
         }
     }
 
-    @Test
-    fun a410MapsToQueryRetired() {
-        val withBody = routingHttpFailure("plan", 410, """{"code":"gone","message":"this operation is retired"}""")
-            .toSpiderError()
-        val bare410 = routingHttpFailure("trip", 410, "").toSpiderError()
-        for (error in listOf(withBody, bare410)) {
-            assertIs<SpiderError.QueryRetired>(error)
-            assertEquals(SpiderErrorCode.QUERY_RETIRED, error.code)
-            assertEquals("query_retired", error.code.wireName)
-            assertEquals("query_retired", error.serverCode)
-            assertEquals(410, error.httpStatus)
-        }
-        assertEquals("routing plan → 410: this operation is retired", withBody.message)
-        assertEquals("routing trip → 410: the API this call uses is retired", bare410.message)
-    }
-
     private val planningLimit = """{"error":"planning_limit_reached","message":"trip planning limit reached"}"""
     private val agreementInactive = """{"error":"agreement_inactive","message":"agreement is not active"}"""
 

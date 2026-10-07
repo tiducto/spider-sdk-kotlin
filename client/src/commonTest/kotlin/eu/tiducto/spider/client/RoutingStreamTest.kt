@@ -31,7 +31,7 @@ class RoutingStreamTest {
               "frontier": 1800, "found": 1, "finalized": 1,
               "results": [
                 {
-                  "numberOfTransfers": 1,
+                  "numberOfTransfers": 1, "waitingTime": 0,
                   "start": "2026-07-15T08:00:00Z", "end": "2026-07-15T08:30:00Z", "duration": 1800,
                   "legs": [
                     {
@@ -40,6 +40,7 @@ class RoutingStreamTest {
                       "end":   { "scheduledTime": "2026-07-15T08:30:00Z", "estimated": { "time": "2026-07-15T08:32:00Z", "delay": "PT120S" } },
                       "realtimeState": "UPDATED", "realTime": true, "serviceDate": "2026-07-15",
                       "typicalArrivalDelay": 90, "interlineWithPreviousLeg": true,
+                      "distance": 5400.0, "duration": 1800, "legGeometry": { "points": "" },
                       "from": { "name": "Origin", "stop": { "gtfsId": "1:A", "platformCode": "3", "zoneId": "100",
                                                             "wheelchairBoarding": "NO_INFORMATION" } },
                       "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B", "platformCode": "B", "zoneId": "101",
@@ -130,10 +131,12 @@ class RoutingStreamTest {
               "frontier": 300, "found": 1, "finalized": 1,
               "results": [
                 {
-                  "numberOfTransfers": 0, "duration": 300,
+                  "numberOfTransfers": 0, "duration": 300, "waitingTime": 0,
+                  "start": "2026-07-15T08:00:00Z", "end": "2026-07-15T08:05:00Z",
                   "legs": [
                     {
-                      "mode": "FUNICULAR", "realtimeState": "SOMETHING_NEW",
+                      "mode": "FUNICULAR", "realtimeState": "SOMETHING_NEW", "realTime": false,
+                      "distance": 400.0, "duration": 300, "interlineWithPreviousLeg": false, "legGeometry": { "points": "" },
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z" }, "end": { "scheduledTime": "2026-07-15T08:05:00Z" },
                       "from": { "name": "Újezd" }, "to": { "name": "Petřín" }
                     }
@@ -151,23 +154,28 @@ class RoutingStreamTest {
         )
     }
 
-    // Without a reliability (or history) the router sends a null typicalArrivalDelay; interline is false unless set.
+    // Without a reliability (or history) the router sends a null typicalArrivalDelay.
     @Test
-    fun `null or absent typical arrival delay and interline flag map to null and false`() {
+    fun `null or absent typical arrival delay maps to null`() {
         val data = """
             {
               "frontier": 600, "found": 1, "finalized": 1,
               "results": [
                 {
-                  "numberOfTransfers": 0, "duration": 600,
+                  "numberOfTransfers": 0, "duration": 600, "waitingTime": 0,
+                  "start": "2026-07-15T08:00:00Z", "end": "2026-07-15T08:10:00Z",
                   "legs": [
                     {
-                      "mode": "TRAM", "typicalArrivalDelay": null, "interlineWithPreviousLeg": null,
+                      "mode": "TRAM", "typicalArrivalDelay": null, "interlineWithPreviousLeg": false,
+                      "realtimeState": "SCHEDULED", "realTime": false, "distance": 900.0, "duration": 300,
+                      "legGeometry": { "points": "" },
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z" }, "end": { "scheduledTime": "2026-07-15T08:05:00Z" },
                       "from": { "name": "A" }, "to": { "name": "B" }
                     },
                     {
-                      "mode": "TRAM",
+                      "mode": "TRAM", "interlineWithPreviousLeg": false,
+                      "realtimeState": "SCHEDULED", "realTime": false, "distance": 900.0, "duration": 300,
+                      "legGeometry": { "points": "" },
                       "start": { "scheduledTime": "2026-07-15T08:05:00Z" }, "end": { "scheduledTime": "2026-07-15T08:10:00Z" },
                       "from": { "name": "B" }, "to": { "name": "C" }
                     }

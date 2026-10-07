@@ -4,6 +4,36 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.3.0] - Unreleased
+
+Targets Spider API contract 1.3.
+
+### Breaking
+
+- `SpiderRealtime.delays(serviceDate: String, tripIds: List<String>)` replaces `delays(byServiceDate: Map<…>)` and
+  `delays(tripIds, serviceDate)`: one service date per call, `GET /realtime/v1/delays?serviceDate=…&tripIds=…`.
+  `pollDelays(serviceDate, tripIds, interval)` likewise.
+- `TripDelays` is flat: `serviceDate`, `delays`, `missing`, `freshness`; `delayFor(tripId)`. `ServiceDateDelays`
+  is removed.
+- Delays validate before any request: no ids is `tripIds is required`, a blank id `tripIds is invalid`, more than
+  50 distinct ids `tripIds is out of range`.
+- `SpiderError.QueryRetired` and `SpiderErrorCode.QUERY_RETIRED` are removed; an HTTP 410 is `SpiderError.Unknown`.
+- `RoutingErrorCode.NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW` and `OUTSIDE_BOUNDS` are removed.
+- Members the contract always sends are non-null:
+  - `Route.searchDateTime`; `Itinerary.start`, `end`, `waitingTimeSeconds`.
+  - `Leg.mode`, `realtimeState`, `fromName`, `toName`, `distanceMeters`; `Leg.durationSeconds` is a `Long`.
+  - `Departure.realtimeTime` (the scheduled time when there is no realtime), `realtimeState`, `tripGtfsId`, `mode`,
+    `routeGtfsId`, `stopGtfsId`.
+  - `TripDetails.mode`, `routeGtfsId`; `TripStop.lat`, `lon` and its four times.
+  - `Stop.lat`, `lon`.
+  - `LiveVehicle.tripId`, `latitude`, `longitude`; `TripDelay.tripId`; `ServiceAlert.id`.
+
+### Changed
+
+- Delays ids are sent once each, in ordinal order, so equal calls share one URL and its cached response.
+- Realtime ids are feed-prefixed (`<feedId>:<id>`), exactly as routing returns them, and pass through unchanged.
+- Every surface reads the one error body `{code, message, field?}`.
+
 ## [1.2.0] - Unreleased
 
 Targets Spider API contract 1.2.

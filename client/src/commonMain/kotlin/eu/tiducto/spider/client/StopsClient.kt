@@ -1,6 +1,5 @@
 package eu.tiducto.spider.client
 
-import eu.tiducto.spider.contract.stops.StopSearchError
 import eu.tiducto.spider.contract.stops.StopHit
 import eu.tiducto.spider.contract.stops.StopSearchRequest
 import eu.tiducto.spider.contract.stops.StopSearchResponse
@@ -63,12 +62,11 @@ internal class StopsClient(
             envelope.planLimitCode?.let {
                 throw planLimitFailure("POST $url", httpResponse.status.value, it, envelope.message)
             }
-            val parsed = runCatching { json.decodeFromString<StopSearchError>(body) }.getOrNull()
-            val detail = parsed?.message ?: body.take(300).trim()
+            val detail = envelope.message ?: body.take(300).trim()
             throw SpiderTransportException.Http(
                 httpResponse.status.value,
                 "POST $url → ${httpResponse.status.value}: $detail",
-                parsed?.code,
+                envelope.code,
                 detail,
                 envelope.field,
             )

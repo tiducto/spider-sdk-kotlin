@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class PlanCoordinateInput(
-    /** Latitude in degrees. */
+    /** Latitude in degrees, -90 to 90; rejected, never clamped. */
     val latitude: Double,
-    /** Longitude in degrees. */
+    /** Longitude in degrees, -180 to 180; rejected, never clamped. */
     val longitude: Double
 )

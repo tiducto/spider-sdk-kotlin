@@ -18,15 +18,10 @@ fun SpiderRealtime.pollVehicleForTrip(
 ): Flow<SpiderResult<LiveVehicleUpdate>> = poll(interval) { vehicleForTrip(tripId) }
 
 fun SpiderRealtime.pollDelays(
-    byServiceDate: Map<String, List<String>>,
-    interval: Duration = 15.seconds,
-): Flow<SpiderResult<TripDelays>> = poll(interval) { delays(byServiceDate) }
-
-fun SpiderRealtime.pollDelays(
-    tripIds: List<String>,
     serviceDate: String,
+    tripIds: List<String>,
     interval: Duration = 15.seconds,
-): Flow<SpiderResult<TripDelays>> = poll(interval) { delays(tripIds, serviceDate) }
+): Flow<SpiderResult<TripDelays>> = poll(interval) { delays(serviceDate, tripIds) }
 
 fun SpiderRealtime.pollAlerts(
     interval: Duration = 30.seconds,

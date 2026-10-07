@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class WalkPreferencesInput(
-    /** Walking speed on flat ground in metres per second, at least 0.1; rejected, never clamped. */
+    /** Walking speed on flat ground in metres per second, at least 0.1 (0.1 included); rejected, never clamped. */
     val speed: Double? = null,
     /** How much worse walking is than riding for the same time, a multiplier from 0.1 to 100000; rejected, never clamped. */
     val reluctance: Double? = null,

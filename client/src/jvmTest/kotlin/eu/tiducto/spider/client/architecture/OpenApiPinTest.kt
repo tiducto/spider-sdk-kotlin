@@ -1,16 +1,12 @@
 package eu.tiducto.spider.client.architecture
 
 import eu.tiducto.spider.contract.stops.StopHit
-import eu.tiducto.spider.contract.stops.StopSearchError
 import eu.tiducto.spider.contract.stops.StopSearchRequest
 import eu.tiducto.spider.contract.stops.StopSearchResponse
 import eu.tiducto.spider.contract.realtime.ActivePeriodDto
 import eu.tiducto.spider.contract.realtime.AlertDto
 import eu.tiducto.spider.contract.realtime.AlertsResponseDto
 import eu.tiducto.spider.contract.realtime.DelayDto
-import eu.tiducto.spider.contract.realtime.DelayGroupResultDto
-import eu.tiducto.spider.contract.realtime.DelayQueryDto
-import eu.tiducto.spider.contract.realtime.DelaysRequestDto
 import eu.tiducto.spider.contract.realtime.DelaysResponseDto
 import eu.tiducto.spider.contract.realtime.InformedEntityDto
 import eu.tiducto.spider.contract.realtime.StopTimeUpdateDto
@@ -64,7 +60,6 @@ class OpenApiPinTest {
             "StopSearchRequest" to StopSearchRequest.serializer().descriptor,
             "StopSearchResponse" to StopSearchResponse.serializer(StopHit.serializer()).descriptor,
             "StopHit" to StopHit.serializer().descriptor,
-            "StopSearchError" to StopSearchError.serializer().descriptor,
         ),
     )
 
@@ -75,10 +70,7 @@ class OpenApiPinTest {
             "VehiclesResponse" to VehiclesResponseDto.serializer().descriptor,
             "VehicleByTripResponse" to VehicleByTripResponseDto.serializer().descriptor,
             "Vehicle" to VehicleDto.serializer().descriptor,
-            "DelaysRequest" to DelaysRequestDto.serializer().descriptor,
-            "DelayQuery" to DelayQueryDto.serializer().descriptor,
             "DelaysResponse" to DelaysResponseDto.serializer().descriptor,
-            "DelayGroupResult" to DelayGroupResultDto.serializer().descriptor,
             "Delay" to DelayDto.serializer().descriptor,
             "StopTimeUpdate" to StopTimeUpdateDto.serializer().descriptor,
             "AlertsResponse" to AlertsResponseDto.serializer().descriptor,

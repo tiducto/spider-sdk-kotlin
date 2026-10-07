@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class Trip(
     val gtfsId: String,
-    val bikesAllowed: BikesAllowed? = null
+    val bikesAllowed: BikesAllowed
 )
