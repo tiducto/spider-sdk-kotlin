@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 internal data class StopDeparturesStop(
     val gtfsId: String,
     /** Null when the feed has none. */
-    val platformCode: String? = null
+    val platformCode: String?
 )

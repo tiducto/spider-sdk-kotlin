@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class StopDeparturesTrip(
     val gtfsId: String,
-    val route: StopDeparturesRoute,
-    val bikesAllowed: BikesAllowed? = null,
-    val wheelchairAccessible: WheelchairBoarding? = null
+    val bikesAllowed: BikesAllowed,
+    val wheelchairAccessible: WheelchairBoarding,
+    val route: StopDeparturesRoute
 )

@@ -1,5 +1,6 @@
 package eu.tiducto.spider.contract.routing
 
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -8,5 +9,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class PlanTransitModePreferenceInput(
     val mode: TransitMode,
-    val cost: TransitModePreferenceCostInput? = null
+    val cost: kotlinx.serialization.json.JsonElement? = null
 )

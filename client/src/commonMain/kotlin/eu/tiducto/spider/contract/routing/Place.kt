@@ -1,10 +1,12 @@
 package eu.tiducto.spider.contract.routing
 
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class Place(
-    val name: String? = null,
+    /** The stop's name; `Origin` or `Destination` for a coordinate. */
+    val name: String,
     /** Null when the place is not a stop, as for an origin or destination coordinate. */
-    val stop: Stop? = null
+    val stop: kotlinx.serialization.json.JsonElement
 )

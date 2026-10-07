@@ -1,5 +1,6 @@
 package eu.tiducto.spider.contract.routing
 
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -7,7 +8,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class PlanPreferencesInput(
-    val street: PlanStreetPreferencesInput? = null,
-    val transit: TransitPreferencesInput? = null,
-    val accessibility: AccessibilityPreferencesInput? = null
+    val street: kotlinx.serialization.json.JsonElement? = null,
+    val transit: kotlinx.serialization.json.JsonElement? = null,
+    val accessibility: kotlinx.serialization.json.JsonElement? = null
 )

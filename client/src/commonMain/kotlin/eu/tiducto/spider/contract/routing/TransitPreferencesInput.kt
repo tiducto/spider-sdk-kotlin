@@ -1,5 +1,6 @@
 package eu.tiducto.spider.contract.routing
 
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 /**
@@ -7,9 +8,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class TransitPreferencesInput(
-    val transfer: TransferPreferencesInput? = null,
-    val board: BoardPreferencesInput? = null,
-    val alight: AlightPreferencesInput? = null,
+    val transfer: kotlinx.serialization.json.JsonElement? = null,
+    val board: kotlinx.serialization.json.JsonElement? = null,
+    val alight: kotlinx.serialization.json.JsonElement? = null,
     /** Routes or agencies to leave out of the search. */
     val filters: List<TransitFilterInput>? = null
 )

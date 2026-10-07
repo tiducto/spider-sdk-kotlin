@@ -3,7 +3,7 @@ package eu.tiducto.spider.contract.routing
 import kotlinx.serialization.Serializable
 
 /**
- * Exactly one of `routes`, `agencies`.
+ * Exactly one of `routes`, `agencies`; neither or both is a 400 naming `preferences.transit.filters.exclude`.
  */
 @Serializable
 internal data class TransitFilterSelectInput(
