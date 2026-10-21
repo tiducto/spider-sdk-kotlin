@@ -187,6 +187,7 @@ internal class RoutingClient(
                 platformCode = st.stop.platformCode,
                 wheelchairAccessible = wheelchairFromWire(st.trip.wheelchairAccessible.value),
                 typicalDelay = st.typicalDelay?.seconds,
+                stopPosition = st.stopPosition,
             )
         }.toImmutableList()
     }
@@ -214,6 +215,8 @@ internal class RoutingClient(
                 platformCode = s.platformCode,
                 zoneId = s.zoneId,
                 typicalDelay = st.typicalDelay?.seconds,
+                stopPosition = st.stopPosition,
+                geometryIndex = st.geometryIndex,
             )
         }
 
@@ -369,6 +372,8 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     toZoneId = to.stop?.zoneId,
     typicalArrivalDelay = typicalArrivalDelay?.seconds,
     interlineWithPreviousLeg = interlineWithPreviousLeg,
+    fromStopPosition = from.stopPosition,
+    toStopPosition = to.stopPosition,
 )
 
 private const val SSE_DEFAULT_EVENT = "message"
