@@ -17,6 +17,8 @@ internal data class StopDeparturesStoptime(
     val typicalDelay: Int?,
     /** Null when the feed has none. */
     val headsign: String?,
+    /** The position in the trip of this departure, as the trip's `stopPosition`. */
+    val stopPosition: Int?,
     /** The platform or stand the departure leaves from, which tells a station's platforms apart. */
     val stop: StopDeparturesStop,
     val trip: StopDeparturesTrip
