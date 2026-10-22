@@ -79,7 +79,8 @@ class RoutingHttpTest {
             "/routing/v1/plan" to json(
                 """
                 {"itineraries":[{"start":"t1","end":"t2","numberOfTransfers":0,"duration":600,"waitingTime":0,"legs":[
-                  {"mode":"TRAM","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},"from":{"name":"A"},"to":{"name":"B"},
+                  {"mode":"TRAM","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
+                   "from":{"name":"A","stopPosition":2},"to":{"name":"B","stopPosition":5},
                    "realtimeState":"SCHEDULED","realTime":false,"distance":1000.0,"duration":600,
                    "interlineWithPreviousLeg":false,"legGeometry":{"points":""}}
                 ]}],
@@ -97,6 +98,7 @@ class RoutingHttpTest {
         val edge = route.edges.single()
         assertEquals("NoCursor", edge.cursor)
         assertEquals(TransitMode.TRAM, edge.itinerary.legs.single().mode)
+        assertEquals(2 to 5, edge.itinerary.legs.single().let { it.fromStopPosition to it.toStopPosition })
         assertEquals(null, edge.itinerary.accessibilityScore)
         assertEquals("c-next", route.pageInfo.endCursor)
         assertEquals("2026-10-07T08:00:00+02:00", route.searchDateTime)
@@ -455,7 +457,7 @@ class RoutingHttpTest {
                 """
                 {"stop":{"gtfsId":"1:S","name":"Zvonařka","wheelchairBoarding":null,"stoptimesWithoutPatterns":[
                   {"serviceDay":$serviceDay,"scheduledDeparture":81000,"realtimeDeparture":81060,"realtime":true,
-                   "realtimeState":"UPDATED","headsign":"Zvonařka","typicalDelay":120,
+                   "realtimeState":"UPDATED","headsign":"Zvonařka","typicalDelay":120,"stopPosition":7,
                    "stop":{"gtfsId":"1:S1","platformCode":"B"},
                    "trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE","bikesAllowed":"ALLOWED",
                      "route":{"gtfsId":"1:L44","shortName":"44","mode":"BUS","color":"FF0000","textColor":"FFFFFF"}}},
@@ -487,6 +489,8 @@ class RoutingHttpTest {
         assertEquals(null, bare.wheelchairAccessible)
         assertEquals(2.minutes, full.typicalDelay)
         assertEquals(null, bare.typicalDelay)
+        assertEquals(7, full.stopPosition)
+        assertEquals(null, bare.stopPosition)
         assertEquals(
             Json.parseToJsonElement("""{"id":"1:S","numberOfDepartures":30,"timeRange":86400}"""),
             gateway.body(),
@@ -522,11 +526,12 @@ class RoutingHttpTest {
                   "route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS","color":"00AA00","textColor":"000000"},"stoptimesForDate":[
                   {"serviceDay":1790546400,"scheduledArrival":88800,"scheduledDeparture":88800,"realtimeArrival":88800,
                    "realtimeDeparture":88800,"realtime":false,"realtimeState":"SCHEDULED","typicalDelay":45,
+                   "stopPosition":3,"geometryIndex":2,
                    "stop":{"gtfsId":"1:U1","name":"Líšeň","lat":49.21,"lon":16.68,"wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101"}},
                   {"serviceDay":1790546400,"scheduledArrival":89400,"scheduledDeparture":89400,"realtimeArrival":89400,
-                   "realtimeDeparture":89400,"realtime":false,"realtimeState":"SCHEDULED",
+                   "realtimeDeparture":89400,"realtime":false,"realtimeState":"SCHEDULED","stopPosition":5,
                    "stop":{"gtfsId":"1:U2","name":"Jírova","lat":49.22,"lon":16.69,"wheelchairBoarding":"NO_INFORMATION"}}
-                ]}}
+                ],"tripGeometry":{"points":"_p~iF~ps|U_ulLnnqC_mqNvxq`@","length":3}}}
                 """.trimIndent(),
             ),
         )
@@ -548,6 +553,9 @@ class RoutingHttpTest {
         assertEquals(null, second.zoneId)
         assertEquals(45.seconds, first.typicalDelay)
         assertEquals(null, second.typicalDelay)
+        assertEquals(3 to 5, first.stopPosition to second.stopPosition)
+        assertEquals(LatLon(43.252, -126.453), trip.geometry[first.geometryIndex!!])
+        assertEquals(null, second.geometryIndex)
     }
 
     @Test

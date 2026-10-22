@@ -4,6 +4,18 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.4.0] - Unreleased
+
+Targets Spider API contract 1.4.
+
+### Added
+
+- `TripStop.stopPosition`, `Departure.stopPosition`, `Leg.fromStopPosition` and `Leg.toStopPosition`: a stop's
+  position in its trip. A departure, or a leg's boarding and alighting stop, finds its `TripStop` by an equal
+  `stopPosition`, also on a trip that visits one stop twice.
+- `TripStop.geometryIndex`: the index into `TripDetails.geometry` of where the stop sits on the trip's line; null
+  when the trip has no geometry or the stop has no point on it.
+
 ## [1.3.0] - Unreleased
 
 Targets Spider API contract 1.3.

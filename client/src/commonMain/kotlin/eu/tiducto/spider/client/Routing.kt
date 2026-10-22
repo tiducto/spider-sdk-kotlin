@@ -325,6 +325,10 @@ data class Itinerary(
  * without one, or when the trip has no history. [interlineWithPreviousLeg] is true when the rider stays on the
  * same vehicle from the previous leg as it carries on as another trip, often under another line number; that
  * change isn't counted in [Itinerary.numberOfTransfers].
+ *
+ * [fromStopPosition] and [toStopPosition] are the boarding and alighting stops' positions in the leg's trip: the
+ * [TripStop] of [SpiderRouting.trip] for [tripGtfsId] and [serviceDate] with the same [TripStop.stopPosition] is
+ * that stop. Null on a walk.
  */
 @Serializable
 data class Leg(
@@ -364,6 +368,8 @@ data class Leg(
     val toZoneId: String? = null,
     val typicalArrivalDelay: Duration? = null,
     val interlineWithPreviousLeg: Boolean = false,
+    val fromStopPosition: Int? = null,
+    val toStopPosition: Int? = null,
 )
 
 @Serializable
@@ -401,7 +407,8 @@ data class RoutingError(
  * gives them. The display fields are null when the feed doesn't provide them.
  *
  * [typicalDelay] is this trip's typical (median) delay at this stop on the service date's day type, from the
- * environment's realtime history; null when unknown.
+ * environment's realtime history; null when unknown. [stopPosition] is the departure's position in its trip, as
+ * the trip's [TripStop.stopPosition].
  */
 data class Departure(
     val scheduledTime: Instant,
@@ -421,6 +428,7 @@ data class Departure(
     val platformCode: String? = null,
     val wheelchairAccessible: WheelchairBoarding? = null,
     val typicalDelay: Duration? = null,
+    val stopPosition: Int? = null,
 )
 
 /**
@@ -448,6 +456,13 @@ data class TripDetails(
 /**
  * One stop of a [TripDetails]. [typicalDelay] is the trip's typical (median) delay at this stop on the service
  * date's day type, from the environment's realtime history; null when unknown.
+ *
+ * [stopPosition] is the stop's position in the trip: increasing along it, not necessarily from 0 or consecutive.
+ * A [Leg.fromStopPosition], [Leg.toStopPosition] or [Departure.stopPosition] equal to it names this stop, also on a
+ * trip that visits one stop twice. Realtime that adds or removes stops can change it.
+ *
+ * [geometryIndex] is the index into [TripDetails.geometry] of where the stop sits on the trip's line; null when
+ * the trip has no geometry or the stop has no point on it.
  */
 data class TripStop(
     val gtfsId: String,
@@ -463,4 +478,6 @@ data class TripStop(
     val platformCode: String? = null,
     val zoneId: String? = null,
     val typicalDelay: Duration? = null,
+    val stopPosition: Int? = null,
+    val geometryIndex: Int? = null,
 )
