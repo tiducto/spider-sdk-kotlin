@@ -3,7 +3,7 @@ package eu.tiducto.spider.client.util
 import eu.tiducto.spider.client.LatLon
 
 /**
- * Decode a Google Encoded Polyline (precision 1e5) into a list of points.
+ * Decode a Google Encoded Polyline (precision 1e6) into a list of points.
  * https://developers.google.com/maps/documentation/utilities/polylinealgorithm
  */
 internal fun decodePolyline(encoded: String): List<LatLon> {
@@ -36,7 +36,7 @@ internal fun decodePolyline(encoded: String): List<LatLon> {
         val dLon = if ((result and 1) != 0) (result shr 1).inv() else (result shr 1)
         lon += dLon
 
-        points.add(LatLon(lat = lat / 1e5, lon = lon / 1e5))
+        points.add(LatLon(lat = lat / 1e6, lon = lon / 1e6))
     }
     return points
 }

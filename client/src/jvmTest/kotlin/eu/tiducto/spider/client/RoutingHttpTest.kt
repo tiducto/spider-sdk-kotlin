@@ -531,7 +531,7 @@ class RoutingHttpTest {
                   {"serviceDay":1790546400,"scheduledArrival":89400,"scheduledDeparture":89400,"realtimeArrival":89400,
                    "realtimeDeparture":89400,"realtime":false,"realtimeState":"SCHEDULED","stopPosition":5,
                    "stop":{"gtfsId":"1:U2","name":"Jírova","lat":49.22,"lon":16.69,"wheelchairBoarding":"NO_INFORMATION"}}
-                ],"tripGeometry":{"points":"_p~iF~ps|U_ulLnnqC_mqNvxq`@","length":3}}}
+                ],"tripGeometry":{"points":"_izlhA~rlgdF_{geC~ywl@_kwzCn`{nI","length":3}}}
                 """.trimIndent(),
             ),
         )

@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.4.1] - Unreleased
+
+### Changed
+
+- `Leg.geometry` and `TripDetails.geometry` decode at precision 1e6, the precision the router encodes them at:
+  points land within about 0.1 m instead of 1 m, so a stop's point on the line (`geometryIndex`) is where the
+  router cut it. Earlier SDK versions misplace the lines of such a router.
+
 ## [1.4.0] - Unreleased
 
 Targets Spider API contract 1.4.
