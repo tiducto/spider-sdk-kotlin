@@ -25,9 +25,9 @@ sealed interface PlanStreamEvent {
      * [RoutePageInfo.endCursor] to stream the next window; when [RoutePageInfo.hasPreviousPage] is set,
      * call [SpiderRouting.planStreamPrevious] with `before` = [RoutePageInfo.startCursor].
      *
-     * [routingErrors] mirrors [Route.routingErrors]: why the search found nothing (or less), such as
-     * `OUTSIDE_SERVICE_PERIOD`, or `LOCATION_NOT_FOUND` with [InputField.FROM], [InputField.TO] or
-     * [InputField.VIA]. Empty when there were none.
+     * [routingErrors] mirrors [Route.routingErrors]: why the plan was declined or kept no transit itinerary in
+     * the window, such as `OUTSIDE_SERVICE_PERIOD`, `NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW`, or
+     * `LOCATION_NOT_FOUND` with [InputField.FROM], [InputField.TO] or [InputField.VIA]. Empty otherwise.
      */
     data class Done(
         val pageInfo: RoutePageInfo,

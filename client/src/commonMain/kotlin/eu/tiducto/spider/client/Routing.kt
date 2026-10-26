@@ -218,14 +218,15 @@ sealed interface Location {
 }
 
 /**
- * A stop the itinerary must go through. How many via locations a request may carry is an environment setting.
+ * A stop the itinerary must go through. The journey takes the via locations in the order given, and [PassThrough]
+ * and [Visit] may be mixed in one request. How many via locations a request may carry is an environment setting.
  * An unknown stop id comes back as a [RoutingError] with [RoutingErrorCode.LOCATION_NOT_FOUND] and
  * [InputField.VIA].
  */
 sealed interface ViaLocation {
     /**
-     * Vehicle's path must traverse one of [stopIds] (1 to 10), but the passenger isn't
-     * required to alight. A single through-route leg satisfies the constraint.
+     * The journey passes one of [stopIds] (1 to 10): on board, alighting there, or starting there. A stop where
+     * the vehicle doesn't let passengers off isn't passed on board, and walking there to board isn't a pass.
      */
     data class PassThrough(val stopIds: List<String>) : ViaLocation {
         constructor(stopId: String) : this(listOf(stopId))
@@ -259,6 +260,9 @@ data class PlanRequest(
     val maxTransfers: Int? = null,
     // Required by the API, which checks it against the environment's search-window limit; sent as given.
     val searchWindow: Duration = 1.hours,
+    // true rides only trips the feed marks wheelchair accessible, boards and alights only at stops it marks
+    // accessible (no information counts as not accessible), and walks strongly avoiding steps and ways mapped as
+    // not wheelchair accessible.
     val wheelchairAccessible: Boolean = false,
     // null plans on the timetable alone.
     val reliability: Reliability? = null,
@@ -320,6 +324,8 @@ data class Itinerary(
  * One leg of an [Itinerary]. [routeColor] and [routeTextColor] are the route's GTFS colours as raw hex without
  * `#` (e.g. `FF0000`), as the feed gives them. The platform codes and zone ids come from the boarding (`from`)
  * and alighting (`to`) stops; all display fields are null when the feed doesn't provide them.
+ *
+ * [realtimeState] is the realtime state of the leg's trip; [RealtimeState.SCHEDULED] on a walk.
  *
  * [typicalArrivalDelay] is the delay planning applied to this leg's arrival at the request's [Reliability]; null
  * without one, or when the trip has no history. [interlineWithPreviousLeg] is true when the rider stays on the
@@ -387,9 +393,9 @@ data class RoutePageInfo(
 )
 
 /**
- * Why routing returned no (or fewer) itineraries: an outcome of the search, not a failed call. For
- * [RoutingErrorCode.LOCATION_NOT_FOUND], [inputField] says which input: [InputField.FROM], [InputField.TO]
- * or [InputField.VIA].
+ * Why routing declined the plan or kept no transit itinerary in the window: an outcome of the search, not a
+ * failed call. [inputField] is the input the [code] refers to, null when it names none; each [RoutingErrorCode]
+ * says which.
  */
 data class RoutingError(
     val code: RoutingErrorCode,

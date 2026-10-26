@@ -622,8 +622,11 @@ public final class eu/tiducto/spider/client/RoutingError {
 
 public final class eu/tiducto/spider/client/RoutingErrorCode : java/lang/Enum {
 	public static final field LOCATION_NOT_FOUND Leu/tiducto/spider/client/RoutingErrorCode;
+	public static final field NO_DIRECT_MODE_CONNECTION Leu/tiducto/spider/client/RoutingErrorCode;
 	public static final field NO_STOPS_IN_RANGE Leu/tiducto/spider/client/RoutingErrorCode;
 	public static final field NO_TRANSIT_CONNECTION Leu/tiducto/spider/client/RoutingErrorCode;
+	public static final field NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW Leu/tiducto/spider/client/RoutingErrorCode;
+	public static final field OUTSIDE_BOUNDS Leu/tiducto/spider/client/RoutingErrorCode;
 	public static final field OUTSIDE_SERVICE_PERIOD Leu/tiducto/spider/client/RoutingErrorCode;
 	public static final field UNKNOWN Leu/tiducto/spider/client/RoutingErrorCode;
 	public static final field WALKING_BETTER_THAN_TRANSIT Leu/tiducto/spider/client/RoutingErrorCode;
