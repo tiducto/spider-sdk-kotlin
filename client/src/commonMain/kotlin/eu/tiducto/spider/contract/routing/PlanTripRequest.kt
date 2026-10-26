@@ -8,13 +8,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class PlanTripRequest(
     val dateTime: PlanDateTimeInput,
-    /** Where the journey starts. A stop id that resolves to no stop or station, a bare or foreign-prefixed one included, is a 200 with the `routingErrors` code `LOCATION_NOT_FOUND` on `FROM`. */
+    /** Where the journey starts. A stop id that resolves to no stop or station, a bare or foreign-prefixed one included, is a 200 with the `routingErrors` code `LOCATION_NOT_FOUND` on `FROM`; so is a coordinate with no street near enough to link to, and one outside the area the router covers is `OUTSIDE_BOUNDS` on `FROM`. */
     val origin: PlanLabeledLocationInput,
-    /** Where the journey ends. A stop id that resolves to no stop or station, a bare or foreign-prefixed one included, is a 200 with the `routingErrors` code `LOCATION_NOT_FOUND` on `TO`. */
+    /** Where the journey ends. A stop id that resolves to no stop or station, a bare or foreign-prefixed one included, is a 200 with the `routingErrors` code `LOCATION_NOT_FOUND` on `TO`; so is a coordinate with no street near enough to link to, and one outside the area the router covers is `OUTSIDE_BOUNDS` on `TO`. */
     val destination: PlanLabeledLocationInput,
     /** How much time after `dateTime` the search covers (before it, for `latestArrival`), as an ISO-8601 duration: above zero and at most the environment's search-window limit; rejected, never clamped. A cursor overrides it. */
     val searchWindow: String,
-    /** Locations the journey must visit or pass through, in the order given, all of one kind: every entry `visit` or every entry `passThrough`; mixing them is a 400 `via is invalid`. How many a request takes is an environment setting, and an environment set to 0 has via turned off; more is a 400 `via is out of range`. A via stop id that resolves to no stop or station is a 200 with the `routingErrors` code `LOCATION_NOT_FOUND` on `VIA`. */
+    /** Locations the journey must visit or pass through, in the order given; `visit` and `passThrough` entries may be mixed. How many a request takes is an environment setting, and an environment set to 0 has via turned off; more is a 400 `via is out of range`. A via stop id that resolves to no stop or station is a 200 with the `routingErrors` code `LOCATION_NOT_FOUND` on `VIA`. */
     val via: List<PlanViaLocationInput>? = null,
     val modes: PlanModesInput? = null,
     val preferences: PlanPreferencesInput? = null,

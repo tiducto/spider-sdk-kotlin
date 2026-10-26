@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data class TripGeometry(
-    /** Encoded polyline (precision 1e5). */
+    /** Encoded polyline (precision 1e6). */
     val points: String,
     /** Number of points. */
     val length: Int
