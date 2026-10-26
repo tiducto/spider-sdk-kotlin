@@ -288,6 +288,57 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `contract 1_5 routing error codes decode on plan and planStream`() = runBlocking<Unit> {
+        val errors = """[
+            {"code":"NO_DIRECT_MODE_CONNECTION","description":"no walk","inputField":null},
+            {"code":"NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW","description":"nothing in the window","inputField":"DATE_TIME"},
+            {"code":"OUTSIDE_BOUNDS","description":"outside the area","inputField":"TO"}
+        ]"""
+        gateway.replies = mapOf(
+            "/routing/v1/plan" to json(
+                """{"itineraries":[],"pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":$errors,"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
+            ),
+            "/routing/v1/plan-stream" to events(
+                "event: pageInfo\ndata: {\"hasNextPage\":false,\"hasPreviousPage\":false,\"routingErrors\":" +
+                    errors.replace("\n", "") + "}\n\n" + doneEvent,
+            ),
+        )
+
+        val route = assertIs<SpiderResult.Success<Route>>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"))).data
+        val done = assertIs<PlanStreamEvent.Done>(stream().toList().single())
+
+        val expected = listOf(
+            RoutingError(RoutingErrorCode.NO_DIRECT_MODE_CONNECTION, "no walk", null),
+            RoutingError(RoutingErrorCode.NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW, "nothing in the window", InputField.DATE_TIME),
+            RoutingError(RoutingErrorCode.OUTSIDE_BOUNDS, "outside the area", InputField.TO),
+        )
+        assertEquals(expected, route.routingErrors)
+        assertEquals(expected, done.routingErrors)
+    }
+
+    @Test
+    fun `mixed visit and passThrough via locations are sent in order on plan and planStream`() = runBlocking<Unit> {
+        gateway.replies = mapOf("/routing/v1/plan" to emptyPlan, "/routing/v1/plan-stream" to emptyDone)
+        val via = listOf(
+            ViaLocation.Visit(Location.Stop("1:V"), minimumWaitTime = 5.minutes),
+            ViaLocation.PassThrough(listOf("1:P1", "1:P2")),
+            ViaLocation.Visit(Location.Stop("1:W")),
+        )
+
+        assertIs<SpiderResult.Success<Route>>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), via = via))
+        assertIs<PlanStreamEvent.Done>(stream(via = via).toList().single())
+
+        val expected = Json.parseToJsonElement(
+            """[
+              {"visit":{"stopLocationIds":["1:V"],"minimumWaitTime":"PT5M"}},
+              {"passThrough":{"stopLocationIds":["1:P1","1:P2"]}},
+              {"visit":{"stopLocationIds":["1:W"]}}
+            ]""",
+        )
+        assertEquals(listOf(expected, expected), bodies().map { it.getValue("via") })
+    }
+
+    @Test
     fun `via limits are checked before any request on plan and planStream`() = runBlocking<Unit> {
         val wait = "via.visit.minimumWaitTime"
         val invalid = listOf(

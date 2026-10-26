@@ -109,8 +109,11 @@ final enum class eu.tiducto.spider.client/Reliability : kotlin/Enum<eu.tiducto.s
 
 final enum class eu.tiducto.spider.client/RoutingErrorCode : kotlin/Enum<eu.tiducto.spider.client/RoutingErrorCode> { // eu.tiducto.spider.client/RoutingErrorCode|null[0]
     enum entry LOCATION_NOT_FOUND // eu.tiducto.spider.client/RoutingErrorCode.LOCATION_NOT_FOUND|null[0]
+    enum entry NO_DIRECT_MODE_CONNECTION // eu.tiducto.spider.client/RoutingErrorCode.NO_DIRECT_MODE_CONNECTION|null[0]
     enum entry NO_STOPS_IN_RANGE // eu.tiducto.spider.client/RoutingErrorCode.NO_STOPS_IN_RANGE|null[0]
     enum entry NO_TRANSIT_CONNECTION // eu.tiducto.spider.client/RoutingErrorCode.NO_TRANSIT_CONNECTION|null[0]
+    enum entry NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW // eu.tiducto.spider.client/RoutingErrorCode.NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW|null[0]
+    enum entry OUTSIDE_BOUNDS // eu.tiducto.spider.client/RoutingErrorCode.OUTSIDE_BOUNDS|null[0]
     enum entry OUTSIDE_SERVICE_PERIOD // eu.tiducto.spider.client/RoutingErrorCode.OUTSIDE_SERVICE_PERIOD|null[0]
     enum entry UNKNOWN // eu.tiducto.spider.client/RoutingErrorCode.UNKNOWN|null[0]
     enum entry WALKING_BETTER_THAN_TRANSIT // eu.tiducto.spider.client/RoutingErrorCode.WALKING_BETTER_THAN_TRANSIT|null[0]

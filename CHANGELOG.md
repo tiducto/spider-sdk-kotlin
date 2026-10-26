@@ -4,6 +4,34 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.5.0] - Unreleased
+
+Targets Spider API contract 1.5.
+
+### Added
+
+- `RoutingErrorCode.NO_DIRECT_MODE_CONNECTION`, `NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW` and `OUTSIDE_BOUNDS`,
+  completing OTP 2.10's set of eight. `NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW` (`InputField.DATE_TIME`): the transit
+  search ran but found no transit itinerary leaving inside the search window. `OUTSIDE_BOUNDS` (`FROM` or `TO`): a
+  coordinate lies outside the area the router covers. `NO_DIRECT_MODE_CONNECTION`: a direct-only plan found no
+  walk. Earlier SDK versions decode them as `UNKNOWN`.
+
+### Changed
+
+- `ViaLocation.Visit` and `ViaLocation.PassThrough` may be mixed in one request, in any order; contract 1.4 answered
+  a mix with a 400 `via is invalid`.
+- A plan whose search ran but kept no transit itinerary in the window says why in `Route.routingErrors` and
+  `PlanStreamEvent.Done.routingErrors`: `NO_TRANSIT_CONNECTION_IN_SEARCH_WINDOW`, or `WALKING_BETTER_THAN_TRANSIT`
+  when walking beat every transit itinerary found. It used to come back with no routing error.
+- A `Location.Coordinate` with no street near enough to link to is `LOCATION_NOT_FOUND` on `FROM` or `TO`.
+- `ViaLocation.PassThrough`: the journey passes a stop on board, alighting there or starting there. A stop where
+  the vehicle doesn't let passengers off isn't passed on board, and walking there to board isn't a pass.
+- `wheelchairAccessible` rides only trips the feed marks wheelchair accessible, boards and alights only at stops it
+  marks accessible (no information counts as not accessible), and walks strongly avoiding steps and ways mapped
+  as not wheelchair accessible.
+- The router rounds a `Location.Coordinate` to 7 decimals (about 1 cm).
+- `Leg.realtimeState` is `RealtimeState.SCHEDULED` on a walk.
+
 ## [1.4.1] - Unreleased
 
 ### Changed
