@@ -4,6 +4,7 @@ import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.routing.AccessibilityPreferencesInput
 import eu.tiducto.spider.contract.routing.DeparturesRequest
 import eu.tiducto.spider.contract.routing.DeparturesResponse
+import eu.tiducto.spider.contract.routing.EstimatedDelaysResponse
 import eu.tiducto.spider.contract.routing.Itinerary as WireItinerary
 import eu.tiducto.spider.contract.routing.Leg as WireLeg
 import eu.tiducto.spider.contract.routing.PlanCoordinateInput
@@ -35,11 +36,14 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.SSE
 import io.ktor.client.plugins.sse.SSEClientException
 import io.ktor.client.plugins.sse.sse
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
@@ -59,6 +63,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.io.IOException
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -155,6 +160,7 @@ internal class RoutingClient(
         numberOfDepartures: Int,
         startTime: Instant?,
         timeRange: Duration,
+        reliability: Reliability?,
     ): ImmutableList<Departure> {
         val timeRangeSeconds = timeRange.inWholeSeconds
         requireInRange("timeRange", timeRangeSeconds in 1..MAX_TIME_RANGE_SECONDS)
@@ -163,6 +169,7 @@ internal class RoutingClient(
             numberOfDepartures = numberOfDepartures,
             timeRange = timeRangeSeconds.toInt(),
             startTime = startTime?.epochSeconds,
+            reliability = reliability?.toWire(),
         )
         val stop = postJson<DeparturesRequest, DeparturesResponse>(DEPARTURES, body).stop
             ?: throw SpiderTransportException.NoData("routing returned no stop or station for id=$id")
@@ -176,7 +183,7 @@ internal class RoutingClient(
                 realtimeState = realtimeStateFromWire(st.realtimeState.value),
                 headsign = st.headsign,
                 tripGtfsId = st.trip.gtfsId,
-                serviceDate = serviceDateOf(st.serviceDay),
+                serviceDate = st.serviceDate,
                 routeShortName = route.shortName,
                 routeLongName = route.longName,
                 mode = modeFromWire(route.mode.value),
@@ -192,10 +199,11 @@ internal class RoutingClient(
         }.toImmutableList()
     }
 
-    /** [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD". Null defaults to today. */
-    suspend fun trip(tripId: String, serviceDate: String? = null): TripDetails {
-        serviceDate?.let(::requireServiceDate)
-        val trip = postJson<TripRequest, TripResponse>(TRIP, TripRequest(id = tripId, serviceDate = serviceDate)).trip
+    /** [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD". */
+    suspend fun trip(tripId: String, serviceDate: String, reliability: Reliability?): TripDetails {
+        requireServiceDate(serviceDate)
+        val body = TripRequest(id = tripId, serviceDate = serviceDate, reliability = reliability?.toWire())
+        val trip = postJson<TripRequest, TripResponse>(TRIP, body).trip
             ?: throw SpiderTransportException.NoData("routing returned no trip for id=$tripId")
 
         val stops = trip.stoptimesForDate.map { st ->
@@ -222,7 +230,7 @@ internal class RoutingClient(
 
         return TripDetails(
             gtfsId = trip.gtfsId,
-            serviceDate = trip.stoptimesForDate.firstOrNull()?.serviceDay?.let(::serviceDateOf) ?: serviceDate,
+            serviceDate = serviceDate,
             routeShortName = trip.route.shortName,
             routeLongName = trip.route.longName,
             mode = modeFromWire(trip.route.mode.value),
@@ -236,6 +244,26 @@ internal class RoutingClient(
             routeColor = trip.route.color,
             routeTextColor = trip.route.textColor,
             wheelchairAccessible = wheelchairFromWire(trip.wheelchairAccessible.value),
+        )
+    }
+
+    // Null is the API's answer for an unknown trip, a stop position off the trip, or no history. Entries are
+    // matched by level; a level that is missing or repeated is a malformed body.
+    suspend fun estimatedDelays(tripId: String, serviceDate: String, stopPosition: Int): EstimatedDelays? {
+        requireServiceDate(serviceDate)
+        val entries = getJson<EstimatedDelaysResponse>(ESTIMATED_DELAYS) {
+            parameter("tripId", tripId)
+            parameter("serviceDate", serviceDate)
+            parameter("stopPosition", stopPosition)
+        }.estimatedDelays ?: return null
+
+        fun at(level: WireReliability): Duration =
+            entries.singleOrNull { it.reliability == level }?.delay?.seconds
+                ?: throw SerializationException("routing $ESTIMATED_DELAYS has no single ${level.value} entry")
+        return EstimatedDelays(
+            standard = at(WireReliability.STANDARD),
+            safe = at(WireReliability.SAFE),
+            verySafe = at(WireReliability.VERY_SAFE),
         )
     }
 
@@ -256,13 +284,27 @@ internal class RoutingClient(
             }
     }
 
-    private suspend inline fun <reified B, reified R> postJson(op: String, body: B): R {
-        val response = http.post {
+    private suspend inline fun <reified B, reified R> postJson(op: String, body: B): R = decode(
+        op,
+        http.post {
             url("$baseUrl/$ROUTING/$op")
             contentType(ContentType.Application.Json)
             spiderHeaders()
             setBody(json.encodeToString(body))
-        }
+        },
+    )
+
+    private suspend inline fun <reified R> getJson(op: String, crossinline query: HttpRequestBuilder.() -> Unit): R =
+        decode(
+            op,
+            http.get {
+                url("$baseUrl/$ROUTING/$op")
+                query()
+                spiderHeaders()
+            },
+        )
+
+    private suspend inline fun <reified R> decode(op: String, response: HttpResponse): R {
         val text = response.bodyAsText()
         if (!response.status.isSuccess()) throw routingHttpFailure(op, response.status.value, text)
         return json.decodeFromString<R>(text)
@@ -274,6 +316,7 @@ private const val PLAN = "plan"
 private const val PLAN_STREAM = "plan-stream"
 private const val DEPARTURES = "departures"
 private const val TRIP = "trip"
+private const val ESTIMATED_DELAYS = "estimated-delays"
 private const val NO_CURSOR = "NoCursor"
 
 internal fun transitModeFromWire(raw: String?): TransitMode? = when (raw) {

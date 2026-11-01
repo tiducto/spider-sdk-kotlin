@@ -507,12 +507,12 @@ class RoutingHttpTest {
             "/routing/v1/departures" to json(
                 """
                 {"stop":{"gtfsId":"1:S","name":"Zvonařka","wheelchairBoarding":null,"stoptimesWithoutPatterns":[
-                  {"serviceDay":$serviceDay,"scheduledDeparture":81000,"realtimeDeparture":81060,"realtime":true,
+                  {"serviceDay":$serviceDay,"serviceDate":"2026-09-28","scheduledDeparture":81000,"realtimeDeparture":81060,"realtime":true,
                    "realtimeState":"UPDATED","headsign":"Zvonařka","typicalDelay":120,"stopPosition":7,
                    "stop":{"gtfsId":"1:S1","platformCode":"B"},
                    "trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE","bikesAllowed":"ALLOWED",
                      "route":{"gtfsId":"1:L44","shortName":"44","mode":"BUS","color":"FF0000","textColor":"FFFFFF"}}},
-                  {"serviceDay":$serviceDay,"scheduledDeparture":88800,"realtimeDeparture":88800,"realtime":false,
+                  {"serviceDay":$serviceDay,"serviceDate":"2026-09-28","scheduledDeparture":88800,"realtimeDeparture":88800,"realtime":false,
                    "realtimeState":"CANCELED","headsign":"Líšeň","stop":{"gtfsId":"1:S2"},
                    "trip":{"gtfsId":"1:N89","wheelchairAccessible":"NO_INFORMATION","bikesAllowed":"NO_INFORMATION",
                      "route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS"}}}
@@ -556,8 +556,8 @@ class RoutingHttpTest {
         )
 
         assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.departures("1:NOPE")).error)
-        assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.trip("1:NOPE")).error)
-        assertEquals(listOf("""{"id":"1:NOPE"}"""), gateway.seen.filter { it.path == "/routing/v1/trip" }.map { it.body })
+        assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.trip("1:NOPE", "2026-09-28")).error)
+        assertEquals(listOf("""{"id":"1:NOPE","serviceDate":"2026-09-28"}"""), gateway.seen.filter { it.path == "/routing/v1/trip" }.map { it.body })
     }
 
     @Test
@@ -612,15 +612,97 @@ class RoutingHttpTest {
     @Test
     fun `a malformed service date is a BadRequest without a request`() = runBlocking<Unit> {
         val tripError = assertIs<SpiderResult.Error>(routing.trip("1:T", "20260928")).error
+        val estimatedError = assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-9-28", 3)).error
         val delaysError = assertIs<SpiderResult.Error>(
             SpiderRealtime(gateway.baseUrl, "test-key").delays("2026-02-30", listOf("1:T")),
         ).error
 
-        for (error in listOf(tripError, delaysError)) {
+        for (error in listOf(tripError, estimatedError, delaysError)) {
             val badRequest = assertIs<SpiderError.BadRequest>(error)
             assertEquals("serviceDate", badRequest.field)
             assertEquals("serviceDate is invalid", badRequest.message)
         }
         assertEquals(emptyList(), gateway.seen.toList())
+    }
+
+    @Test
+    fun `departures and trip send reliability only when it is set`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/departures" to json("""{"stop":{"gtfsId":"1:S","name":"S","stoptimesWithoutPatterns":[]}}"""),
+            "/routing/v1/trip" to json("""{"trip":null}"""),
+        )
+
+        routing.departures("1:S", reliability = Reliability.SAFE)
+        routing.departures("1:S")
+        routing.trip("1:T", "2026-09-28", reliability = Reliability.VERY_SAFE)
+        routing.trip("1:T", "2026-09-28")
+
+        assertEquals(
+            listOf(
+                """{"id":"1:S","numberOfDepartures":30,"timeRange":86400,"reliability":"SAFE"}""",
+                """{"id":"1:S","numberOfDepartures":30,"timeRange":86400}""",
+                """{"id":"1:T","serviceDate":"2026-09-28","reliability":"VERY_SAFE"}""",
+                """{"id":"1:T","serviceDate":"2026-09-28"}""",
+            ).map(Json::parseToJsonElement),
+            bodies(),
+        )
+    }
+
+    @Test
+    fun `estimatedDelays is one GET for the trip run's stop and maps the levels by name`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/estimated-delays" to json(
+                """
+                {"estimatedDelays":[{"reliability":"VERY_SAFE","delay":300},{"reliability":"STANDARD","delay":0},
+                  {"reliability":"SAFE","delay":90}]}
+                """.trimIndent(),
+            ),
+        )
+
+        val delays = assertIs<SpiderResult.Success<EstimatedDelays?>>(routing.estimatedDelays("1:T 7", "2026-09-28", 3)).data
+
+        assertEquals(EstimatedDelays(standard = Duration.ZERO, safe = 90.seconds, verySafe = 5.minutes), delays)
+        val request = gateway.seen.single()
+        assertEquals("GET", request.method)
+        assertEquals("tripId=1%3AT+7&serviceDate=2026-09-28&stopPosition=3", request.query)
+    }
+
+    @Test
+    fun `estimatedDelays null is a success without delays`() = runBlocking<Unit> {
+        gateway.replies = mapOf("/routing/v1/estimated-delays" to json("""{"estimatedDelays":null}"""))
+
+        assertEquals(SpiderResult.Success(null), routing.estimatedDelays("1:T", "2026-09-28", 3))
+    }
+
+    @Test
+    fun `estimatedDelays missing or repeating a level is a decoding failure`() = runBlocking<Unit> {
+        for (entries in listOf(
+            """[{"reliability":"STANDARD","delay":0},{"reliability":"SAFE","delay":90}]""",
+            """[{"reliability":"STANDARD","delay":0},{"reliability":"SAFE","delay":90},{"reliability":"SAFE","delay":90}]""",
+            """[{"reliability":"STANDARD","delay":0},{"reliability":"SAFE","delay":90},{"reliability":"P99","delay":900}]""",
+        )) {
+            gateway.replies = mapOf("/routing/v1/estimated-delays" to json("""{"estimatedDelays":$entries}"""))
+
+            val error = assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-09-28", 3)).error
+
+            assertIs<SpiderError.Decoding>(error)
+        }
+    }
+
+    @Test
+    fun `estimatedDelays maps routing errors like the other routing calls`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/estimated-delays" to Reply(
+                400,
+                "application/json",
+                """{"code":"bad_request","message":"stopPosition is invalid","field":"stopPosition"}""",
+            ),
+        )
+        assertBadRequest("stopPosition", assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-09-28", -1)).error, "invalid")
+
+        gateway.replies = mapOf("/routing/v1/estimated-delays" to agreementInactive())
+        assertIs<SpiderError.AgreementInactive>(
+            assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-09-28", 3)).error,
+        )
     }
 }

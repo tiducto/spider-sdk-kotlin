@@ -44,10 +44,13 @@ internal class RealtimeClient(
         installSpiderLogging(log, "SpiderRealtime")
     }
 
-    suspend fun vehicles(tripIds: List<String>): VehiclePositions {
+    suspend fun vehicles(serviceDate: String, tripIds: List<String>): VehiclePositions {
+        requireServiceDate(serviceDate)
+        if (tripIds.isEmpty()) return VehiclePositions.EMPTY
         requireInRange("tripIds", tripIds.size <= MAX_TRIP_IDS)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "vehicles") }
+            parameter("serviceDate", serviceDate)
             parameter("tripIds", tripIds.joinToString(","))
         }
         val dto: VehiclesResponseDto = response.decodeOrThrow("realtime/v1/vehicles")
@@ -58,9 +61,11 @@ internal class RealtimeClient(
         )
     }
 
-    suspend fun vehicleForTrip(tripId: String): LiveVehicleUpdate {
+    suspend fun vehicleForTrip(tripId: String, serviceDate: String): LiveVehicleUpdate {
+        requireServiceDate(serviceDate)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "vehicles", "by-trip", tripId) }
+            parameter("serviceDate", serviceDate)
         }
         // No vehicle currently reporting for this trip is a normal state, not a failure; a plan-limit code in
         // the body still decides, whatever status a proxy passes on.
@@ -140,6 +145,7 @@ private fun Long?.toInstantOrNull(): Instant? = this?.let { Instant.fromEpochSec
 
 private fun VehicleDto.toDomain(): LiveVehicle = LiveVehicle(
     tripId = tripId,
+    serviceDate = serviceDate,
     routeId = routeId,
     vehicleId = vehicleId,
     label = label,

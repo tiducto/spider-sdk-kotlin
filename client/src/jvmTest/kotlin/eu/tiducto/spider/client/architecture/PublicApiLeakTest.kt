@@ -102,7 +102,7 @@ class PublicApiLeakTest {
      * Returns the fully-qualified name of [type] if it falls outside the
      * allowlist (or inside the denylist); null if it's allowed.
      *
-     * Resolution uses the file's imports. A type with no matching import
+     * Resolution uses the file's imports, by the name each one brings into scope (its alias, if any). A type with no matching import
      * resolves implicitly to the file's own package or `kotlin(.collections).*`,
      * both of which are on the allowlist, so the absence of a match is
      * treated as allowed.
@@ -116,8 +116,9 @@ class PublicApiLeakTest {
 
     private fun resolveFqn(type: KoTypeDeclaration, file: KoFileDeclaration): String? {
         val shortName = type.name.substringBefore('<').substringAfterLast('.')
+        // An aliased import (`import a.B as C`) brings in `C`, not `B`.
         return file.imports.firstOrNull { imp ->
-            imp.name.substringAfterLast('.') == shortName
+            (imp.alias?.name ?: imp.name.substringAfterLast('.')) == shortName
         }?.name
     }
 }

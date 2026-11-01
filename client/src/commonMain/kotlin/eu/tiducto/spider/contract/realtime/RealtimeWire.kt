@@ -38,6 +38,7 @@ internal data class VehicleByTripResponseDto(
 @Serializable
 internal data class VehicleDto(
     val tripId: String,
+    val serviceDate: String,
     val routeId: String? = null,
     val vehicleId: String? = null,
     val label: String? = null,

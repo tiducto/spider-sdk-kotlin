@@ -87,7 +87,7 @@ class StopsRealtimeHttpTest {
         )
 
         val stopsError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(stops.near(49.19, 16.61)).error)
-        val realtimeError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(realtime.vehicles(listOf("1:T"))).error)
+        val realtimeError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(realtime.vehicles("2026-09-28", listOf("1:T"))).error)
 
         assertEquals("limit", stopsError.field)
         assertEquals("limit is required", stopsError.message)
@@ -148,7 +148,7 @@ class StopsRealtimeHttpTest {
 
             val errors = listOf(
                 assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
-                assertIs<SpiderResult.Error>(realtime.vehicles(listOf("1:T"))).error,
+                assertIs<SpiderResult.Error>(realtime.vehicles("2026-09-28", listOf("1:T"))).error,
                 assertIs<SpiderResult.Error>(realtime.alerts()).error,
             )
 
@@ -170,7 +170,7 @@ class StopsRealtimeHttpTest {
         for ((body, code) in cases) {
             gateway.replies = mapOf("/realtime/v1/vehicles/by-trip/T1" to Reply(404, "application/json", body))
 
-            val error = assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1")).error
+            val error = assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1", "2026-09-28")).error
 
             assertEquals(code, error.code)
             assertEquals(code.wireName, error.serverCode)
@@ -187,7 +187,7 @@ class StopsRealtimeHttpTest {
         )) {
             gateway.replies = mapOf("/realtime/v1/vehicles/by-trip/T1" to reply)
 
-            val update = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(realtime.vehicleForTrip("T1")).data
+            val update = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(realtime.vehicleForTrip("T1", "2026-09-28")).data
 
             assertEquals(null, update.vehicle)
         }
@@ -211,7 +211,7 @@ class StopsRealtimeHttpTest {
                 val errors = listOf(
                     assertIs<SpiderResult.Error>(stops.search { filter { name eq "Náměstí" } }).error,
                     assertIs<SpiderResult.Error>(realtime.alerts()).error,
-                    assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1")).error,
+                    assertIs<SpiderResult.Error>(realtime.vehicleForTrip("T1", "2026-09-28")).error,
                 )
 
                 for (error in errors) {
@@ -267,7 +267,7 @@ class StopsRealtimeHttpTest {
 
     @Test
     fun `no vehicle trip ids is an empty result without a request`() = runBlocking<Unit> {
-        val vehicles = assertIs<SpiderResult.Success<VehiclePositions>>(realtime.vehicles(emptyList())).data
+        val vehicles = assertIs<SpiderResult.Success<VehiclePositions>>(realtime.vehicles("2026-09-28", emptyList())).data
 
         assertEquals(emptyList(), vehicles.vehicles)
         assertEquals(emptyList(), gateway.seen.toList())
@@ -284,7 +284,7 @@ class StopsRealtimeHttpTest {
     @Test
     fun `more than 50 realtime trip ids is a BadRequest without a request`() = runBlocking<Unit> {
         val ids = (1..51).map { "1:T$it" }
-        assertOutOfRange("tripIds", realtime.vehicles(ids))
+        assertOutOfRange("tripIds", realtime.vehicles("2026-09-28", ids))
         assertOutOfRange("tripIds", realtime.delays("2026-09-28", ids))
         assertEquals(emptyList(), gateway.seen.toList())
 
@@ -320,5 +320,42 @@ class StopsRealtimeHttpTest {
         assertEquals("1:S1", delay.stopTimeUpdates.single().stopId)
         assertEquals(null, delays.delayFor("1:T10"))
         assertEquals(4, delays.freshness.staleSeconds)
+    }
+
+    @Test
+    fun `vehicles and vehicleForTrip send the run's service date and map the vehicle's`() = runBlocking<Unit> {
+        val vehicle = """{"tripId":"1:T1","serviceDate":"2026-09-27","latitude":49.2,"longitude":16.6}"""
+        gateway.replies = mapOf(
+            "/realtime/v1/vehicles" to json("""{"vehicles":[$vehicle],"missing":["1:T2"]}"""),
+            "/realtime/v1/vehicles/by-trip/1:T1" to json("""{"vehicle":$vehicle}"""),
+        )
+
+        val positions = assertIs<SpiderResult.Success<VehiclePositions>>(
+            realtime.vehicles("2026-09-27", listOf("1:T1", "1:T2")),
+        ).data
+        val update = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(realtime.vehicleForTrip("1:T1", "2026-09-27")).data
+
+        assertEquals(
+            listOf("serviceDate=2026-09-27&tripIds=1%3AT1%2C1%3AT2", "serviceDate=2026-09-27"),
+            gateway.seen.map { it.query },
+        )
+        assertEquals("2026-09-27", positions.vehicles.single().serviceDate)
+        assertEquals("2026-09-27", update.vehicle?.serviceDate)
+    }
+
+    @Test
+    fun `a malformed vehicle service date is a BadRequest without a request`() = runBlocking<Unit> {
+        val errors = listOf(
+            assertIs<SpiderResult.Error>(realtime.vehicles("20260927", listOf("1:T1"))).error,
+            assertIs<SpiderResult.Error>(realtime.vehicles("20260927", emptyList())).error,
+            assertIs<SpiderResult.Error>(realtime.vehicleForTrip("1:T1", "2026-02-30")).error,
+        )
+
+        for (error in errors) {
+            val badRequest = assertIs<SpiderError.BadRequest>(error)
+            assertEquals("serviceDate", badRequest.field)
+            assertEquals("serviceDate is invalid", badRequest.message)
+        }
+        assertEquals(emptyList(), gateway.seen.toList())
     }
 }
