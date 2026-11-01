@@ -176,30 +176,54 @@ class SpiderRouting(
     /**
      * The departures board for a stop or station. [numberOfDepartures] (default 30) is capped by the
      * environment. [timeRange] (default 24 hours) is how far ahead of [startTime] (null = now) to look: above
-     * zero and at most 24 hours, else [SpiderError.BadRequest] without a request.
+     * zero and at most 24 hours, else [SpiderError.BadRequest] without a request. [reliability] is the level
+     * [Departure.typicalDelay] is given at; null leaves it null. The times don't depend on it.
      */
     suspend fun departures(
         id: String,
         numberOfDepartures: Int = 30,
         startTime: Instant? = null,
         timeRange: Duration = 24.hours,
+        reliability: Reliability? = null,
     ): SpiderResult<ImmutableList<Departure>> = context(log) {
         spiderCall(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
-            routing.stopDepartures(id, numberOfDepartures, startTime, timeRange)
+            routing.stopDepartures(id, numberOfDepartures, startTime, timeRange, reliability)
         }
     }
 
     /**
-     * One trip on one service date. [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD" (take it
-     * from [Departure.serviceDate] or [Leg.serviceDate]); null defaults to today. A malformed date returns
-     * [SpiderError.BadRequest] without a request.
+     * One trip run: [tripId] on the GTFS [serviceDate], formatted "YYYY-MM-DD" (take it from
+     * [Departure.serviceDate] or [Leg.serviceDate]). A malformed date returns [SpiderError.BadRequest] without a
+     * request. [reliability] is the level [TripStop.typicalDelay] is given at; null leaves it null. The times
+     * don't depend on it.
      */
     suspend fun trip(
         tripId: String,
-        serviceDate: String? = null,
+        serviceDate: String,
+        reliability: Reliability? = null,
     ): SpiderResult<TripDetails> = context(log) {
         spiderCall(tag = "SpiderRouting", message = { "trip failed against $baseUrl (tripId=$tripId)" }) {
-            routing.trip(tripId, serviceDate)
+            routing.trip(tripId, serviceDate, reliability)
+        }
+    }
+
+    /**
+     * The delay history at one stop of one trip run, at every [Reliability] level: [tripId] on the GTFS
+     * [serviceDate] ("YYYY-MM-DD"), at the stop whose [TripStop.stopPosition] is [stopPosition]. A malformed date
+     * returns [SpiderError.BadRequest] without a request.
+     *
+     * The values are history only, so live realtime never changes them: they are present for a live trip whose
+     * [TripStop.typicalDelay] is null. For a trip without live realtime they equal [trip]'s
+     * [TripStop.typicalDelay] at that level wherever that is not null. A level with no shift is zero. The result
+     * is null when the trip id resolves to no trip, the stop position is not on the trip, or there is no history.
+     */
+    suspend fun estimatedDelays(
+        tripId: String,
+        serviceDate: String,
+        stopPosition: Int,
+    ): SpiderResult<EstimatedDelays?> = context(log) {
+        spiderCall(tag = "SpiderRouting", message = { "estimatedDelays failed against $baseUrl (tripId=$tripId)" }) {
+            routing.estimatedDelays(tripId, serviceDate, stopPosition)
         }
     }
 
@@ -269,18 +293,20 @@ data class PlanRequest(
 )
 
 /**
- * How much delay trip planning allows for at each leg's arrival, from the environment's realtime history of
- * that trip at that stop on the service date's day type. Boarding keeps the scheduled departure, and a trip with
- * live realtime uses its realtime times. Leaving it null plans on the timetable alone.
+ * A delay level from the environment's realtime history of a trip at a stop on the service date's day type: the
+ * p50, p70 or p90 of its recorded delay. Trip planning ([SpiderRouting.plan]) allows for it at each leg's arrival;
+ * boarding keeps the scheduled departure, and a trip with live realtime uses its realtime times.
+ * [SpiderRouting.departures] and [SpiderRouting.trip] give their `typicalDelay` at it. Leaving it null means the
+ * timetable alone, on every operation.
  */
 enum class Reliability {
-    /** Plans arrivals with the typical (median) delay. */
+    /** The typical (median) delay. */
     STANDARD,
 
-    /** Plans arrivals with the delay 70% of trips stay within. */
+    /** The delay 70% of trips stay within. */
     SAFE,
 
-    /** Plans arrivals with the delay 90% of trips stay within. */
+    /** The delay 90% of trips stay within. */
     VERY_SAFE,
 }
 
@@ -412,9 +438,9 @@ data class RoutingError(
  * platform). [routeColor] and [routeTextColor] are raw GTFS hex without `#` (e.g. `FF0000`), as the feed
  * gives them. The display fields are null when the feed doesn't provide them.
  *
- * [typicalDelay] is this trip's typical (median) delay at this stop on the service date's day type, from the
- * environment's realtime history; null when unknown. [stopPosition] is the departure's position in its trip, as
- * the trip's [TripStop.stopPosition].
+ * [typicalDelay] is this trip's delay at this stop at the requested [Reliability], from the environment's realtime
+ * history; null when no reliability is passed, the trip has live realtime, or there is no history. [stopPosition]
+ * is the departure's position in its trip, as the trip's [TripStop.stopPosition].
  */
 data class Departure(
     val scheduledTime: Instant,
@@ -438,13 +464,12 @@ data class Departure(
 )
 
 /**
- * One trip on [serviceDate] ("YYYY-MM-DD"), the GTFS service date its times are anchored to. It is null only
- * when the trip has no stop times and the call named no date. [routeColor] and [routeTextColor] are raw GTFS
- * hex without `#` (e.g. `FF0000`), as the feed gives them.
+ * One trip on [serviceDate] ("YYYY-MM-DD"), the requested GTFS service date its times are anchored to.
+ * [routeColor] and [routeTextColor] are raw GTFS hex without `#` (e.g. `FF0000`), as the feed gives them.
  */
 data class TripDetails(
     val gtfsId: String,
-    val serviceDate: String?,
+    val serviceDate: String,
     val routeShortName: String?,
     val routeLongName: String?,
     val mode: TransitMode,
@@ -460,8 +485,19 @@ data class TripDetails(
 )
 
 /**
- * One stop of a [TripDetails]. [typicalDelay] is the trip's typical (median) delay at this stop on the service
- * date's day type, from the environment's realtime history; null when unknown.
+ * [SpiderRouting.estimatedDelays]: the delay history at one stop of a trip run at each [Reliability] level
+ * ([Reliability.STANDARD], [Reliability.SAFE], [Reliability.VERY_SAFE]); never negative.
+ */
+data class EstimatedDelays(
+    val standard: Duration,
+    val safe: Duration,
+    val verySafe: Duration,
+)
+
+/**
+ * One stop of a [TripDetails]. [typicalDelay] is the trip's delay at this stop at the requested [Reliability],
+ * from the environment's realtime history; null when no reliability is passed, the trip has live realtime, or
+ * there is no history.
  *
  * [stopPosition] is the stop's position in the trip: increasing along it, not necessarily from 0 or consecutive.
  * A [Leg.fromStopPosition], [Leg.toStopPosition] or [Departure.stopPosition] equal to it names this stop, also on a

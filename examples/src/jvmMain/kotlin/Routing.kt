@@ -86,7 +86,7 @@ suspend fun departures(client: SpiderClient) {
 }
 
 suspend fun tripLookup(client: SpiderClient) {
-    val result = client.routing.trip(tripId = "1:12345")
+    val result = client.routing.trip(tripId = "1:12345", serviceDate = "2026-09-28")
 
     when (result) {
         is SpiderResult.Success ->

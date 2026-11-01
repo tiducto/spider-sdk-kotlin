@@ -28,9 +28,9 @@ class RealtimeWireContractTest {
             """
             {
               "vehicles": [
-                {"tripId":"1:T1","latitude":49.2,"longitude":16.6,"currentStatus":"IN_TRANSIT_TO",
+                {"tripId":"1:T1","serviceDate":"2026-07-19","latitude":49.2,"longitude":16.6,"currentStatus":"IN_TRANSIT_TO",
                  "occupancyStatus":"MANY_SEATS_AVAILABLE","provider":"idsjmk"},
-                {"tripId":"1:T2","latitude":49.21,"longitude":16.61}
+                {"tripId":"1:T2","serviceDate":"2026-07-19","latitude":49.21,"longitude":16.61}
               ],
               "missing": ["1:T3"],
               "feedTimestamp": 1721385600,
@@ -49,7 +49,7 @@ class RealtimeWireContractTest {
     @Test
     fun `an unknown enum-ish string passes through unchanged instead of throwing`() {
         // A currentStatus value not in the GTFS-RT vocabulary this SDK version knows must still decode.
-        val body = """{"vehicles":[{"tripId":"1:T1","latitude":49.2,"longitude":16.6,"currentStatus":"TELEPORTING"}],"missing":[]}"""
+        val body = """{"vehicles":[{"tripId":"1:T1","serviceDate":"2026-07-19","latitude":49.2,"longitude":16.6,"currentStatus":"TELEPORTING"}],"missing":[]}"""
         val dto = json.decodeFromString(VehiclesResponseDto.serializer(), body)
         assertEquals("TELEPORTING", dto.vehicles.single().currentStatus)
     }

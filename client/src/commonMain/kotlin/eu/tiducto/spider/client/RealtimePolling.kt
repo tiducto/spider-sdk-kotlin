@@ -8,14 +8,16 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 
 fun SpiderRealtime.pollVehicles(
+    serviceDate: String,
     tripIds: List<String>,
     interval: Duration = 15.seconds,
-): Flow<SpiderResult<VehiclePositions>> = poll(interval) { vehicles(tripIds) }
+): Flow<SpiderResult<VehiclePositions>> = poll(interval) { vehicles(serviceDate, tripIds) }
 
 fun SpiderRealtime.pollVehicleForTrip(
     tripId: String,
+    serviceDate: String,
     interval: Duration = 15.seconds,
-): Flow<SpiderResult<LiveVehicleUpdate>> = poll(interval) { vehicleForTrip(tripId) }
+): Flow<SpiderResult<LiveVehicleUpdate>> = poll(interval) { vehicleForTrip(tripId, serviceDate) }
 
 fun SpiderRealtime.pollDelays(
     serviceDate: String,

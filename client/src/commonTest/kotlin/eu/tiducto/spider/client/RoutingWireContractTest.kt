@@ -6,6 +6,7 @@ import eu.tiducto.spider.contract.routing.DeparturesResponse
 import eu.tiducto.spider.contract.routing.Mode
 import eu.tiducto.spider.contract.routing.PlanTripRequest
 import eu.tiducto.spider.contract.routing.PlanTripResponse
+import eu.tiducto.spider.contract.routing.Reliability as WireReliability
 import eu.tiducto.spider.contract.routing.TripRequest
 import eu.tiducto.spider.contract.routing.TripResponse
 import eu.tiducto.spider.contract.routing.WheelchairBoarding
@@ -157,14 +158,17 @@ class RoutingWireContractTest {
     }
 
     @Test
-    fun `trip body carries the service date only when set`() {
+    fun `trip body carries the service date and the reliability only when set`() {
+        assertEquals(
+            json.parseToJsonElement("""{"id":"1:T","serviceDate":"2026-10-07","reliability":"SAFE"}"""),
+            json.encodeToJsonElement(
+                TripRequest.serializer(),
+                TripRequest(id = "1:T", serviceDate = "2026-10-07", reliability = WireReliability.SAFE),
+            ),
+        )
         assertEquals(
             json.parseToJsonElement("""{"id":"1:T","serviceDate":"2026-10-07"}"""),
             json.encodeToJsonElement(TripRequest.serializer(), TripRequest(id = "1:T", serviceDate = "2026-10-07")),
-        )
-        assertEquals(
-            json.parseToJsonElement("""{"id":"1:T"}"""),
-            json.encodeToJsonElement(TripRequest.serializer(), TripRequest(id = "1:T")),
         )
     }
 

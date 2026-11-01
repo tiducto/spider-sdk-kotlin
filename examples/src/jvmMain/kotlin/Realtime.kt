@@ -38,8 +38,8 @@ suspend fun CoroutineScope.poll(client: SpiderClient, tripIds: List<String>, ser
     }
 }
 
-suspend fun pollHelper(client: SpiderClient, tripIds: List<String>) {
-    client.realtime.pollVehicles(tripIds).collect { result ->
+suspend fun pollHelper(client: SpiderClient, tripIds: List<String>, serviceDate: String) {
+    client.realtime.pollVehicles(serviceDate, tripIds).collect { result ->
         when (result) {
             is SpiderResult.Success -> updateBoard(result.data)
             is SpiderResult.Error -> log("realtime poll failed: ${result.error}")
@@ -47,8 +47,8 @@ suspend fun pollHelper(client: SpiderClient, tripIds: List<String>) {
     }
 }
 
-suspend fun vehicles(client: SpiderClient, tripIds: List<String>) {
-    when (val result = client.realtime.vehicles(tripIds)) {
+suspend fun vehicles(client: SpiderClient, tripIds: List<String>, serviceDate: String) {
+    when (val result = client.realtime.vehicles(serviceDate, tripIds)) {
         is SpiderResult.Success ->
             result.data.vehicles.forEach { vehicle ->
                 println("${vehicle.tripId} at ${vehicle.latitude}, ${vehicle.longitude}")
@@ -58,8 +58,8 @@ suspend fun vehicles(client: SpiderClient, tripIds: List<String>) {
     }
 }
 
-suspend fun vehicleForTrip(client: SpiderClient, tripId: String) {
-    when (val result = client.realtime.vehicleForTrip(tripId)) {
+suspend fun vehicleForTrip(client: SpiderClient, tripId: String, serviceDate: String) {
+    when (val result = client.realtime.vehicleForTrip(tripId, serviceDate)) {
         is SpiderResult.Success -> {
             val vehicle = result.data.vehicle
             if (vehicle == null) {

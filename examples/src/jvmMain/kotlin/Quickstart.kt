@@ -72,7 +72,7 @@ fun isRetryable(error: SpiderError): Boolean = when (error.code) {
     SpiderErrorCode.UNKNOWN -> false
 }
 
-suspend fun otherSurfaces(client: SpiderClient, tripId: String) {
+suspend fun otherSurfaces(client: SpiderClient, tripId: String, serviceDate: String) {
     client.stops.search { filter { name eq "central" } }
-    client.realtime.vehicleForTrip(tripId)
+    client.realtime.vehicleForTrip(tripId, serviceDate)
 }

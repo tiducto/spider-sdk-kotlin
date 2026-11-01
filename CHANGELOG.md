@@ -4,6 +4,29 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.6.0] - Unreleased
+
+Targets Spider API contract 1.6.
+
+### Added
+
+- `SpiderRouting.estimatedDelays(tripId, serviceDate, stopPosition)`: the delay history at one stop of a trip run,
+  as `EstimatedDelays(standard, safe, verySafe)`, one `Duration` per `Reliability` level. History only, so live
+  realtime never changes it; null when the trip, the stop position or the history is unknown.
+- `reliability` on `SpiderRouting.departures` and `SpiderRouting.trip`: the level `typicalDelay` is given at.
+- `LiveVehicle.serviceDate`: the service date of the trip run the vehicle is on.
+
+### Breaking
+
+- `typicalDelay` on `Departure` and `TripStop` is null unless `reliability` is passed; it was the median. Omitted
+  reliability means the timetable, on every operation.
+- `SpiderRouting.trip(tripId, serviceDate, reliability)` requires `serviceDate`; there is no "today" default. Take it
+  from `Leg.serviceDate` or `Departure.serviceDate`.
+- `SpiderRealtime.vehicles(serviceDate, tripIds)` and `vehicleForTrip(tripId, serviceDate)` require the run's
+  `serviceDate` and return only a vehicle on that run; `pollVehicles(serviceDate, tripIds, interval)` and
+  `pollVehicleForTrip(tripId, serviceDate, interval)` likewise. A malformed date is `BadRequest` without a request.
+- `TripDetails.serviceDate` is non-null: the requested date.
+
 ## [1.5.0] - Unreleased
 
 Targets Spider API contract 1.5.

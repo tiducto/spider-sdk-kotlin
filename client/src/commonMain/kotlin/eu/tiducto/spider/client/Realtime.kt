@@ -14,7 +14,7 @@ import kotlinx.collections.immutable.persistentListOf
  *
  * ```kotlin
  * // Live position + delay for the trip the rider is looking at.
- * when (val v = client.realtime.vehicleForTrip(tripGtfsId)) {
+ * when (val v = client.realtime.vehicleForTrip(tripGtfsId, serviceDate)) {
  *     is SpiderResult.Success -> v.data.vehicle?.let { drawOnMap(it.latitude, it.longitude, it.bearing) }
  *     is SpiderResult.Error -> Unit // keep the last known position
  * }
@@ -33,20 +33,24 @@ class SpiderRealtime(
     private val realtime = RealtimeClient(baseUrl, apiKey, retry, log)
 
     /**
-     * Live positions for the given [tripIds], up to 50 per call (comma-batched in one request). An empty list
-     * returns an empty result without a request; more than 50 returns [SpiderError.BadRequest].
+     * Live positions for the runs of [tripIds] on one GTFS [serviceDate] (`YYYY-MM-DD`; pass the [Leg.serviceDate]
+     * or [Departure.serviceDate] through), up to 50 per call (comma-batched in one request). A vehicle on another
+     * run of the same trip isn't returned. An empty list returns an empty result without a request; more than 50
+     * ids or a malformed date returns [SpiderError.BadRequest] without a request.
      */
-    suspend fun vehicles(tripIds: List<String>): SpiderResult<VehiclePositions> {
+    suspend fun vehicles(serviceDate: String, tripIds: List<String>): SpiderResult<VehiclePositions> {
         if (tripIds.isEmpty()) return SpiderResult.Success(VehiclePositions.EMPTY)
-        return runCatchingRealtime("vehicles(${tripIds.size})") { realtime.vehicles(tripIds) }
+        return runCatchingRealtime("vehicles(${tripIds.size})") { realtime.vehicles(serviceDate, tripIds) }
     }
 
     /**
-     * Live position for a single trip. A trip with no vehicle currently reporting returns a
-     * [LiveVehicleUpdate] with a null [LiveVehicleUpdate.vehicle] — a normal state, not an error.
+     * Live position for one trip run: [tripId] on the GTFS [serviceDate] (`YYYY-MM-DD`; pass the [Leg.serviceDate]
+     * or [Departure.serviceDate] through). A run with no vehicle currently reporting returns a
+     * [LiveVehicleUpdate] with a null [LiveVehicleUpdate.vehicle] — a normal state, not an error. A malformed date
+     * returns [SpiderError.BadRequest] without a request.
      */
-    suspend fun vehicleForTrip(tripId: String): SpiderResult<LiveVehicleUpdate> =
-        runCatchingRealtime("vehicleForTrip($tripId)") { realtime.vehicleForTrip(tripId) }
+    suspend fun vehicleForTrip(tripId: String, serviceDate: String): SpiderResult<LiveVehicleUpdate> =
+        runCatchingRealtime("vehicleForTrip($tripId)") { realtime.vehicleForTrip(tripId, serviceDate) }
 
     /**
      * Live delays for [tripIds] running on one GTFS [serviceDate] (`YYYY-MM-DD`); pass the [Leg.serviceDate] or
@@ -92,10 +96,12 @@ data class FeedFreshness(
  * null when the producer doesn't report them. The ids ([tripId], [routeId], [vehicleId], [stopId]) are
  * feed-prefixed (`<feedId>:<id>`), exactly as routing returns them. [bearing] is degrees clockwise from north; [currentStatus] is the raw GTFS-RT
  * `VehicleStopStatus` string (`INCOMING_AT` / `STOPPED_AT` / `IN_TRANSIT_TO`), passed through
- * unchanged so a producer's newer values still surface.
+ * unchanged so a producer's newer values still surface. [serviceDate] is the GTFS service date (`YYYY-MM-DD`) of
+ * the trip run the vehicle is on.
  */
 data class LiveVehicle(
     val tripId: String,
+    val serviceDate: String,
     val routeId: String?,
     val vehicleId: String?,
     val label: String?,
