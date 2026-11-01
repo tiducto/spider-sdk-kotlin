@@ -8,5 +8,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class EstimatedDelaysResponse(
     /** Three entries, in the order `STANDARD`, `SAFE`, `VERY_SAFE`. History only: live realtime never changes them, so for a live trip they are present while `typicalDelay` is null. For a trip without live realtime they equal `trip`'s `typicalDelay` wherever that is not null, unless a live trip ahead of it in the pattern shifts that value; a level with no shift is 0. */
-    val estimatedDelays: List<EstimatedDelay>
+    val estimatedDelays: List<EstimatedDelay>?
 )

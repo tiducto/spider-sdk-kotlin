@@ -35,13 +35,11 @@ class SpiderRealtime(
     /**
      * Live positions for the runs of [tripIds] on one GTFS [serviceDate] (`YYYY-MM-DD`; pass the [Leg.serviceDate]
      * or [Departure.serviceDate] through), up to 50 per call (comma-batched in one request). A vehicle on another
-     * run of the same trip isn't returned. An empty list returns an empty result without a request; more than 50
-     * ids or a malformed date returns [SpiderError.BadRequest] without a request.
+     * run of the same trip isn't returned. A malformed date or more than 50 ids returns [SpiderError.BadRequest]
+     * without a request; otherwise an empty list returns an empty result without a request.
      */
-    suspend fun vehicles(serviceDate: String, tripIds: List<String>): SpiderResult<VehiclePositions> {
-        if (tripIds.isEmpty()) return SpiderResult.Success(VehiclePositions.EMPTY)
-        return runCatchingRealtime("vehicles(${tripIds.size})") { realtime.vehicles(serviceDate, tripIds) }
-    }
+    suspend fun vehicles(serviceDate: String, tripIds: List<String>): SpiderResult<VehiclePositions> =
+        runCatchingRealtime("vehicles(${tripIds.size})") { realtime.vehicles(serviceDate, tripIds) }
 
     /**
      * Live position for one trip run: [tripId] on the GTFS [serviceDate] (`YYYY-MM-DD`; pass the [Leg.serviceDate]

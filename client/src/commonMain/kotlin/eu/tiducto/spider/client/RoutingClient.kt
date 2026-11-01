@@ -4,7 +4,7 @@ import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.routing.AccessibilityPreferencesInput
 import eu.tiducto.spider.contract.routing.DeparturesRequest
 import eu.tiducto.spider.contract.routing.DeparturesResponse
-import eu.tiducto.spider.contract.routing.EstimatedDelay
+import eu.tiducto.spider.contract.routing.EstimatedDelaysResponse
 import eu.tiducto.spider.contract.routing.Itinerary as WireItinerary
 import eu.tiducto.spider.contract.routing.Leg as WireLeg
 import eu.tiducto.spider.contract.routing.PlanCoordinateInput
@@ -63,7 +63,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.io.IOException
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -252,7 +251,7 @@ internal class RoutingClient(
     // matched by level; a level that is missing or repeated is a malformed body.
     suspend fun estimatedDelays(tripId: String, serviceDate: String, stopPosition: Int): EstimatedDelays? {
         requireServiceDate(serviceDate)
-        val entries = getJson<EstimatedDelaysBody>(ESTIMATED_DELAYS) {
+        val entries = getJson<EstimatedDelaysResponse>(ESTIMATED_DELAYS) {
             parameter("tripId", tripId)
             parameter("serviceDate", serviceDate)
             parameter("stopPosition", stopPosition)
@@ -311,10 +310,6 @@ internal class RoutingClient(
         return json.decodeFromString<R>(text)
     }
 }
-
-// The response with its nullable table: `estimatedDelays` is null when there is no history to give.
-@Serializable
-private class EstimatedDelaysBody(val estimatedDelays: List<EstimatedDelay>?)
 
 private const val ROUTING = "routing/v1"
 private const val PLAN = "plan"

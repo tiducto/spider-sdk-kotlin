@@ -46,6 +46,7 @@ internal class RealtimeClient(
 
     suspend fun vehicles(serviceDate: String, tripIds: List<String>): VehiclePositions {
         requireServiceDate(serviceDate)
+        if (tripIds.isEmpty()) return VehiclePositions.EMPTY
         requireInRange("tripIds", tripIds.size <= MAX_TRIP_IDS)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "vehicles") }

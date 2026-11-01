@@ -347,6 +347,7 @@ class StopsRealtimeHttpTest {
     fun `a malformed vehicle service date is a BadRequest without a request`() = runBlocking<Unit> {
         val errors = listOf(
             assertIs<SpiderResult.Error>(realtime.vehicles("20260927", listOf("1:T1"))).error,
+            assertIs<SpiderResult.Error>(realtime.vehicles("20260927", emptyList())).error,
             assertIs<SpiderResult.Error>(realtime.vehicleForTrip("1:T1", "2026-02-30")).error,
         )
 
