@@ -24,6 +24,6 @@ internal data class PlanStreamRequest(
     val before: String? = null,
     /** `pageInfo.endCursor` of a page, to fetch the page after it. Never with `before`. A `startCursor` here is a 400 `after is invalid`. */
     val after: String? = null,
-    /** Delay-aware planning level; omitted or null plans on the timetable alone. */
+    /** Delay-aware planning level: each leg's arrival is planned with its `typicalArrivalDelay` at this level. Boarding keeps the scheduled departure, and a trip with live realtime uses its realtime times. Omitted or null plans on the timetable alone. */
     val reliability: Reliability? = null
 )

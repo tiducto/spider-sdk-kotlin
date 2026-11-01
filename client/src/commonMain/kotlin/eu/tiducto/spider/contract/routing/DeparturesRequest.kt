@@ -14,5 +14,7 @@ internal data class DeparturesRequest(
     /** Seconds after `startTime` the board covers: 1 to 86400 (24 hours); rejected, never clamped. */
     val timeRange: Int,
     /** Unix seconds the board starts at, from 0 to 4102444799 (2099-12-31T23:59:59Z). Absent or 0 means now. */
-    val startTime: Long? = null
+    val startTime: Long? = null,
+    /** The level `typicalDelay` is given at; the times do not depend on it. Omitted or null, `typicalDelay` is null. A value outside `Reliability` is a 400 `reliability is invalid`. */
+    val reliability: Reliability? = null
 )

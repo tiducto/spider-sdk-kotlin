@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 internal data class TripRequest(
     /** Feed-prefixed trip id (`<feedId>:<id>`). A bare or foreign-prefixed id resolves to nothing, and `trip` is null. */
     val id: String,
-    /** The service date, `YYYY-MM-DD` (`YYYYMMDD` also works). Absent means today in the feed's time zone, whether or not the feed covers it. A value that is not a real date is a 400 `serviceDate is invalid`. */
-    val serviceDate: String? = null
+    /** The trip's GTFS service date, `YYYY-MM-DD` (`YYYYMMDD` also works). Absent or null is a 400 `serviceDate is required`, and a value that is not a real date a 400 `serviceDate is invalid`. */
+    val serviceDate: String,
+    /** The level `typicalDelay` is given at; the times do not depend on it. Omitted or null, `typicalDelay` is null. A value outside `Reliability` is a 400 `reliability is invalid`. */
+    val reliability: Reliability? = null
 )
