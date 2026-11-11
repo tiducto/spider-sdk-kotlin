@@ -85,7 +85,6 @@ private fun PlaceHitDto.toPlaceHit(): PlaceHit = PlaceHit(
 internal fun placeTypeFromWire(raw: String): PlaceType = when (raw) {
     "stop" -> PlaceType.STOP
     "address" -> PlaceType.ADDRESS
-    "street" -> PlaceType.STREET
     "place" -> PlaceType.PLACE
     "poi" -> PlaceType.POI
     else -> PlaceType.UNKNOWN

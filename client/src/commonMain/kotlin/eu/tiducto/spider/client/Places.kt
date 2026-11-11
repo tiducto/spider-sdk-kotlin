@@ -3,7 +3,7 @@ package eu.tiducto.spider.client
 import kotlinx.collections.immutable.ImmutableList
 
 /**
- * Place search: one query over everything a rider might type as a destination — stops, addresses, streets,
+ * Place search: one query over everything a rider might type as a destination — stops, addresses,
  * municipalities and points of interest within the environment's service area. Reachable as `client.places`
  * on any [SpiderClient].
  *
@@ -15,9 +15,9 @@ import kotlinx.collections.immutable.ImmutableList
  * client.places.search("Údolní 53", near = LatLon(49.1951, 16.6068), limit = 5)
  * ```
  *
- * Hits come best first: stops, then municipalities, districts and landmarks, then streets, then other points
- * of interest and addresses. A query with a digit (a house number) lists individual addresses; without one, a
- * street stands for its addresses. Abbreviated and spelled-out forms find each other, and text typed without
+ * Hits come best first: stops, then municipalities, districts and landmarks, then other points of interest
+ * and addresses. A query with a digit (a house number) lists individual addresses; without one, it lists stops,
+ * municipalities and points of interest, and no addresses. Abbreviated and spelled-out forms find each other, and text typed without
  * diacritics matches text with them.
  *
  * A [PlaceType.STOP] hit's [PlaceHit.id] is the stop's feed-prefixed id, the value routing takes as a stop
@@ -63,9 +63,6 @@ enum class PlaceType {
     /** A single address: a building with its house number. */
     ADDRESS,
 
-    /** A street, standing for its addresses. */
-    STREET,
-
     /** A municipality. */
     PLACE,
 
@@ -82,7 +79,7 @@ enum class PlaceType {
  * [id] is, for a [PlaceType.STOP], the stop's feed-prefixed id (`<feedId>:<id>`); for any other type an opaque
  * id, stable across searches. [category] says what kind of place it is — for a [PlaceType.POI] e.g.
  * `university`, `hospital`, `mall`; for a [PlaceType.PLACE] `municipality`; for an [PlaceType.ADDRESS]
- * `building` or `recreational`; for a [PlaceType.STREET] `street`; null for a stop. New categories may appear.
+ * `building` or `recreational`; null for a stop. New categories may appear.
  * [admin] holds the administrative areas the place lies in, labelled the same way as [Stop.admin]. [distance]
  * is the distance in metres from the location the search was given, null when it was given none.
  */

@@ -83,7 +83,7 @@ class PlacesHttpTest {
         ).data
 
         assertEquals(
-            listOf(PlaceType.STOP, PlaceType.ADDRESS, PlaceType.STREET, PlaceType.PLACE, PlaceType.POI, PlaceType.UNKNOWN),
+            listOf(PlaceType.STOP, PlaceType.ADDRESS, PlaceType.UNKNOWN, PlaceType.PLACE, PlaceType.POI, PlaceType.UNKNOWN),
             hits.map { it.type },
         )
         val (stop, address) = hits

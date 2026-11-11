@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.7.1] - Unreleased
+
+### Removed
+
+- `PlaceType.STREET`: place search no longer returns streets. A query without a house number lists stops,
+  municipalities and points of interest; a `"street"` type on the wire maps to `PlaceType.UNKNOWN`.
+
 ## [1.7.0] - Unreleased
 
 Targets Spider API contract 1.7.
