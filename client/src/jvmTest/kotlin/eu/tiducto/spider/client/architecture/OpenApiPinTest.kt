@@ -1,5 +1,7 @@
 package eu.tiducto.spider.client.architecture
 
+import eu.tiducto.spider.contract.places.PlaceHitDto
+import eu.tiducto.spider.contract.places.PlaceSearchResponse
 import eu.tiducto.spider.contract.stops.StopHit
 import eu.tiducto.spider.contract.stops.StopSearchRequest
 import eu.tiducto.spider.contract.stops.StopSearchResponse
@@ -21,7 +23,7 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 
 /**
- * Cross-repo pin: the hand-written wire types (`eu.tiducto.spider.contract.stops` + `.realtime`) must match
+ * Cross-repo pin: the hand-written wire types (`eu.tiducto.spider.contract.stops`, `.places` and `.realtime`) must match
  * their published per-surface OpenAPI docs (from `tiducto/spider-contract`, kept in sync by
  * `scripts/generate-contract.sh`). Field-set comparison, never codegen; jvmTest so it reads the specs off
  * the classpath. The routing analog is `RoutingWireContractTest`.
@@ -60,6 +62,15 @@ class OpenApiPinTest {
             "StopSearchRequest" to StopSearchRequest.serializer().descriptor,
             "StopSearchResponse" to StopSearchResponse.serializer(StopHit.serializer()).descriptor,
             "StopHit" to StopHit.serializer().descriptor,
+        ),
+    )
+
+    @Test
+    fun `places wire types match places-openapi`() = check(
+        "/places-openapi.json",
+        listOf(
+            "PlaceSearchResponse" to PlaceSearchResponse.serializer().descriptor,
+            "PlaceHit" to PlaceHitDto.serializer().descriptor,
         ),
     )
 

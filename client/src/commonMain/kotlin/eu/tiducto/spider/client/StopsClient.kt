@@ -77,26 +77,12 @@ internal class StopsClient(
     }
 
     private fun StopHit.toStop(): Stop {
-        // Iterate the enum so admin entries come back in canonical order
-        // (COUNTRY → SUBURB) regardless of how the backend serialized the doc.
-        val adminPairs = buildList {
-            AdminLevel.entries.forEach { level ->
-                val value = when (level) {
-                    AdminLevel.COUNTRY -> country
-                    AdminLevel.REGION -> region
-                    AdminLevel.DISTRICT -> district
-                    AdminLevel.CITY -> city
-                    AdminLevel.SUBURB -> suburb
-                }
-                if (!value.isNullOrBlank()) add(level to value)
-            }
-        }
         return Stop(
             gtfsId = gtfsId,
             name = name,
             lat = lat,
             lon = lon,
-            admin = adminPairs.toMap(),
+            admin = adminLabels(country, region, district, city, suburb),
             wheelchairBoarding = when (wheelchairBoarding) {
                 null, 0 -> null
                 1 -> WheelchairBoarding.POSSIBLE
@@ -111,6 +97,27 @@ internal class StopsClient(
 }
 
 private const val MAX_STOP_LIMIT = 50
+
+// The admin labels a hit carries, in canonical order (COUNTRY → SUBURB) whatever order the response had; a
+// blank label is dropped. Stop and place hits share it so both are labelled alike.
+internal fun adminLabels(
+    country: String?,
+    region: String?,
+    district: String?,
+    city: String?,
+    suburb: String?,
+): Map<AdminLevel, String> = buildMap {
+    AdminLevel.entries.forEach { level ->
+        val value = when (level) {
+            AdminLevel.COUNTRY -> country
+            AdminLevel.REGION -> region
+            AdminLevel.DISTRICT -> district
+            AdminLevel.CITY -> city
+            AdminLevel.SUBURB -> suburb
+        }
+        if (!value.isNullOrBlank()) put(level, value)
+    }
+}
 
 // Composes the Meilisearch filter expression: `field = "value" AND gtfsId = "…" AND _geoRadius(…) AND …`.
 // `modes IN [...]` matches a stop served by any of the modes; UNKNOWN has no wire value and is left out.

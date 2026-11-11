@@ -10,8 +10,8 @@ class SpiderClient(
     private val config = SpiderClientBuilder().apply(block)
 
     /**
-     * The single wire-contract version this client speaks across every surface (routing, stops, and
-     * realtime move together). Sent on every request for the platform's records; it never fails a call.
+     * The single wire-contract version this client speaks across every surface (routing, stops, places
+     * and realtime move together). Sent on every request for the platform's records; it never fails a call.
      */
     val contractVersion: String get() = SpiderContract.VERSION
 
@@ -23,6 +23,11 @@ class SpiderClient(
     /** Stop text search, lookup by id, and geographic (nearest / bounding-box) queries. */
     val stops: SpiderStops by lazy {
         SpiderStops(baseUrl, apiKey, config.stops.retry, config.logging)
+    }
+
+    /** Search over stops, addresses, streets, municipalities and points of interest. */
+    val places: SpiderPlaces by lazy {
+        SpiderPlaces(baseUrl, apiKey, config.places.retry, config.logging)
     }
 
     /** Live vehicle positions, delays, and service alerts. */
@@ -57,7 +62,7 @@ class SpiderClient(
 
 /**
  * Configuration for a [SpiderClient]. Every surface — [SpiderClient.routing], [SpiderClient.stops],
- * [SpiderClient.realtime] — is available with no setup; each surface is built lazily on first use.
+ * [SpiderClient.places], [SpiderClient.realtime] — is available with no setup; each surface is built lazily on first use.
  * The blocks here are optional and only needed to tune a surface (e.g. [RoutingConfig.autoRetry]) or
  * turn on [logging]. Received by the trailing lambda of the [SpiderClient] constructor.
  */
@@ -65,6 +70,7 @@ class SpiderClientBuilder internal constructor() {
     internal var logging: LoggingConfig = LoggingConfig()
     internal val routing: RoutingConfig = RoutingConfig()
     internal val stops: StopsConfig = StopsConfig()
+    internal val places: PlacesConfig = PlacesConfig()
     internal val realtime: RealtimeConfig = RealtimeConfig()
 
     /** Client-wide request logging (off by default). */
@@ -80,6 +86,11 @@ class SpiderClientBuilder internal constructor() {
     /** Configure the stop-search surface reached at `client.stops`. */
     fun stops(block: StopsConfig.() -> Unit) {
         stops.apply(block)
+    }
+
+    /** Configure the place-search surface reached at `client.places`. */
+    fun places(block: PlacesConfig.() -> Unit) {
+        places.apply(block)
     }
 
     /** Configure the realtime surface reached at `client.realtime`. */

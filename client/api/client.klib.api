@@ -75,6 +75,21 @@ final enum class eu.tiducto.spider.client/OccupancyStatus : kotlin/Enum<eu.tiduc
     }
 }
 
+final enum class eu.tiducto.spider.client/PlaceType : kotlin/Enum<eu.tiducto.spider.client/PlaceType> { // eu.tiducto.spider.client/PlaceType|null[0]
+    enum entry ADDRESS // eu.tiducto.spider.client/PlaceType.ADDRESS|null[0]
+    enum entry PLACE // eu.tiducto.spider.client/PlaceType.PLACE|null[0]
+    enum entry POI // eu.tiducto.spider.client/PlaceType.POI|null[0]
+    enum entry STOP // eu.tiducto.spider.client/PlaceType.STOP|null[0]
+    enum entry STREET // eu.tiducto.spider.client/PlaceType.STREET|null[0]
+    enum entry UNKNOWN // eu.tiducto.spider.client/PlaceType.UNKNOWN|null[0]
+
+    final val entries // eu.tiducto.spider.client/PlaceType.entries|#static{}entries[0]
+        final fun <get-entries>(): kotlin.enums/EnumEntries<eu.tiducto.spider.client/PlaceType> // eu.tiducto.spider.client/PlaceType.entries.<get-entries>|<get-entries>#static(){}[0]
+
+    final fun valueOf(kotlin/String): eu.tiducto.spider.client/PlaceType // eu.tiducto.spider.client/PlaceType.valueOf|valueOf#static(kotlin.String){}[0]
+    final fun values(): kotlin/Array<eu.tiducto.spider.client/PlaceType> // eu.tiducto.spider.client/PlaceType.values|values#static(){}[0]
+}
+
 final enum class eu.tiducto.spider.client/RealtimeState : kotlin/Enum<eu.tiducto.spider.client/RealtimeState> { // eu.tiducto.spider.client/RealtimeState|null[0]
     enum entry ADDED // eu.tiducto.spider.client/RealtimeState.ADDED|null[0]
     enum entry CANCELED // eu.tiducto.spider.client/RealtimeState.CANCELED|null[0]
@@ -983,6 +998,44 @@ final class eu.tiducto.spider.client/LoggingConfig { // eu.tiducto.spider.client
         final fun <set-level>(eu.tiducto.spider.client/SpiderLogLevel) // eu.tiducto.spider.client/LoggingConfig.level.<set-level>|<set-level>(eu.tiducto.spider.client.SpiderLogLevel){}[0]
 }
 
+final class eu.tiducto.spider.client/PlaceHit { // eu.tiducto.spider.client/PlaceHit|null[0]
+    constructor <init>(kotlin/String, eu.tiducto.spider.client/PlaceType, kotlin/String, kotlin/Double, kotlin/Double, kotlin/String? = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., kotlin/Int? = ...) // eu.tiducto.spider.client/PlaceHit.<init>|<init>(kotlin.String;eu.tiducto.spider.client.PlaceType;kotlin.String;kotlin.Double;kotlin.Double;kotlin.String?;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;kotlin.Int?){}[0]
+
+    final val admin // eu.tiducto.spider.client/PlaceHit.admin|{}admin[0]
+        final fun <get-admin>(): kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> // eu.tiducto.spider.client/PlaceHit.admin.<get-admin>|<get-admin>(){}[0]
+    final val category // eu.tiducto.spider.client/PlaceHit.category|{}category[0]
+        final fun <get-category>(): kotlin/String? // eu.tiducto.spider.client/PlaceHit.category.<get-category>|<get-category>(){}[0]
+    final val distance // eu.tiducto.spider.client/PlaceHit.distance|{}distance[0]
+        final fun <get-distance>(): kotlin/Int? // eu.tiducto.spider.client/PlaceHit.distance.<get-distance>|<get-distance>(){}[0]
+    final val id // eu.tiducto.spider.client/PlaceHit.id|{}id[0]
+        final fun <get-id>(): kotlin/String // eu.tiducto.spider.client/PlaceHit.id.<get-id>|<get-id>(){}[0]
+    final val lat // eu.tiducto.spider.client/PlaceHit.lat|{}lat[0]
+        final fun <get-lat>(): kotlin/Double // eu.tiducto.spider.client/PlaceHit.lat.<get-lat>|<get-lat>(){}[0]
+    final val lon // eu.tiducto.spider.client/PlaceHit.lon|{}lon[0]
+        final fun <get-lon>(): kotlin/Double // eu.tiducto.spider.client/PlaceHit.lon.<get-lon>|<get-lon>(){}[0]
+    final val name // eu.tiducto.spider.client/PlaceHit.name|{}name[0]
+        final fun <get-name>(): kotlin/String // eu.tiducto.spider.client/PlaceHit.name.<get-name>|<get-name>(){}[0]
+    final val type // eu.tiducto.spider.client/PlaceHit.type|{}type[0]
+        final fun <get-type>(): eu.tiducto.spider.client/PlaceType // eu.tiducto.spider.client/PlaceHit.type.<get-type>|<get-type>(){}[0]
+
+    final fun component1(): kotlin/String // eu.tiducto.spider.client/PlaceHit.component1|component1(){}[0]
+    final fun component2(): eu.tiducto.spider.client/PlaceType // eu.tiducto.spider.client/PlaceHit.component2|component2(){}[0]
+    final fun component3(): kotlin/String // eu.tiducto.spider.client/PlaceHit.component3|component3(){}[0]
+    final fun component4(): kotlin/Double // eu.tiducto.spider.client/PlaceHit.component4|component4(){}[0]
+    final fun component5(): kotlin/Double // eu.tiducto.spider.client/PlaceHit.component5|component5(){}[0]
+    final fun component6(): kotlin/String? // eu.tiducto.spider.client/PlaceHit.component6|component6(){}[0]
+    final fun component7(): kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> // eu.tiducto.spider.client/PlaceHit.component7|component7(){}[0]
+    final fun component8(): kotlin/Int? // eu.tiducto.spider.client/PlaceHit.component8|component8(){}[0]
+    final fun copy(kotlin/String = ..., eu.tiducto.spider.client/PlaceType = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin/String? = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., kotlin/Int? = ...): eu.tiducto.spider.client/PlaceHit // eu.tiducto.spider.client/PlaceHit.copy|copy(kotlin.String;eu.tiducto.spider.client.PlaceType;kotlin.String;kotlin.Double;kotlin.Double;kotlin.String?;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;kotlin.Int?){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/PlaceHit.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/PlaceHit.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // eu.tiducto.spider.client/PlaceHit.toString|toString(){}[0]
+}
+
+final class eu.tiducto.spider.client/PlacesConfig : eu.tiducto.spider.client/SurfaceConfig { // eu.tiducto.spider.client/PlacesConfig|null[0]
+    constructor <init>() // eu.tiducto.spider.client/PlacesConfig.<init>|<init>(){}[0]
+}
+
 final class eu.tiducto.spider.client/PlanRequest { // eu.tiducto.spider.client/PlanRequest|null[0]
     constructor <init>(eu.tiducto.spider.client/Location, eu.tiducto.spider.client/Location, eu.tiducto.spider.client/RouteTime, kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ..., kotlin.collections/Set<eu.tiducto.spider.client/TransitMode>? = ..., kotlin/Int? = ..., kotlin.time/Duration = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/Reliability? = ...) // eu.tiducto.spider.client/PlanRequest.<init>|<init>(eu.tiducto.spider.client.Location;eu.tiducto.spider.client.Location;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>;kotlin.collections.Set<eu.tiducto.spider.client.TransitMode>?;kotlin.Int?;kotlin.time.Duration;kotlin.Boolean;eu.tiducto.spider.client.Reliability?){}[0]
 
@@ -1179,6 +1232,8 @@ final class eu.tiducto.spider.client/SpiderClient { // eu.tiducto.spider.client/
 
     final val contractVersion // eu.tiducto.spider.client/SpiderClient.contractVersion|{}contractVersion[0]
         final fun <get-contractVersion>(): kotlin/String // eu.tiducto.spider.client/SpiderClient.contractVersion.<get-contractVersion>|<get-contractVersion>(){}[0]
+    final val places // eu.tiducto.spider.client/SpiderClient.places|{}places[0]
+        final fun <get-places>(): eu.tiducto.spider.client/SpiderPlaces // eu.tiducto.spider.client/SpiderClient.places.<get-places>|<get-places>(){}[0]
     final val realtime // eu.tiducto.spider.client/SpiderClient.realtime|{}realtime[0]
         final fun <get-realtime>(): eu.tiducto.spider.client/SpiderRealtime // eu.tiducto.spider.client/SpiderClient.realtime.<get-realtime>|<get-realtime>(){}[0]
     final val routing // eu.tiducto.spider.client/SpiderClient.routing|{}routing[0]
@@ -1191,9 +1246,16 @@ final class eu.tiducto.spider.client/SpiderClient { // eu.tiducto.spider.client/
 
 final class eu.tiducto.spider.client/SpiderClientBuilder { // eu.tiducto.spider.client/SpiderClientBuilder|null[0]
     final fun logging(kotlin/Function1<eu.tiducto.spider.client/LoggingConfig, kotlin/Unit> = ...) // eu.tiducto.spider.client/SpiderClientBuilder.logging|logging(kotlin.Function1<eu.tiducto.spider.client.LoggingConfig,kotlin.Unit>){}[0]
+    final fun places(kotlin/Function1<eu.tiducto.spider.client/PlacesConfig, kotlin/Unit>) // eu.tiducto.spider.client/SpiderClientBuilder.places|places(kotlin.Function1<eu.tiducto.spider.client.PlacesConfig,kotlin.Unit>){}[0]
     final fun realtime(kotlin/Function1<eu.tiducto.spider.client/RealtimeConfig, kotlin/Unit>) // eu.tiducto.spider.client/SpiderClientBuilder.realtime|realtime(kotlin.Function1<eu.tiducto.spider.client.RealtimeConfig,kotlin.Unit>){}[0]
     final fun routing(kotlin/Function1<eu.tiducto.spider.client/RoutingConfig, kotlin/Unit>) // eu.tiducto.spider.client/SpiderClientBuilder.routing|routing(kotlin.Function1<eu.tiducto.spider.client.RoutingConfig,kotlin.Unit>){}[0]
     final fun stops(kotlin/Function1<eu.tiducto.spider.client/StopsConfig, kotlin/Unit>) // eu.tiducto.spider.client/SpiderClientBuilder.stops|stops(kotlin.Function1<eu.tiducto.spider.client.StopsConfig,kotlin.Unit>){}[0]
+}
+
+final class eu.tiducto.spider.client/SpiderPlaces { // eu.tiducto.spider.client/SpiderPlaces|null[0]
+    constructor <init>(kotlin/String, kotlin/String, eu.tiducto.spider.client/RetryConfig? = ..., eu.tiducto.spider.client/LoggingConfig = ...) // eu.tiducto.spider.client/SpiderPlaces.<init>|<init>(kotlin.String;kotlin.String;eu.tiducto.spider.client.RetryConfig?;eu.tiducto.spider.client.LoggingConfig){}[0]
+
+    final suspend fun search(kotlin/String, eu.tiducto.spider.client/LatLon? = ..., kotlin/Int = ...): eu.tiducto.spider.client/SpiderResult<kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/PlaceHit>> // eu.tiducto.spider.client/SpiderPlaces.search|search(kotlin.String;eu.tiducto.spider.client.LatLon?;kotlin.Int){}[0]
 }
 
 final class eu.tiducto.spider.client/SpiderRealtime { // eu.tiducto.spider.client/SpiderRealtime|null[0]
