@@ -80,7 +80,6 @@ final enum class eu.tiducto.spider.client/PlaceType : kotlin/Enum<eu.tiducto.spi
     enum entry PLACE // eu.tiducto.spider.client/PlaceType.PLACE|null[0]
     enum entry POI // eu.tiducto.spider.client/PlaceType.POI|null[0]
     enum entry STOP // eu.tiducto.spider.client/PlaceType.STOP|null[0]
-    enum entry STREET // eu.tiducto.spider.client/PlaceType.STREET|null[0]
     enum entry UNKNOWN // eu.tiducto.spider.client/PlaceType.UNKNOWN|null[0]
 
     final val entries // eu.tiducto.spider.client/PlaceType.entries|#static{}entries[0]

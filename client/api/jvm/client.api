@@ -458,7 +458,6 @@ public final class eu/tiducto/spider/client/PlaceType : java/lang/Enum {
 	public static final field PLACE Leu/tiducto/spider/client/PlaceType;
 	public static final field POI Leu/tiducto/spider/client/PlaceType;
 	public static final field STOP Leu/tiducto/spider/client/PlaceType;
-	public static final field STREET Leu/tiducto/spider/client/PlaceType;
 	public static final field UNKNOWN Leu/tiducto/spider/client/PlaceType;
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/PlaceType;

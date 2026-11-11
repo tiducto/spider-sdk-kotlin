@@ -25,7 +25,7 @@ class SpiderClient(
         SpiderStops(baseUrl, apiKey, config.stops.retry, config.logging)
     }
 
-    /** Search over stops, addresses, streets, municipalities and points of interest. */
+    /** Search over stops, addresses, municipalities and points of interest. */
     val places: SpiderPlaces by lazy {
         SpiderPlaces(baseUrl, apiKey, config.places.retry, config.logging)
     }
