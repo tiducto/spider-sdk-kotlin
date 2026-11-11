@@ -43,15 +43,13 @@ internal data class StopSearchResponse<T>(val hits: List<T>, val query: String)
 /**
  * One stop document as indexed. [gtfsId], [name] and the coordinates are always present; the admin-geography
  * levels ([country]…[suburb]) are populated only where the deployment enriched them. [geoDistance] is the
- * distance in metres from a geo sort's point, present only under one. [locationType] and [wheelchairBoarding] are raw GTFS integer codes; [modes] are routing mode
- * names. These field names must match the index builder (`seed-stops.sh`).
+ * distance in metres from a geo sort's point, present only under one. [wheelchairBoarding] is a raw GTFS integer code; [modes] are routing mode names. These field names must match the index builder (`seed-stops.sh`).
  */
 @Serializable
 internal data class StopHit(
     val gtfsId: String,
     val name: String,
     val code: String? = null,
-    val locationType: Int? = null,
     val wheelchairBoarding: Int? = null,
     val modes: List<String> = emptyList(),
     val lat: Double,

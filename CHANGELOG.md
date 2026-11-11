@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.8.0] - Unreleased
+
+Targets Spider API contract 1.8.
+
+### Added
+
+- `PlaceHit.stop`: a `PlaceType.STOP` hit's stop as a `Stop` (gtfsId, name, coordinates, admin, code,
+  wheelchairBoarding, modes), the same members stop search returns for it; null for every other type.
+
+### Removed
+
+- `Stop.locationType`: contract 1.8 dropped `locationType` from stop search before launch.
+
 ## [1.7.1] - Unreleased
 
 ### Removed

@@ -998,7 +998,7 @@ final class eu.tiducto.spider.client/LoggingConfig { // eu.tiducto.spider.client
 }
 
 final class eu.tiducto.spider.client/PlaceHit { // eu.tiducto.spider.client/PlaceHit|null[0]
-    constructor <init>(kotlin/String, eu.tiducto.spider.client/PlaceType, kotlin/String, kotlin/Double, kotlin/Double, kotlin/String? = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., kotlin/Int? = ...) // eu.tiducto.spider.client/PlaceHit.<init>|<init>(kotlin.String;eu.tiducto.spider.client.PlaceType;kotlin.String;kotlin.Double;kotlin.Double;kotlin.String?;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;kotlin.Int?){}[0]
+    constructor <init>(kotlin/String, eu.tiducto.spider.client/PlaceType, kotlin/String, kotlin/Double, kotlin/Double, kotlin/String? = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., kotlin/Int? = ..., eu.tiducto.spider.client/Stop? = ...) // eu.tiducto.spider.client/PlaceHit.<init>|<init>(kotlin.String;eu.tiducto.spider.client.PlaceType;kotlin.String;kotlin.Double;kotlin.Double;kotlin.String?;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;kotlin.Int?;eu.tiducto.spider.client.Stop?){}[0]
 
     final val admin // eu.tiducto.spider.client/PlaceHit.admin|{}admin[0]
         final fun <get-admin>(): kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> // eu.tiducto.spider.client/PlaceHit.admin.<get-admin>|<get-admin>(){}[0]
@@ -1014,6 +1014,8 @@ final class eu.tiducto.spider.client/PlaceHit { // eu.tiducto.spider.client/Plac
         final fun <get-lon>(): kotlin/Double // eu.tiducto.spider.client/PlaceHit.lon.<get-lon>|<get-lon>(){}[0]
     final val name // eu.tiducto.spider.client/PlaceHit.name|{}name[0]
         final fun <get-name>(): kotlin/String // eu.tiducto.spider.client/PlaceHit.name.<get-name>|<get-name>(){}[0]
+    final val stop // eu.tiducto.spider.client/PlaceHit.stop|{}stop[0]
+        final fun <get-stop>(): eu.tiducto.spider.client/Stop? // eu.tiducto.spider.client/PlaceHit.stop.<get-stop>|<get-stop>(){}[0]
     final val type // eu.tiducto.spider.client/PlaceHit.type|{}type[0]
         final fun <get-type>(): eu.tiducto.spider.client/PlaceType // eu.tiducto.spider.client/PlaceHit.type.<get-type>|<get-type>(){}[0]
 
@@ -1025,7 +1027,8 @@ final class eu.tiducto.spider.client/PlaceHit { // eu.tiducto.spider.client/Plac
     final fun component6(): kotlin/String? // eu.tiducto.spider.client/PlaceHit.component6|component6(){}[0]
     final fun component7(): kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> // eu.tiducto.spider.client/PlaceHit.component7|component7(){}[0]
     final fun component8(): kotlin/Int? // eu.tiducto.spider.client/PlaceHit.component8|component8(){}[0]
-    final fun copy(kotlin/String = ..., eu.tiducto.spider.client/PlaceType = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin/String? = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., kotlin/Int? = ...): eu.tiducto.spider.client/PlaceHit // eu.tiducto.spider.client/PlaceHit.copy|copy(kotlin.String;eu.tiducto.spider.client.PlaceType;kotlin.String;kotlin.Double;kotlin.Double;kotlin.String?;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;kotlin.Int?){}[0]
+    final fun component9(): eu.tiducto.spider.client/Stop? // eu.tiducto.spider.client/PlaceHit.component9|component9(){}[0]
+    final fun copy(kotlin/String = ..., eu.tiducto.spider.client/PlaceType = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin/String? = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., kotlin/Int? = ..., eu.tiducto.spider.client/Stop? = ...): eu.tiducto.spider.client/PlaceHit // eu.tiducto.spider.client/PlaceHit.copy|copy(kotlin.String;eu.tiducto.spider.client.PlaceType;kotlin.String;kotlin.Double;kotlin.Double;kotlin.String?;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;kotlin.Int?;eu.tiducto.spider.client.Stop?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/PlaceHit.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/PlaceHit.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // eu.tiducto.spider.client/PlaceHit.toString|toString(){}[0]
@@ -1290,7 +1293,7 @@ final class eu.tiducto.spider.client/SpiderStops { // eu.tiducto.spider.client/S
 }
 
 final class eu.tiducto.spider.client/Stop { // eu.tiducto.spider.client/Stop|null[0]
-    constructor <init>(kotlin/String, kotlin/String, kotlin/Double, kotlin/Double, kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/TransitMode> = ..., kotlin/String? = ..., kotlin/Int? = ...) // eu.tiducto.spider.client/Stop.<init>|<init>(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.TransitMode>;kotlin.String?;kotlin.Int?){}[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/Double, kotlin/Double, kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/TransitMode> = ..., kotlin/String? = ...) // eu.tiducto.spider.client/Stop.<init>|<init>(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.TransitMode>;kotlin.String?){}[0]
 
     final val admin // eu.tiducto.spider.client/Stop.admin|{}admin[0]
         final fun <get-admin>(): kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> // eu.tiducto.spider.client/Stop.admin.<get-admin>|<get-admin>(){}[0]
@@ -1300,8 +1303,6 @@ final class eu.tiducto.spider.client/Stop { // eu.tiducto.spider.client/Stop|nul
         final fun <get-gtfsId>(): kotlin/String // eu.tiducto.spider.client/Stop.gtfsId.<get-gtfsId>|<get-gtfsId>(){}[0]
     final val lat // eu.tiducto.spider.client/Stop.lat|{}lat[0]
         final fun <get-lat>(): kotlin/Double // eu.tiducto.spider.client/Stop.lat.<get-lat>|<get-lat>(){}[0]
-    final val locationType // eu.tiducto.spider.client/Stop.locationType|{}locationType[0]
-        final fun <get-locationType>(): kotlin/Int? // eu.tiducto.spider.client/Stop.locationType.<get-locationType>|<get-locationType>(){}[0]
     final val lon // eu.tiducto.spider.client/Stop.lon|{}lon[0]
         final fun <get-lon>(): kotlin/Double // eu.tiducto.spider.client/Stop.lon.<get-lon>|<get-lon>(){}[0]
     final val modes // eu.tiducto.spider.client/Stop.modes|{}modes[0]
@@ -1319,8 +1320,7 @@ final class eu.tiducto.spider.client/Stop { // eu.tiducto.spider.client/Stop|nul
     final fun component6(): eu.tiducto.spider.client/WheelchairBoarding? // eu.tiducto.spider.client/Stop.component6|component6(){}[0]
     final fun component7(): kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/TransitMode> // eu.tiducto.spider.client/Stop.component7|component7(){}[0]
     final fun component8(): kotlin/String? // eu.tiducto.spider.client/Stop.component8|component8(){}[0]
-    final fun component9(): kotlin/Int? // eu.tiducto.spider.client/Stop.component9|component9(){}[0]
-    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/TransitMode> = ..., kotlin/String? = ..., kotlin/Int? = ...): eu.tiducto.spider.client/Stop // eu.tiducto.spider.client/Stop.copy|copy(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.TransitMode>;kotlin.String?;kotlin.Int?){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin.collections/Map<eu.tiducto.spider.client/AdminLevel, kotlin/String> = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/TransitMode> = ..., kotlin/String? = ...): eu.tiducto.spider.client/Stop // eu.tiducto.spider.client/Stop.copy|copy(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.collections.Map<eu.tiducto.spider.client.AdminLevel,kotlin.String>;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.TransitMode>;kotlin.String?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/Stop.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/Stop.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // eu.tiducto.spider.client/Stop.toString|toString(){}[0]

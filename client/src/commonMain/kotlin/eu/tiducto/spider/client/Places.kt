@@ -21,7 +21,8 @@ import kotlinx.collections.immutable.ImmutableList
  * without diacritics matches text with them.
  *
  * A [PlaceType.STOP] hit's [PlaceHit.id] is the stop's feed-prefixed id, the value routing takes as a stop
- * location; every other hit routes by its coordinates.
+ * location, and its [PlaceHit.stop] is the stop as stop search returns it; every other hit routes by its
+ * coordinates.
  */
 class SpiderPlaces(
     private val baseUrl: String,
@@ -81,7 +82,8 @@ enum class PlaceType {
  * `university`, `hospital`, `mall`; for a [PlaceType.PLACE] `municipality`; for an [PlaceType.ADDRESS]
  * `building` or `recreational`; null for a stop. New categories may appear.
  * [admin] holds the administrative areas the place lies in, labelled the same way as [Stop.admin]. [distance]
- * is the distance in metres from the location the search was given, null when it was given none.
+ * is the distance in metres from the location the search was given, null when it was given none. [stop] is a
+ * [PlaceType.STOP] hit's stop, with the same members stop search returns for it; null for every other type.
  */
 data class PlaceHit(
     val id: String,
@@ -92,4 +94,5 @@ data class PlaceHit(
     val category: String? = null,
     val admin: Map<AdminLevel, String> = emptyMap(),
     val distance: Int? = null,
+    val stop: Stop? = null,
 )

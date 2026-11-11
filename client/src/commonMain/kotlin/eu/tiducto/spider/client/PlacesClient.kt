@@ -71,16 +71,32 @@ internal class PlacesClient(
 private const val MAX_PLACE_LIMIT = 20
 private const val WHERE = "GET places/v1/search"
 
-private fun PlaceHitDto.toPlaceHit(): PlaceHit = PlaceHit(
-    id = id,
-    type = placeTypeFromWire(type),
-    name = name,
-    lat = lat,
-    lon = lon,
-    category = category,
-    admin = adminLabels(country, region, district, city, suburb),
-    distance = distance,
-)
+private fun PlaceHitDto.toPlaceHit(): PlaceHit {
+    val type = placeTypeFromWire(type)
+    val admin = adminLabels(country, region, district, city, suburb)
+    return PlaceHit(
+        id = id,
+        type = type,
+        name = name,
+        lat = lat,
+        lon = lon,
+        category = category,
+        admin = admin,
+        distance = distance,
+        stop = gtfsId?.takeIf { type == PlaceType.STOP }?.let {
+            Stop(
+                gtfsId = it,
+                name = name,
+                lat = lat,
+                lon = lon,
+                admin = admin,
+                wheelchairBoarding = wheelchairBoardingFromStopCode(wheelchairBoarding),
+                modes = stopModesFromWire(modes),
+                code = code,
+            )
+        },
+    )
+}
 
 internal fun placeTypeFromWire(raw: String): PlaceType = when (raw) {
     "stop" -> PlaceType.STOP

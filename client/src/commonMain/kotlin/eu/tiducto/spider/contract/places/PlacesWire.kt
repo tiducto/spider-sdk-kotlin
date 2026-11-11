@@ -8,14 +8,21 @@ import kotlinx.serialization.Serializable
  */
 
 @Serializable
-internal data class PlaceSearchResponse(val hits: List<PlaceHitDto>)
+internal data class PlaceSearchResponse(val hits: List<PlaceHitDto>, val query: String)
 
-/** [type] stays a raw string so a type added to the contract later decodes instead of failing the response. */
+/**
+ * [type] stays a raw string so a type added to the contract later decodes instead of failing the response.
+ * [gtfsId], [code], [wheelchairBoarding] and [modes] are a stop hit's stop-search members, absent for other types.
+ */
 @Serializable
 internal data class PlaceHitDto(
     val id: String,
     val type: String,
+    val gtfsId: String? = null,
     val name: String,
+    val code: String? = null,
+    val wheelchairBoarding: Int? = null,
+    val modes: List<String> = emptyList(),
     val lat: Double,
     val lon: Double,
     val category: String? = null,
