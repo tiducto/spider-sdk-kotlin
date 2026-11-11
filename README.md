@@ -46,6 +46,7 @@ Every call returns a `SpiderResult` you branch on before reading `data`; the SDK
 
 - **`client.routing`** — trip planning, departures, and single-trip lookups.
 - **`client.stops`** — text/autocomplete search, geo queries (nearest / bounding box), and lookup by GTFS id.
+- **`client.places`** — one search over stops, addresses, streets, municipalities and points of interest.
 - **`client.realtime`** — poll-based live vehicle positions, delays, and alerts (no push connections).
 
 **Full API reference and guides → [docs.tiducto.eu](https://docs.tiducto.eu).** Product overview → [tiducto.eu](https://tiducto.eu).

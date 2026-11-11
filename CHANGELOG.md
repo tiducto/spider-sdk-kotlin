@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.7.0] - Unreleased
+
+Targets Spider API contract 1.7.
+
+### Added
+
+- `client.places` (`SpiderPlaces`): `search(query, near, limit)` searches stops, addresses, streets, municipalities
+  and points of interest in one query, best first, returning `PlaceHit`s. `limit` defaults to 10 and is 1 to 20; one
+  outside that range returns `BadRequest` without a request. With `near: LatLon`, the nearest of equally good
+  matches ranks first and each hit carries `distance` in metres. A query with a house number lists individual
+  addresses. A `PlaceType.STOP` hit's `id` is the stop id routing takes.
+- `PlaceHit(id, type, name, lat, lon, category, admin, distance)` and `PlaceType` (`STOP`, `ADDRESS`, `STREET`,
+  `PLACE` for a municipality, `POI`, and `UNKNOWN` for a type this SDK version doesn't know). `admin` carries the
+  same `AdminLevel` labels as `Stop.admin`.
+- `PlacesConfig`, set through `SpiderClient(...) { places { autoRetry { … } } }`.
+
 ## [1.6.0] - Unreleased
 
 Targets Spider API contract 1.6.
