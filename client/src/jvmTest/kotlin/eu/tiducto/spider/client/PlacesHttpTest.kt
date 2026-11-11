@@ -7,6 +7,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.runBlocking
 
 /** Place search end to end against [FakeGateway]: the query string, limit checks, hit mapping and errors. */
@@ -18,7 +19,7 @@ class PlacesHttpTest {
     @AfterTest
     fun stop() = gateway.close()
 
-    private val empty = mapOf("/places/v1/search" to json("""{"hits":[]}"""))
+    private val empty = mapOf("/places/v1/search" to json("""{"hits":[],"query":"x"}"""))
 
     @Test
     fun `search is one GET with q and limit 10 by default and no location`() = runBlocking<Unit> {
@@ -65,7 +66,8 @@ class PlacesHttpTest {
             "/places/v1/search" to json(
                 """
                 {"hits":[
-                  {"id":"1:U123","type":"stop","name":"Údolní","lat":49.197,"lon":16.6,
+                  {"id":"1:U123","type":"stop","gtfsId":"1:U123","name":"Údolní","code":"UD","wheelchairBoarding":1,
+                   "modes":["TRAM","HOVERCRAFT"],"lat":49.197,"lon":16.6,
                    "suburb":"Veveří","city":"Brno","country":"Česko","distance":120,"score":0.9},
                   {"id":"a:8123","type":"address","name":"Údolní 53","lat":49.198,"lon":16.599,
                    "category":"building","region":"Jihomoravský kraj","district":" ","city":"Brno","distance":45},
@@ -100,6 +102,20 @@ class PlacesHttpTest {
             mapOf(AdminLevel.REGION to "Jihomoravský kraj", AdminLevel.CITY to "Brno"),
             address.admin,
         )
+        assertEquals(
+            Stop(
+                gtfsId = "1:U123",
+                name = "Údolní",
+                lat = 49.197,
+                lon = 16.6,
+                admin = stop.admin,
+                wheelchairBoarding = WheelchairBoarding.POSSIBLE,
+                modes = persistentListOf(TransitMode.TRAM, TransitMode.UNKNOWN),
+                code = "UD",
+            ),
+            stop.stop,
+        )
+        assertEquals(listOf(null, null, null, null, null), hits.drop(1).map { it.stop })
         assertEquals("university", hits[4].category)
         assertEquals(null, hits[4].distance)
         assertEquals(emptyMap(), hits[5].admin)

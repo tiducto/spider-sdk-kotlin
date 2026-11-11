@@ -38,7 +38,7 @@ class StopsRealtimeHttpTest {
             "/stops/v1/search" to json(
                 """
                 {"hits":[
-                  {"gtfsId":"1:U1","name":"Náměstí Svobody","code":"NS","locationType":1,"wheelchairBoarding":1,
+                  {"gtfsId":"1:U1","name":"Náměstí Svobody","code":"NS","wheelchairBoarding":1,
                    "modes":["TRAM","FUNICULAR","HOVERCRAFT"],"lat":49.19,"lon":16.61},
                   {"gtfsId":"1:U2","name":"Náměstí Míru","wheelchairBoarding":0,"lat":49.2,"lon":16.59},
                   {"gtfsId":"1:U3","name":"Náměstí Republiky","wheelchairBoarding":7,"lat":49.21,"lon":16.6}
@@ -60,11 +60,9 @@ class StopsRealtimeHttpTest {
         assertEquals(listOf(TransitMode.TRAM, TransitMode.FUNICULAR, TransitMode.UNKNOWN), full.modes)
         assertEquals(WheelchairBoarding.POSSIBLE, full.wheelchairBoarding)
         assertEquals("NS", full.code)
-        assertEquals(1, full.locationType)
         assertEquals(emptyList(), bare.modes)
         assertEquals(null, bare.wheelchairBoarding)
         assertEquals(null, bare.code)
-        assertEquals(null, bare.locationType)
         assertEquals(WheelchairBoarding.UNKNOWN, odd.wheelchairBoarding)
     }
 

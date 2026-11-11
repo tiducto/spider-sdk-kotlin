@@ -39,7 +39,7 @@ class StopsWireContractTest {
             """
             {
               "hits": [
-                {"gtfsId":"1:U123","name":"Hlavní nádraží","code":"HN","locationType":1,"wheelchairBoarding":2,
+                {"gtfsId":"1:U123","name":"Hlavní nádraží","code":"HN","wheelchairBoarding":2,
                  "modes":["BUS","TRAM"],"lat":49.19,"lon":16.61,
                  "country":"Česko","region":"Jihomoravský kraj","district":"Brno-město",
                  "city":"Brno","suburb":"Trnitá","_geo":{"lat":49.19,"lng":16.61}}
@@ -57,7 +57,6 @@ class StopsWireContractTest {
         assertEquals("Brno", hit.city)
         assertEquals("Trnitá", hit.suburb)
         assertEquals("HN", hit.code)
-        assertEquals(1, hit.locationType)
         assertEquals(2, hit.wheelchairBoarding)
         assertEquals(listOf("BUS", "TRAM"), hit.modes)
     }

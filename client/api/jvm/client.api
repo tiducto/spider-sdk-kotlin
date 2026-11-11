@@ -428,8 +428,8 @@ public final class eu/tiducto/spider/client/OccupancyStatus$Companion {
 }
 
 public final class eu/tiducto/spider/client/PlaceHit {
-	public fun <init> (Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;)V
-	public synthetic fun <init> (Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;Leu/tiducto/spider/client/Stop;)V
+	public synthetic fun <init> (Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;Leu/tiducto/spider/client/Stop;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Leu/tiducto/spider/client/PlaceType;
 	public final fun component3 ()Ljava/lang/String;
@@ -438,8 +438,9 @@ public final class eu/tiducto/spider/client/PlaceHit {
 	public final fun component6 ()Ljava/lang/String;
 	public final fun component7 ()Ljava/util/Map;
 	public final fun component8 ()Ljava/lang/Integer;
-	public final fun copy (Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;)Leu/tiducto/spider/client/PlaceHit;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/PlaceHit;Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;ILjava/lang/Object;)Leu/tiducto/spider/client/PlaceHit;
+	public final fun component9 ()Leu/tiducto/spider/client/Stop;
+	public final fun copy (Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;Leu/tiducto/spider/client/Stop;)Leu/tiducto/spider/client/PlaceHit;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/PlaceHit;Ljava/lang/String;Leu/tiducto/spider/client/PlaceType;Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Ljava/lang/Integer;Leu/tiducto/spider/client/Stop;ILjava/lang/Object;)Leu/tiducto/spider/client/PlaceHit;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAdmin ()Ljava/util/Map;
 	public final fun getCategory ()Ljava/lang/String;
@@ -448,6 +449,7 @@ public final class eu/tiducto/spider/client/PlaceHit {
 	public final fun getLat ()D
 	public final fun getLon ()D
 	public final fun getName ()Ljava/lang/String;
+	public final fun getStop ()Leu/tiducto/spider/client/Stop;
 	public final fun getType ()Leu/tiducto/spider/client/PlaceType;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
@@ -1067,8 +1069,8 @@ public final class eu/tiducto/spider/client/SpiderStops {
 }
 
 public final class eu/tiducto/spider/client/Stop {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/Integer;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()D
@@ -1077,15 +1079,13 @@ public final class eu/tiducto/spider/client/Stop {
 	public final fun component6 ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public final fun component7 ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun component8 ()Ljava/lang/String;
-	public final fun component9 ()Ljava/lang/Integer;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/Integer;)Leu/tiducto/spider/client/Stop;
-	public static synthetic fun copy$default (Leu/tiducto/spider/client/Stop;Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Leu/tiducto/spider/client/Stop;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;)Leu/tiducto/spider/client/Stop;
+	public static synthetic fun copy$default (Leu/tiducto/spider/client/Stop;Ljava/lang/String;Ljava/lang/String;DDLjava/util/Map;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;ILjava/lang/Object;)Leu/tiducto/spider/client/Stop;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAdmin ()Ljava/util/Map;
 	public final fun getCode ()Ljava/lang/String;
 	public final fun getGtfsId ()Ljava/lang/String;
 	public final fun getLat ()D
-	public final fun getLocationType ()Ljava/lang/Integer;
 	public final fun getLon ()D
 	public final fun getModes ()Lkotlinx/collections/immutable/ImmutableList;
 	public final fun getName ()Ljava/lang/String;

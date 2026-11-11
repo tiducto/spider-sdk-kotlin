@@ -83,18 +83,23 @@ internal class StopsClient(
             lat = lat,
             lon = lon,
             admin = adminLabels(country, region, district, city, suburb),
-            wheelchairBoarding = when (wheelchairBoarding) {
-                null, 0 -> null
-                1 -> WheelchairBoarding.POSSIBLE
-                2 -> WheelchairBoarding.NOT_POSSIBLE
-                else -> WheelchairBoarding.UNKNOWN
-            },
-            modes = modes.map { transitModeFromWire(it) ?: TransitMode.UNKNOWN }.toImmutableList(),
+            wheelchairBoarding = wheelchairBoardingFromStopCode(wheelchairBoarding),
+            modes = stopModesFromWire(modes),
             code = code,
-            locationType = locationType,
         )
     }
 }
+
+// Stop and place hits carry a stop's GTFS `wheelchair_boarding` code and mode names alike; both map them here.
+internal fun wheelchairBoardingFromStopCode(code: Int?): WheelchairBoarding? = when (code) {
+    null, 0 -> null
+    1 -> WheelchairBoarding.POSSIBLE
+    2 -> WheelchairBoarding.NOT_POSSIBLE
+    else -> WheelchairBoarding.UNKNOWN
+}
+
+internal fun stopModesFromWire(modes: List<String>): ImmutableList<TransitMode> =
+    modes.map { transitModeFromWire(it) ?: TransitMode.UNKNOWN }.toImmutableList()
 
 private const val MAX_STOP_LIMIT = 50
 
