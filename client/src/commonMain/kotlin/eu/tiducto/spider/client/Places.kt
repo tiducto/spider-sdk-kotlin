@@ -15,10 +15,10 @@ import kotlinx.collections.immutable.ImmutableList
  * client.places.search("Údolní 53", near = LatLon(49.1951, 16.6068), limit = 5)
  * ```
  *
- * Hits come best first: stops, then municipalities, districts and landmarks, then other points of interest
- * and addresses. A query with a digit (a house number) lists individual addresses; without one, it lists stops,
- * municipalities and points of interest, and no addresses. Abbreviated and spelled-out forms find each other, and text typed without
- * diacritics matches text with them.
+ * Hits come best first: stops, then municipalities and landmarks, then other points of interest and addresses.
+ * A query with a digit (a house number) lists individual addresses; without one, it lists stops, municipalities
+ * and points of interest, and no addresses. Abbreviated and spelled-out forms find each other, and text typed
+ * without diacritics matches text with them.
  *
  * A [PlaceType.STOP] hit's [PlaceHit.id] is the stop's feed-prefixed id, the value routing takes as a stop
  * location; every other hit routes by its coordinates.
