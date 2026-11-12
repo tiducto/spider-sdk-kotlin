@@ -39,7 +39,7 @@ class RoutingStreamTest {
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z", "estimated": { "time": "2026-07-15T08:01:00Z", "delay": "PT60S" } },
                       "end":   { "scheduledTime": "2026-07-15T08:30:00Z", "estimated": { "time": "2026-07-15T08:32:00Z", "delay": "PT120S" } },
                       "realtimeState": "UPDATED", "realTime": true, "serviceDate": "2026-07-15",
-                      "typicalArrivalDelay": 90, "interlineWithPreviousLeg": true,
+                      "typicalArrivalDelay": 90, "pickupType": "SCHEDULED", "dropoffType": "COORDINATE_WITH_DRIVER", "interlineWithPreviousLeg": true,
                       "distance": 5400.0, "duration": 1800, "legGeometry": { "points": "" },
                       "from": { "name": "Origin", "stop": { "gtfsId": "1:A", "platformCode": "3", "zoneId": "100",
                                                             "wheelchairBoarding": "NO_INFORMATION" } },
@@ -70,6 +70,8 @@ class RoutingStreamTest {
         assertEquals("2026-07-15", leg.serviceDate)
         assertEquals(90.seconds, leg.typicalArrivalDelay)
         assertEquals(true, leg.interlineWithPreviousLeg)
+        assertEquals(PickupDropoffType.SCHEDULED, leg.pickupType)
+        assertEquals(PickupDropoffType.COORDINATE_WITH_DRIVER, leg.dropoffType)
         assertEquals("1:A", leg.fromGtfsId)
         assertEquals("1:B", leg.toGtfsId)
         assertEquals("1:L12", leg.routeGtfsId)
@@ -136,7 +138,7 @@ class RoutingStreamTest {
                   "legs": [
                     {
                       "mode": "FUNICULAR", "realtimeState": "SOMETHING_NEW", "realTime": false,
-                      "distance": 400.0, "duration": 300, "interlineWithPreviousLeg": false, "legGeometry": { "points": "" },
+                      "distance": 400.0, "duration": 300, "pickupType": "SCHEDULED", "dropoffType": "SCHEDULED", "interlineWithPreviousLeg": false, "legGeometry": { "points": "" },
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z" }, "end": { "scheduledTime": "2026-07-15T08:05:00Z" },
                       "from": { "name": "Újezd" }, "to": { "name": "Petřín" }
                     }
@@ -166,14 +168,14 @@ class RoutingStreamTest {
                   "start": "2026-07-15T08:00:00Z", "end": "2026-07-15T08:10:00Z",
                   "legs": [
                     {
-                      "mode": "TRAM", "typicalArrivalDelay": null, "interlineWithPreviousLeg": false,
+                      "mode": "TRAM", "typicalArrivalDelay": null, "pickupType": "SCHEDULED", "dropoffType": "SCHEDULED", "interlineWithPreviousLeg": false,
                       "realtimeState": "SCHEDULED", "realTime": false, "distance": 900.0, "duration": 300,
                       "legGeometry": { "points": "" },
                       "start": { "scheduledTime": "2026-07-15T08:00:00Z" }, "end": { "scheduledTime": "2026-07-15T08:05:00Z" },
                       "from": { "name": "A" }, "to": { "name": "B" }
                     },
                     {
-                      "mode": "TRAM", "interlineWithPreviousLeg": false,
+                      "mode": "TRAM", "pickupType": "SCHEDULED", "dropoffType": "SCHEDULED", "interlineWithPreviousLeg": false,
                       "realtimeState": "SCHEDULED", "realTime": false, "distance": 900.0, "duration": 300,
                       "legGeometry": { "points": "" },
                       "start": { "scheduledTime": "2026-07-15T08:05:00Z" }, "end": { "scheduledTime": "2026-07-15T08:10:00Z" },

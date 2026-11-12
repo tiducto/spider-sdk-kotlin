@@ -16,6 +16,20 @@ enum class RealtimeState {
     UNKNOWN,
 }
 
+/**
+ * Whether and how a rider boards or alights at a stop, from GTFS `pickup_type` / `drop_off_type`: [SCHEDULED]
+ * regularly, [NONE] not at all, [CALL_AGENCY] only after phoning the agency, [COORDINATE_WITH_DRIVER] only by
+ * arranging it with the driver (a stop on request).
+ */
+@Serializable
+enum class PickupDropoffType {
+    SCHEDULED,
+    NONE,
+    CALL_AGENCY,
+    COORDINATE_WITH_DRIVER,
+    UNKNOWN,
+}
+
 /** Why routing returned no (or fewer) itineraries. */
 enum class RoutingErrorCode {
     /**

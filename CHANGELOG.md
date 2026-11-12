@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.9.0] - Unreleased
+
+Targets Spider API contract 1.9.
+
+### Added
+
+- `PickupDropoffType` (`SCHEDULED`, `NONE`, `CALL_AGENCY`, `COORDINATE_WITH_DRIVER`, and `UNKNOWN` for a value this
+  SDK version doesn't know), from GTFS `pickup_type` / `drop_off_type`. `COORDINATE_WITH_DRIVER` is a stop on
+  request: the rider signals the driver to stop, so an app can mark it "on request"; `CALL_AGENCY` needs a phone
+  call to the agency first.
+- `Leg.pickupType` and `Leg.dropoffType`: how the rider boards at the leg's `from` stop and alights at its `to`
+  stop. `SCHEDULED` on a walk and where the rider stays on board across an interline.
+- `Departure.pickupType` and `Departure.dropoffType`: how a rider boards and alights at the departure's stop.
+  `pickupType` is never `NONE`; the board leaves out departures nobody can board.
+- `TripStop.pickupType` and `TripStop.dropoffType`: how a rider boards and alights at each stop of the trip; null
+  when the stop is canceled (the trip is canceled or realtime skips the stop).
+
 ## [1.8.0] - Unreleased
 
 Targets Spider API contract 1.8.

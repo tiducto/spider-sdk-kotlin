@@ -45,7 +45,7 @@ class RoutingHttpTest {
             "\"start\":\"t1\",\"end\":\"t2\",\"waitingTime\":0," +
             "\"duration\":600,\"legs\":[{\"mode\":\"TRAM\",\"start\":{\"scheduledTime\":\"t1\"}," +
             "\"end\":{\"scheduledTime\":\"t2\"},\"realtimeState\":\"SCHEDULED\",\"realTime\":false," +
-            "\"distance\":1000.0,\"duration\":600,\"interlineWithPreviousLeg\":false,\"legGeometry\":{\"points\":\"\"}," +
+            "\"distance\":1000.0,\"duration\":600,\"pickupType\":\"SCHEDULED\",\"dropoffType\":\"SCHEDULED\",\"interlineWithPreviousLeg\":false,\"legGeometry\":{\"points\":\"\"}," +
             "\"from\":{\"name\":\"A\"},\"to\":{\"name\":\"B\"}}]}]}\n\n"
 
     private val emptyPlan = json(
@@ -82,7 +82,7 @@ class RoutingHttpTest {
                   {"mode":"TRAM","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
                    "from":{"name":"A","stopPosition":2},"to":{"name":"B","stopPosition":5},
                    "realtimeState":"SCHEDULED","realTime":false,"distance":1000.0,"duration":600,
-                   "interlineWithPreviousLeg":false,"legGeometry":{"points":""}}
+                   "pickupType":"COORDINATE_WITH_DRIVER","dropoffType":"NONE","interlineWithPreviousLeg":false,"legGeometry":{"points":""}}
                 ]}],
                 "pageInfo":{"hasNextPage":true,"hasPreviousPage":false,"startCursor":"c-prev","endCursor":"c-next","searchWindowUsed":"PT1H"},
                 "routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}
@@ -99,6 +99,10 @@ class RoutingHttpTest {
         assertEquals("NoCursor", edge.cursor)
         assertEquals(TransitMode.TRAM, edge.itinerary.legs.single().mode)
         assertEquals(2 to 5, edge.itinerary.legs.single().let { it.fromStopPosition to it.toStopPosition })
+        assertEquals(
+            PickupDropoffType.COORDINATE_WITH_DRIVER to PickupDropoffType.NONE,
+            edge.itinerary.legs.single().let { it.pickupType to it.dropoffType },
+        )
         assertEquals(null, edge.itinerary.accessibilityScore)
         assertEquals("c-next", route.pageInfo.endCursor)
         assertEquals("2026-10-07T08:00:00+02:00", route.searchDateTime)
@@ -509,11 +513,13 @@ class RoutingHttpTest {
                 {"stop":{"gtfsId":"1:S","name":"Zvonařka","wheelchairBoarding":null,"stoptimesWithoutPatterns":[
                   {"serviceDay":$serviceDay,"serviceDate":"2026-09-28","scheduledDeparture":81000,"realtimeDeparture":81060,"realtime":true,
                    "realtimeState":"UPDATED","headsign":"Zvonařka","typicalDelay":120,"stopPosition":7,
+                   "pickupType":"SCHEDULED","dropoffType":"COORDINATE_WITH_DRIVER",
                    "stop":{"gtfsId":"1:S1","platformCode":"B"},
                    "trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE","bikesAllowed":"ALLOWED",
                      "route":{"gtfsId":"1:L44","shortName":"44","mode":"BUS","color":"FF0000","textColor":"FFFFFF"}}},
                   {"serviceDay":$serviceDay,"serviceDate":"2026-09-28","scheduledDeparture":88800,"realtimeDeparture":88800,"realtime":false,
                    "realtimeState":"CANCELED","headsign":"Líšeň","stop":{"gtfsId":"1:S2"},
+                   "pickupType":"CALL_AGENCY","dropoffType":"SOMETHING_NEW",
                    "trip":{"gtfsId":"1:N89","wheelchairAccessible":"NO_INFORMATION","bikesAllowed":"NO_INFORMATION",
                      "route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS"}}}
                 ]}}
@@ -542,6 +548,8 @@ class RoutingHttpTest {
         assertEquals(null, bare.typicalDelay)
         assertEquals(7, full.stopPosition)
         assertEquals(null, bare.stopPosition)
+        assertEquals(PickupDropoffType.SCHEDULED to PickupDropoffType.COORDINATE_WITH_DRIVER, full.pickupType to full.dropoffType)
+        assertEquals(PickupDropoffType.CALL_AGENCY to PickupDropoffType.UNKNOWN, bare.pickupType to bare.dropoffType)
         assertEquals(
             Json.parseToJsonElement("""{"id":"1:S","numberOfDepartures":30,"timeRange":86400}"""),
             gateway.body(),
@@ -577,10 +585,11 @@ class RoutingHttpTest {
                   "route":{"gtfsId":"1:LN89","shortName":"N89","mode":"BUS","color":"00AA00","textColor":"000000"},"stoptimesForDate":[
                   {"serviceDay":1790546400,"scheduledArrival":88800,"scheduledDeparture":88800,"realtimeArrival":88800,
                    "realtimeDeparture":88800,"realtime":false,"realtimeState":"SCHEDULED","typicalDelay":45,
-                   "stopPosition":3,"geometryIndex":2,
+                   "stopPosition":3,"geometryIndex":2,"pickupType":"COORDINATE_WITH_DRIVER","dropoffType":"SCHEDULED",
                    "stop":{"gtfsId":"1:U1","name":"Líšeň","lat":49.21,"lon":16.68,"wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101"}},
                   {"serviceDay":1790546400,"scheduledArrival":89400,"scheduledDeparture":89400,"realtimeArrival":89400,
                    "realtimeDeparture":89400,"realtime":false,"realtimeState":"SCHEDULED","stopPosition":5,
+                   "pickupType":null,"dropoffType":null,
                    "stop":{"gtfsId":"1:U2","name":"Jírova","lat":49.22,"lon":16.69,"wheelchairBoarding":"NO_INFORMATION"}}
                 ],"tripGeometry":{"points":"_izlhA~rlgdF_{geC~ywl@_kwzCn`{nI","length":3}}}
                 """.trimIndent(),
@@ -607,6 +616,8 @@ class RoutingHttpTest {
         assertEquals(3 to 5, first.stopPosition to second.stopPosition)
         assertEquals(LatLon(43.252, -126.453), trip.geometry[first.geometryIndex!!])
         assertEquals(null, second.geometryIndex)
+        assertEquals(PickupDropoffType.COORDINATE_WITH_DRIVER to PickupDropoffType.SCHEDULED, first.pickupType to first.dropoffType)
+        assertEquals(null to null, second.pickupType to second.dropoffType)
     }
 
     @Test
