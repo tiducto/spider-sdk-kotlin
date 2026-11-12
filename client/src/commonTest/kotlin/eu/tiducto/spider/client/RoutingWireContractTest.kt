@@ -4,6 +4,7 @@ import eu.tiducto.spider.contract.routing.BikesAllowed
 import eu.tiducto.spider.contract.routing.DeparturesRequest
 import eu.tiducto.spider.contract.routing.DeparturesResponse
 import eu.tiducto.spider.contract.routing.Mode
+import eu.tiducto.spider.contract.routing.PickupDropoffType
 import eu.tiducto.spider.contract.routing.PlanTripRequest
 import eu.tiducto.spider.contract.routing.PlanTripResponse
 import eu.tiducto.spider.contract.routing.Reliability as WireReliability
@@ -189,7 +190,7 @@ class RoutingWireContractTest {
                   "mode":"BUS",
                   "start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
                   "realtimeState":"SCHEDULED","realTime":false,"distance":1200.5,"duration":600,
-                  "interlineWithPreviousLeg":false,"legGeometry":{"points":""},
+                  "pickupType":"CALL_AGENCY","dropoffType":"SCHEDULED","interlineWithPreviousLeg":false,"legGeometry":{"points":""},
                   "from":{"name":"A","stop":{"gtfsId":"1:U1","wheelchairBoarding":"POSSIBLE"}},
                   "to":{"name":"B"},
                   "route":{"gtfsId":"1:L12","shortName":"12","longName":"Line 12"},
@@ -208,6 +209,8 @@ class RoutingWireContractTest {
         assertEquals("1:U1", leg.from.stop!!.gtfsId)
         assertEquals(WheelchairBoarding.POSSIBLE, leg.from.stop.wheelchairBoarding)
         assertEquals(BikesAllowed.ALLOWED, leg.trip!!.bikesAllowed)
+        assertEquals(PickupDropoffType.CALL_AGENCY, leg.pickupType)
+        assertEquals(PickupDropoffType.SCHEDULED, leg.dropoffType)
         assertEquals("b", plan.pageInfo.endCursor)
         assertEquals("2026-10-07T08:00:00+02:00", plan.searchDateTime)
     }
@@ -223,7 +226,7 @@ class RoutingWireContractTest {
                   "mode":"HELICOPTER",
                   "start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
                   "realtimeState":"SCHEDULED","realTime":false,"distance":10.0,"duration":1,
-                  "interlineWithPreviousLeg":false,"legGeometry":{"points":""},
+                  "pickupType":"SCHEDULED","dropoffType":"SOMETHING_NEW","interlineWithPreviousLeg":false,"legGeometry":{"points":""},
                   "from":{"name":"A"},"to":{"name":"B"}
                 }]
               }],
@@ -234,7 +237,9 @@ class RoutingWireContractTest {
             """.trimIndent()
 
         val plan = json.decodeFromString(PlanTripResponse.serializer(), body)
-        assertEquals(Mode.UNKNOWN, plan.itineraries.single().legs.single().mode)
+        val leg = plan.itineraries.single().legs.single()
+        assertEquals(Mode.UNKNOWN, leg.mode)
+        assertEquals(PickupDropoffType.UNKNOWN, leg.dropoffType)
     }
 
     @Test

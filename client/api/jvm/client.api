@@ -55,8 +55,8 @@ public final class eu/tiducto/spider/client/BikesAllowed$Companion {
 }
 
 public final class eu/tiducto/spider/client/Departure {
-	public synthetic fun <init> (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Lkotlin/time/Instant;
 	public final fun component10 ()Leu/tiducto/spider/client/TransitMode;
 	public final fun component11 ()Ljava/lang/String;
@@ -67,7 +67,9 @@ public final class eu/tiducto/spider/client/Departure {
 	public final fun component16 ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public final fun component17-FghU774 ()Lkotlin/time/Duration;
 	public final fun component18 ()Ljava/lang/Integer;
+	public final fun component19 ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun component2 ()Lkotlin/time/Instant;
+	public final fun component20 ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun component3 ()Z
 	public final fun component4 ()Leu/tiducto/spider/client/RealtimeState;
 	public final fun component5 ()Ljava/lang/String;
@@ -75,11 +77,13 @@ public final class eu/tiducto/spider/client/Departure {
 	public final fun component7 ()Ljava/lang/String;
 	public final fun component8 ()Ljava/lang/String;
 	public final fun component9 ()Ljava/lang/String;
-	public final fun copy-mWTtwlk (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;)Leu/tiducto/spider/client/Departure;
-	public static synthetic fun copy-mWTtwlk$default (Leu/tiducto/spider/client/Departure;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;ILjava/lang/Object;)Leu/tiducto/spider/client/Departure;
+	public final fun copy-aypFAHY (Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;)Leu/tiducto/spider/client/Departure;
+	public static synthetic fun copy-aypFAHY$default (Leu/tiducto/spider/client/Departure;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlin/time/Duration;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;ILjava/lang/Object;)Leu/tiducto/spider/client/Departure;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDropoffType ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun getHeadsign ()Ljava/lang/String;
 	public final fun getMode ()Leu/tiducto/spider/client/TransitMode;
+	public final fun getPickupType ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun getPlatformCode ()Ljava/lang/String;
 	public final fun getRealtimeState ()Leu/tiducto/spider/client/RealtimeState;
 	public final fun getRealtimeTime ()Lkotlin/time/Instant;
@@ -230,8 +234,8 @@ public final class eu/tiducto/spider/client/LatLon$Companion {
 
 public final class eu/tiducto/spider/client/Leg {
 	public static final field Companion Leu/tiducto/spider/client/Leg$Companion;
-	public synthetic fun <init> (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Leu/tiducto/spider/client/TransitMode;
 	public final fun component10 ()Ljava/lang/String;
 	public final fun component11 ()Ljava/lang/String;
@@ -262,18 +266,21 @@ public final class eu/tiducto/spider/client/Leg {
 	public final fun component34 ()Z
 	public final fun component35 ()Ljava/lang/Integer;
 	public final fun component36 ()Ljava/lang/Integer;
+	public final fun component37 ()Leu/tiducto/spider/client/PickupDropoffType;
+	public final fun component38 ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Ljava/lang/String;
 	public final fun component6-FghU774 ()Lkotlin/time/Duration;
 	public final fun component7-FghU774 ()Lkotlin/time/Duration;
 	public final fun component8 ()Z
 	public final fun component9 ()Leu/tiducto/spider/client/RealtimeState;
-	public final fun copy-jPKmnEQ (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;)Leu/tiducto/spider/client/Leg;
-	public static synthetic fun copy-jPKmnEQ$default (Leu/tiducto/spider/client/Leg;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;IILjava/lang/Object;)Leu/tiducto/spider/client/Leg;
+	public final fun copy-TESzPkM (Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;)Leu/tiducto/spider/client/Leg;
+	public static synthetic fun copy-TESzPkM$default (Leu/tiducto/spider/client/Leg;Leu/tiducto/spider/client/TransitMode;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Lkotlin/time/Duration;ZLeu/tiducto/spider/client/RealtimeState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;DJLjava/lang/String;Leu/tiducto/spider/client/BikesAllowed;Ljava/lang/Double;Leu/tiducto/spider/client/WheelchairBoarding;Leu/tiducto/spider/client/WheelchairBoarding;Lkotlinx/collections/immutable/ImmutableList;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;ZLjava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;IILjava/lang/Object;)Leu/tiducto/spider/client/Leg;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAccessibilityScore ()Ljava/lang/Double;
 	public final fun getBikesAllowed ()Leu/tiducto/spider/client/BikesAllowed;
 	public final fun getDistanceMeters ()D
+	public final fun getDropoffType ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun getDurationSeconds ()J
 	public final fun getEndDelay-FghU774 ()Lkotlin/time/Duration;
 	public final fun getEndEstimated ()Ljava/lang/String;
@@ -288,6 +295,7 @@ public final class eu/tiducto/spider/client/Leg {
 	public final fun getHeadsign ()Ljava/lang/String;
 	public final fun getInterlineWithPreviousLeg ()Z
 	public final fun getMode ()Leu/tiducto/spider/client/TransitMode;
+	public final fun getPickupType ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun getRealtimeState ()Leu/tiducto/spider/client/RealtimeState;
 	public final fun getRouteColor ()Ljava/lang/String;
 	public final fun getRouteGtfsId ()Ljava/lang/String;
@@ -425,6 +433,22 @@ public final class eu/tiducto/spider/client/OccupancyStatus : java/lang/Enum {
 
 public final class eu/tiducto/spider/client/OccupancyStatus$Companion {
 	public final fun fromWire (Ljava/lang/String;)Leu/tiducto/spider/client/OccupancyStatus;
+}
+
+public final class eu/tiducto/spider/client/PickupDropoffType : java/lang/Enum {
+	public static final field CALL_AGENCY Leu/tiducto/spider/client/PickupDropoffType;
+	public static final field COORDINATE_WITH_DRIVER Leu/tiducto/spider/client/PickupDropoffType;
+	public static final field Companion Leu/tiducto/spider/client/PickupDropoffType$Companion;
+	public static final field NONE Leu/tiducto/spider/client/PickupDropoffType;
+	public static final field SCHEDULED Leu/tiducto/spider/client/PickupDropoffType;
+	public static final field UNKNOWN Leu/tiducto/spider/client/PickupDropoffType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Leu/tiducto/spider/client/PickupDropoffType;
+	public static fun values ()[Leu/tiducto/spider/client/PickupDropoffType;
+}
+
+public final class eu/tiducto/spider/client/PickupDropoffType$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class eu/tiducto/spider/client/PlaceHit {
@@ -1252,8 +1276,8 @@ public final class eu/tiducto/spider/client/TripDetails {
 }
 
 public final class eu/tiducto/spider/client/TripStop {
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component10 ()Leu/tiducto/spider/client/WheelchairBoarding;
 	public final fun component11 ()Ljava/lang/String;
@@ -1261,6 +1285,8 @@ public final class eu/tiducto/spider/client/TripStop {
 	public final fun component13-FghU774 ()Lkotlin/time/Duration;
 	public final fun component14 ()Ljava/lang/Integer;
 	public final fun component15 ()Ljava/lang/Integer;
+	public final fun component16 ()Leu/tiducto/spider/client/PickupDropoffType;
+	public final fun component17 ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()D
 	public final fun component4 ()D
@@ -1269,14 +1295,16 @@ public final class eu/tiducto/spider/client/TripStop {
 	public final fun component7 ()Lkotlin/time/Instant;
 	public final fun component8 ()Lkotlin/time/Instant;
 	public final fun component9 ()Z
-	public final fun copy-mtYL870 (Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;)Leu/tiducto/spider/client/TripStop;
-	public static synthetic fun copy-mtYL870$default (Leu/tiducto/spider/client/TripStop;Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Leu/tiducto/spider/client/TripStop;
+	public final fun copy-yo0mbIo (Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;)Leu/tiducto/spider/client/TripStop;
+	public static synthetic fun copy-yo0mbIo$default (Leu/tiducto/spider/client/TripStop;Ljava/lang/String;Ljava/lang/String;DDLkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;Lkotlin/time/Instant;ZLeu/tiducto/spider/client/WheelchairBoarding;Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Integer;Ljava/lang/Integer;Leu/tiducto/spider/client/PickupDropoffType;Leu/tiducto/spider/client/PickupDropoffType;ILjava/lang/Object;)Leu/tiducto/spider/client/TripStop;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDropoffType ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun getGeometryIndex ()Ljava/lang/Integer;
 	public final fun getGtfsId ()Ljava/lang/String;
 	public final fun getLat ()D
 	public final fun getLon ()D
 	public final fun getName ()Ljava/lang/String;
+	public final fun getPickupType ()Leu/tiducto/spider/client/PickupDropoffType;
 	public final fun getPlatformCode ()Ljava/lang/String;
 	public final fun getRealtimeArrival ()Lkotlin/time/Instant;
 	public final fun getRealtimeDeparture ()Lkotlin/time/Instant;

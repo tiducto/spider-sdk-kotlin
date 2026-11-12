@@ -361,6 +361,10 @@ data class Itinerary(
  * [fromStopPosition] and [toStopPosition] are the boarding and alighting stops' positions in the leg's trip: the
  * [TripStop] of [SpiderRouting.trip] for [tripGtfsId] and [serviceDate] with the same [TripStop.stopPosition] is
  * that stop. Null on a walk.
+ *
+ * [pickupType] is how the rider boards at the `from` stop and [dropoffType] how they alight at the `to` stop;
+ * [PickupDropoffType.COORDINATE_WITH_DRIVER] is a stop on request. [PickupDropoffType.SCHEDULED] on a walk and
+ * where the rider stays on board across an interline.
  */
 @Serializable
 data class Leg(
@@ -402,6 +406,8 @@ data class Leg(
     val interlineWithPreviousLeg: Boolean = false,
     val fromStopPosition: Int? = null,
     val toStopPosition: Int? = null,
+    val pickupType: PickupDropoffType = PickupDropoffType.SCHEDULED,
+    val dropoffType: PickupDropoffType = PickupDropoffType.SCHEDULED,
 )
 
 @Serializable
@@ -441,6 +447,10 @@ data class RoutingError(
  * [typicalDelay] is this trip's delay at this stop at the requested [Reliability], from the environment's realtime
  * history; null when no reliability is passed, the trip has live realtime, or there is no history. [stopPosition]
  * is the departure's position in its trip, as the trip's [TripStop.stopPosition].
+ *
+ * [pickupType] is how a rider boards here, never [PickupDropoffType.NONE]: the board leaves out departures nobody
+ * can board. [dropoffType] is how a rider alights here. [PickupDropoffType.COORDINATE_WITH_DRIVER] is a stop on
+ * request.
  */
 data class Departure(
     val scheduledTime: Instant,
@@ -461,6 +471,8 @@ data class Departure(
     val wheelchairAccessible: WheelchairBoarding? = null,
     val typicalDelay: Duration? = null,
     val stopPosition: Int? = null,
+    val pickupType: PickupDropoffType = PickupDropoffType.SCHEDULED,
+    val dropoffType: PickupDropoffType = PickupDropoffType.SCHEDULED,
 )
 
 /**
@@ -505,6 +517,9 @@ data class EstimatedDelays(
  *
  * [geometryIndex] is the index into [TripDetails.geometry] of where the stop sits on the trip's line; null when
  * the trip has no geometry or the stop has no point on it.
+ *
+ * [pickupType] and [dropoffType] are how a rider boards and alights here; [PickupDropoffType.COORDINATE_WITH_DRIVER]
+ * is a stop on request. Null when the stop is canceled: the trip is canceled or realtime skips the stop.
  */
 data class TripStop(
     val gtfsId: String,
@@ -522,4 +537,6 @@ data class TripStop(
     val typicalDelay: Duration? = null,
     val stopPosition: Int? = null,
     val geometryIndex: Int? = null,
+    val pickupType: PickupDropoffType? = null,
+    val dropoffType: PickupDropoffType? = null,
 )

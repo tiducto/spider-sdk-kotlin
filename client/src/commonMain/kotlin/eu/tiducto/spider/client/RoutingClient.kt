@@ -7,6 +7,7 @@ import eu.tiducto.spider.contract.routing.DeparturesResponse
 import eu.tiducto.spider.contract.routing.EstimatedDelaysResponse
 import eu.tiducto.spider.contract.routing.Itinerary as WireItinerary
 import eu.tiducto.spider.contract.routing.Leg as WireLeg
+import eu.tiducto.spider.contract.routing.PickupDropoffType as WirePickupDropoffType
 import eu.tiducto.spider.contract.routing.PlanCoordinateInput
 import eu.tiducto.spider.contract.routing.PlanDateTimeInput
 import eu.tiducto.spider.contract.routing.PlanLabeledLocationInput
@@ -195,6 +196,8 @@ internal class RoutingClient(
                 wheelchairAccessible = wheelchairFromWire(st.trip.wheelchairAccessible.value),
                 typicalDelay = st.typicalDelay?.seconds,
                 stopPosition = st.stopPosition,
+                pickupType = pickupDropoffFromWire(st.pickupType),
+                dropoffType = pickupDropoffFromWire(st.dropoffType),
             )
         }.toImmutableList()
     }
@@ -225,6 +228,8 @@ internal class RoutingClient(
                 typicalDelay = st.typicalDelay?.seconds,
                 stopPosition = st.stopPosition,
                 geometryIndex = st.geometryIndex,
+                pickupType = st.pickupType?.let(::pickupDropoffFromWire),
+                dropoffType = st.dropoffType?.let(::pickupDropoffFromWire),
             )
         }
 
@@ -346,6 +351,9 @@ private fun modeFromWire(raw: String): TransitMode = transitModeFromWire(raw) ?:
 private fun realtimeStateFromWire(raw: String): RealtimeState =
     RealtimeState.entries.firstOrNull { it.name == raw } ?: RealtimeState.UNKNOWN
 
+private fun pickupDropoffFromWire(raw: WirePickupDropoffType): PickupDropoffType =
+    PickupDropoffType.entries.firstOrNull { it.name == raw.value } ?: PickupDropoffType.UNKNOWN
+
 private fun WireRoutingError.toDomainRoutingError(): RoutingError = RoutingError(
     code = RoutingErrorCode.entries.firstOrNull { it.name == code.value } ?: RoutingErrorCode.UNKNOWN,
     description = description,
@@ -417,6 +425,8 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     interlineWithPreviousLeg = interlineWithPreviousLeg,
     fromStopPosition = from.stopPosition,
     toStopPosition = to.stopPosition,
+    pickupType = pickupDropoffFromWire(pickupType),
+    dropoffType = pickupDropoffFromWire(dropoffType),
 )
 
 private const val SSE_DEFAULT_EVENT = "message"
