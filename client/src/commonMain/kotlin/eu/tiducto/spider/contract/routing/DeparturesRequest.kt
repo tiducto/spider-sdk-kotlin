@@ -16,5 +16,7 @@ internal data class DeparturesRequest(
     /** Unix seconds the board starts at, from 0 to 4102444799 (2099-12-31T23:59:59Z). Absent or 0 means now. */
     val startTime: Long? = null,
     /** The level `typicalDelay` is given at; the times do not depend on it. Omitted or null, `typicalDelay` is null. A value outside `Reliability` is a 400 `reliability is invalid`. */
-    val reliability: Reliability? = null
+    val reliability: Reliability? = null,
+    /** Modes the board leaves out: a departure whose route's `mode` is listed gives no row. They are left out before `numberOfDepartures` counts, so the board holds up to `numberOfDepartures` rows of the other modes within `timeRange`. Absent or empty leaves out nothing. A value outside `TransitMode` is a 400 `excludeModes is invalid`. */
+    val excludeModes: List<TransitMode>? = null
 )
