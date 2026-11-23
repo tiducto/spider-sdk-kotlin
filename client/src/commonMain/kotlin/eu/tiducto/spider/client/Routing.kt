@@ -18,6 +18,13 @@ class SpiderRouting(
     private val log = logging.buildLog()
     private val routing = RoutingClient(baseUrl, apiKey, retry, log)
 
+    /**
+     * One page of itineraries. [allowedTransitModes] restricts routing to those modes, and [excludedTransitModes]
+     * keeps it off those modes while every other mode, including one the API adds later, stays usable. Use one of
+     * them: both non-empty returns [SpiderError.BadRequest] for `modes.transit` without a request. Null or empty
+     * means no filter, and [TransitMode.WALK] and [TransitMode.UNKNOWN] are ignored in either. [planNext] and
+     * [planPrevious] resend the same filters.
+     */
     suspend fun plan(
         origin: Location,
         destination: Location,
@@ -28,10 +35,11 @@ class SpiderRouting(
         searchWindow: Duration = 1.hours,
         wheelchairAccessible: Boolean = false,
         reliability: Reliability? = null,
+        excludedTransitModes: Set<TransitMode>? = null,
     ): SpiderResult<Route> = page(
         PlanRequest(
             origin, destination, time, via,
-            allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible, reliability,
+            allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible, reliability, excludedTransitModes,
         ),
     )
 
@@ -77,7 +85,8 @@ class SpiderRouting(
      * count. [maxWindow] is how far the sweep may search, in either direction: at least 2 hours, up to the
      * environment's search-window limit. Both are required. A [maxWindow] under 2 hours ends the stream in a
      * [PlanStreamEvent.Failure] with [SpiderError.BadRequest] before any request; the API rejects values over
-     * the environment's limits the same way. [reliability] plans arrivals with typical delays, as in [plan].
+     * the environment's limits the same way. [reliability] plans arrivals with typical delays, and
+     * [allowedTransitModes] / [excludedTransitModes] filter modes, as in [plan]; a continuation must repeat them.
      *
      * To continue, call [planStreamNext] with `after` = [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor]
      * (or [planStreamPrevious] with `before` = [RoutePageInfo.startCursor] to walk earlier). For a single
@@ -94,9 +103,10 @@ class SpiderRouting(
         targetResults: Int,
         maxWindow: Duration,
         reliability: Reliability? = null,
+        excludedTransitModes: Set<TransitMode>? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, before = null, after = null,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, before = null, after = null,
     )
 
     /**
@@ -116,9 +126,10 @@ class SpiderRouting(
         maxWindow: Duration,
         after: String,
         reliability: Reliability? = null,
+        excludedTransitModes: Set<TransitMode>? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, before = null, after = after,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, before = null, after = after,
     )
 
     /**
@@ -138,9 +149,10 @@ class SpiderRouting(
         maxWindow: Duration,
         before: String,
         reliability: Reliability? = null,
+        excludedTransitModes: Set<TransitMode>? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, before = before, after = null,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, before = before, after = null,
     )
 
     private fun stream(
@@ -154,6 +166,7 @@ class SpiderRouting(
         targetResults: Int,
         maxWindow: Duration,
         reliability: Reliability?,
+        excludedTransitModes: Set<TransitMode>?,
         before: String?,
         after: String?,
     ): Flow<PlanStreamEvent> = routing.planConnectionStream(
@@ -166,6 +179,7 @@ class SpiderRouting(
             maxTransfers = maxTransfers,
             wheelchairAccessible = wheelchairAccessible,
             reliability = reliability,
+            excludedTransitModes = excludedTransitModes,
         ),
         targetResults = targetResults,
         maxWindow = maxWindow,
@@ -178,6 +192,11 @@ class SpiderRouting(
      * environment. [timeRange] (default 24 hours) is how far ahead of [startTime] (null = now) to look: above
      * zero and at most 24 hours, else [SpiderError.BadRequest] without a request. [reliability] is the level
      * [Departure.typicalDelay] is given at; null leaves it null. The times don't depend on it.
+     *
+     * [excludedModes] leaves out every departure whose [Departure.mode] is in it. The API drops them before it
+     * counts [numberOfDepartures], so the board still holds up to [numberOfDepartures] departures of the other
+     * modes, and so does each later board paged by [startTime]. Null or empty leaves out nothing; [TransitMode.WALK]
+     * and [TransitMode.UNKNOWN] aren't transit modes and are ignored.
      */
     suspend fun departures(
         id: String,
@@ -185,9 +204,10 @@ class SpiderRouting(
         startTime: Instant? = null,
         timeRange: Duration = 24.hours,
         reliability: Reliability? = null,
+        excludedModes: Set<TransitMode>? = null,
     ): SpiderResult<ImmutableList<Departure>> = context(log) {
         spiderCall(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
-            routing.stopDepartures(id, numberOfDepartures, startTime, timeRange, reliability)
+            routing.stopDepartures(id, numberOfDepartures, startTime, timeRange, reliability, excludedModes)
         }
     }
 
@@ -290,6 +310,10 @@ data class PlanRequest(
     val wheelchairAccessible: Boolean = false,
     // null plans on the timetable alone.
     val reliability: Reliability? = null,
+    // The modes routing must not ride; every other mode stays usable, including one the API adds later. null and
+    // empty both mean "no filter"; WALK/UNKNOWN drop out. An alternative to allowedTransitModes: both non-empty is
+    // BadRequest for modes.transit without a request.
+    val excludedTransitModes: Set<TransitMode>? = null,
 )
 
 /**

@@ -153,6 +153,74 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `excluded transit modes ride every plan call and every continuation`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/plan" to json(
+                """{"itineraries":[],"pageInfo":{"hasNextPage":true,"hasPreviousPage":true,"startCursor":"c-prev","endCursor":"c-next"},"routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
+            ),
+            "/routing/v1/plan-stream" to emptyDone,
+        )
+        val excluded = setOf(TransitMode.TRAM, TransitMode.UNKNOWN)
+        val (a, b) = Location.Stop("1:A") to Location.Stop("1:B")
+
+        val first = assertIs<SpiderResult.Success<Route>>(routing.plan(a, b, excludedTransitModes = excluded)).data
+        routing.planNext(first)
+        routing.planPrevious(first)
+        routing.planStream(a, b, targetResults = 5, maxWindow = 2.hours, excludedTransitModes = excluded).toList()
+        routing.planStreamNext(a, b, targetResults = 5, maxWindow = 2.hours, after = "c-next", excludedTransitModes = excluded).toList()
+        routing.planStreamPrevious(a, b, targetResults = 5, maxWindow = 2.hours, before = "c-prev", excludedTransitModes = excluded).toList()
+        routing.plan(a, b, excludedTransitModes = emptySet())
+
+        val modes = Json.parseToJsonElement("""{"transit":{"exclude":["TRAM"]}}""")
+        assertEquals(List(6) { modes } + listOf(null), bodies().map { it["modes"] })
+    }
+
+    @Test
+    fun `an allow-list with an exclusion is a BadRequest without a request on plan and planStream`() = runBlocking<Unit> {
+        val allowed = setOf(TransitMode.BUS)
+        val excluded = setOf(TransitMode.TRAM)
+        val (a, b) = Location.Stop("1:A") to Location.Stop("1:B")
+
+        val planError = assertIs<SpiderResult.Error>(
+            routing.plan(a, b, allowedTransitModes = allowed, excludedTransitModes = excluded),
+        ).error
+        val streamError = assertIs<PlanStreamEvent.Failure>(
+            routing.planStream(
+                a, b, allowedTransitModes = allowed, targetResults = 5, maxWindow = 2.hours, excludedTransitModes = excluded,
+            ).toList().single(),
+        ).error
+
+        for (error in listOf(planError, streamError)) {
+            assertBadRequest("modes.transit", error, state = "invalid")
+            assertEquals(null, error.httpStatus)
+        }
+        assertEquals(emptyList(), gateway.seen.toList())
+    }
+
+    @Test
+    fun `departures send excludeModes only when a transit mode is excluded`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/departures" to json("""{"stop":{"gtfsId":"1:S","name":"S","stoptimesWithoutPatterns":[]}}"""),
+        )
+
+        routing.departures("1:S", excludedModes = setOf(TransitMode.TRAM, TransitMode.WALK, TransitMode.TROLLEYBUS))
+        routing.departures("1:S", excludedModes = emptySet())
+        routing.departures("1:S", excludedModes = setOf(TransitMode.UNKNOWN))
+        routing.departures("1:S")
+
+        val plain = """{"id":"1:S","numberOfDepartures":30,"timeRange":86400}"""
+        assertEquals(
+            listOf(
+                """{"id":"1:S","numberOfDepartures":30,"timeRange":86400,"excludeModes":["TRAM","TROLLEYBUS"]}""",
+                plain,
+                plain,
+                plain,
+            ).map(Json::parseToJsonElement),
+            bodies(),
+        )
+    }
+
+    @Test
     fun `a routing HTTP 400 is a BadRequest carrying the body field`() = runBlocking<Unit> {
         val field = "preferences.transit.transfer.maximumTransfers"
         val invalid = Reply(400, "application/json", """{"code":"bad_request","message":"$field is out of range","field":"$field"}""")

@@ -495,9 +495,10 @@ public final class eu/tiducto/spider/client/PlacesConfig : eu/tiducto/spider/cli
 }
 
 public final class eu/tiducto/spider/client/PlanRequest {
-	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Ljava/util/Set;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Leu/tiducto/spider/client/Location;
+	public final fun component10 ()Ljava/util/Set;
 	public final fun component2 ()Leu/tiducto/spider/client/Location;
 	public final fun component3 ()Leu/tiducto/spider/client/RouteTime;
 	public final fun component4 ()Ljava/util/List;
@@ -506,11 +507,12 @@ public final class eu/tiducto/spider/client/PlanRequest {
 	public final fun component7-UwyO8pc ()J
 	public final fun component8 ()Z
 	public final fun component9 ()Leu/tiducto/spider/client/Reliability;
-	public final fun copy-zIkEtRU (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;)Leu/tiducto/spider/client/PlanRequest;
-	public static synthetic fun copy-zIkEtRU$default (Leu/tiducto/spider/client/PlanRequest;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;ILjava/lang/Object;)Leu/tiducto/spider/client/PlanRequest;
+	public final fun copy-mLShkvk (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Ljava/util/Set;)Leu/tiducto/spider/client/PlanRequest;
+	public static synthetic fun copy-mLShkvk$default (Leu/tiducto/spider/client/PlanRequest;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Ljava/util/Set;ILjava/lang/Object;)Leu/tiducto/spider/client/PlanRequest;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getAllowedTransitModes ()Ljava/util/Set;
 	public final fun getDestination ()Leu/tiducto/spider/client/Location;
+	public final fun getExcludedTransitModes ()Ljava/util/Set;
 	public final fun getMaxTransfers ()Ljava/lang/Integer;
 	public final fun getOrigin ()Leu/tiducto/spider/client/Location;
 	public final fun getReliability ()Leu/tiducto/spider/client/Reliability;
@@ -1064,19 +1066,19 @@ public final class eu/tiducto/spider/client/SpiderResult$Success : eu/tiducto/sp
 public final class eu/tiducto/spider/client/SpiderRouting {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/RetryConfig;Leu/tiducto/spider/client/LoggingConfig;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun departures-gwCluXo (Ljava/lang/String;ILkotlin/time/Instant;JLeu/tiducto/spider/client/Reliability;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun departures-gwCluXo$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLeu/tiducto/spider/client/Reliability;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun departures-45ZY6uE (Ljava/lang/String;ILkotlin/time/Instant;JLeu/tiducto/spider/client/Reliability;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun departures-45ZY6uE$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;ILkotlin/time/Instant;JLeu/tiducto/spider/client/Reliability;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun estimatedDelays (Ljava/lang/String;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun plan-mLShkvk (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static synthetic fun plan-mLShkvk$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun plan-k8zXyTc (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Ljava/util/Set;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun plan-k8zXyTc$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;JZLeu/tiducto/spider/client/Reliability;Ljava/util/Set;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun planNext (Leu/tiducto/spider/client/Route;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun planPrevious (Leu/tiducto/spider/client/Route;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun planStream-HOM7YUo (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLeu/tiducto/spider/client/Reliability;)Lkotlinx/coroutines/flow/Flow;
-	public static synthetic fun planStream-HOM7YUo$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLeu/tiducto/spider/client/Reliability;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
-	public final fun planStreamNext-TNmY5B4 (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;)Lkotlinx/coroutines/flow/Flow;
-	public static synthetic fun planStreamNext-TNmY5B4$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
-	public final fun planStreamPrevious-TNmY5B4 (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;)Lkotlinx/coroutines/flow/Flow;
-	public static synthetic fun planStreamPrevious-TNmY5B4$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public final fun planStream-TNmY5B4 (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLeu/tiducto/spider/client/Reliability;Ljava/util/Set;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun planStream-TNmY5B4$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLeu/tiducto/spider/client/Reliability;Ljava/util/Set;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public final fun planStreamNext-y0ccR_E (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;Ljava/util/Set;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun planStreamNext-y0ccR_E$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;Ljava/util/Set;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
+	public final fun planStreamPrevious-y0ccR_E (Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;Ljava/util/Set;)Lkotlinx/coroutines/flow/Flow;
+	public static synthetic fun planStreamPrevious-y0ccR_E$default (Leu/tiducto/spider/client/SpiderRouting;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/Location;Leu/tiducto/spider/client/RouteTime;Ljava/util/List;Ljava/util/Set;Ljava/lang/Integer;ZIJLjava/lang/String;Leu/tiducto/spider/client/Reliability;Ljava/util/Set;ILjava/lang/Object;)Lkotlinx/coroutines/flow/Flow;
 	public final fun trip (Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/Reliability;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun trip$default (Leu/tiducto/spider/client/SpiderRouting;Ljava/lang/String;Ljava/lang/String;Leu/tiducto/spider/client/Reliability;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }

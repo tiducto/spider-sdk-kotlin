@@ -5,9 +5,11 @@ import eu.tiducto.spider.contract.routing.DeparturesRequest
 import eu.tiducto.spider.contract.routing.DeparturesResponse
 import eu.tiducto.spider.contract.routing.Mode
 import eu.tiducto.spider.contract.routing.PickupDropoffType
+import eu.tiducto.spider.contract.routing.PlanStreamRequest
 import eu.tiducto.spider.contract.routing.PlanTripRequest
 import eu.tiducto.spider.contract.routing.PlanTripResponse
 import eu.tiducto.spider.contract.routing.Reliability as WireReliability
+import eu.tiducto.spider.contract.routing.TransitMode as WireTransitMode
 import eu.tiducto.spider.contract.routing.TripRequest
 import eu.tiducto.spider.contract.routing.TripResponse
 import eu.tiducto.spider.contract.routing.WheelchairBoarding
@@ -89,6 +91,61 @@ class RoutingWireContractTest {
     }
 
     @Test
+    fun `excluded transit modes map to modes transit exclude without the street and unknown modes`() {
+        val body = request.copy(
+            excludedTransitModes = setOf(TransitMode.TRAM, TransitMode.WALK, TransitMode.UNKNOWN, TransitMode.RAIL),
+        )
+
+        val expected = json.parseToJsonElement("""{ "transit": { "exclude": ["TRAM", "RAIL"] } }""")
+        assertEquals(expected, encode(body.toPlanTripRequest(before = null, after = null))["modes"])
+        assertEquals(
+            expected,
+            json.encodeToJsonElement(
+                PlanStreamRequest.serializer(),
+                body.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null),
+            ).jsonObject["modes"],
+        )
+    }
+
+    @Test
+    fun `an empty exclusion is no filter`() {
+        for (excluded in listOf(emptySet(), setOf(TransitMode.WALK, TransitMode.UNKNOWN))) {
+            assertNull(request.copy(excludedTransitModes = excluded).toModesInput(), "$excluded")
+            assertEquals(
+                json.parseToJsonElement("""{ "transit": { "transit": [ { "mode": "BUS" } ] } }"""),
+                encode(
+                    request.copy(allowedTransitModes = setOf(TransitMode.BUS), excludedTransitModes = excluded)
+                        .toPlanTripRequest(before = null, after = null),
+                )["modes"],
+                "$excluded beside an allow-list",
+            )
+        }
+        assertEquals(
+            json.parseToJsonElement("""{ "transit": { "exclude": ["TRAM"] } }"""),
+            encode(
+                request.copy(allowedTransitModes = setOf(TransitMode.WALK), excludedTransitModes = setOf(TransitMode.TRAM))
+                    .toPlanTripRequest(before = null, after = null),
+            )["modes"],
+            "an allow-list of street modes only is no filter",
+        )
+    }
+
+    @Test
+    fun `an allow-list with an exclusion is rejected as an invalid modes transit before any body is built`() {
+        val both = request.copy(allowedTransitModes = setOf(TransitMode.BUS), excludedTransitModes = setOf(TransitMode.TRAM))
+
+        val plan = assertFailsWith<SpiderTransportException.BadRequest> { both.toPlanTripRequest(before = null, after = null) }
+        val stream = assertFailsWith<SpiderTransportException.BadRequest> {
+            both.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null)
+        }
+
+        for (error in listOf(plan, stream)) {
+            assertEquals("modes.transit", error.field)
+            assertEquals("modes.transit is invalid", error.message)
+        }
+    }
+
+    @Test
     fun `a stop visit maps to stopLocationIds with its wait and omits a zero wait`() {
         val body = request.copy(
             via = listOf(
@@ -154,6 +211,18 @@ class RoutingWireContractTest {
             json.encodeToJsonElement(
                 DeparturesRequest.serializer(),
                 DeparturesRequest(id = "1:S", numberOfDepartures = 10, timeRange = 3_600, startTime = 1_791_612_000),
+            ),
+        )
+        assertEquals(
+            json.parseToJsonElement("""{"id":"1:S","numberOfDepartures":10,"timeRange":3600,"excludeModes":["TRAM","BUS"]}"""),
+            json.encodeToJsonElement(
+                DeparturesRequest.serializer(),
+                DeparturesRequest(
+                    id = "1:S",
+                    numberOfDepartures = 10,
+                    timeRange = 3_600,
+                    excludeModes = listOf(WireTransitMode.TRAM, WireTransitMode.BUS),
+                ),
             ),
         )
     }
