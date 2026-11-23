@@ -4,6 +4,23 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.10.0] - Unreleased
+
+Targets Spider API contract 1.10.
+
+### Added
+
+- `departures(…, excludedModes: Set<TransitMode>? = null)`: the board leaves out every departure of those modes.
+  The API drops them before it counts `numberOfDepartures`, so the board, and each later one paged by `startTime`,
+  still holds up to `numberOfDepartures` departures of the other modes. Sent as `excludeModes`.
+- `excludedTransitModes: Set<TransitMode>? = null` on `plan`, `planStream`, `planStreamNext` and
+  `planStreamPrevious`, kept on `PlanRequest` so `planNext` / `planPrevious` resend it: the modes routing must not
+  ride, with every other mode usable, including one the API adds later. Sent as `modes.transit.exclude`.
+  `allowedTransitModes` stays. Passing both, each non-empty, returns `BadRequest` for `modes.transit` without a
+  request, as the API answers it.
+- In both, null or empty means no filter, and `TransitMode.WALK` and `TransitMode.UNKNOWN` are ignored, as in
+  `allowedTransitModes`.
+
 ## [1.9.0] - Unreleased
 
 Targets Spider API contract 1.9.
