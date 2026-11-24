@@ -9,5 +9,6 @@ val versionProps = java.util.Properties().apply {
 }
 
 allprojects {
-    version = "${versionProps["contract"]}.${versionProps["patch"]}"
+    version = providers.gradleProperty("sdkVersion").orNull
+        ?: "${versionProps["contract"]}.${versionProps["patch"]}"
 }

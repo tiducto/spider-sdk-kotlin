@@ -1,11 +1,26 @@
 # Releasing
 
-The Spider Kotlin SDK (`:client`) is published to **Maven Central** through the **Sonatype Central
-Portal** using the [`com.vanniktech.maven.publish`](https://vanniktech.github.io/gradle-maven-publish-plugin/)
-Gradle plugin. Publishing is automated by `.github/workflows/release.yml`.
+The Spider Kotlin SDK (`:client`) is published to two Maven repositories from one build:
+
+- **the mirror**, our own repository on GitHub Pages (`gh-pages` branch, served at
+  <https://tiducto.github.io/spider-sdk-kotlin/>), which every release reaches first;
+- **Maven Central**, through the **Sonatype Central Portal**, from exactly the files on the mirror.
+
+The [`com.vanniktech.maven.publish`](https://vanniktech.github.io/gradle-maven-publish-plugin/)
+Gradle plugin configures the publications (POM, sources/javadoc jars, signing); Gradle's own
+`maven-publish` writes them into the mirror, and the Central Portal Publisher API uploads them.
+Publishing is automated by `.github/workflows/release.yml`; snapshots of `main` by
+`.github/workflows/snapshot.yml`.
 
 Coordinates: `eu.tiducto:spider-sdk-kotlin-client:<version>` (KMP — platform artifacts get a
 `-jvm` / `-android` / `-iosarm64` / … suffix automatically).
+
+## Release cadence and the Central quota
+
+The Central Portal caps the `tiducto` organization at **7 releases and 1,167 files a month**, and a
+Kotlin release is 224 files (10 publications × artifact, `.asc`, `.md5`, `.sha1`). So the Kotlin
+SDK releases to Maven Central **at most once a week**. Between releases, `main` is always available
+as a snapshot (below), and the mirror carries every release even when Central refuses it.
 
 The version is **not** the git tag — it comes from `version.properties`
 (`contract.patch`, e.g. `contract=0.1` + `patch=0` → `0.1.0`). The release workflow fails if a
@@ -15,7 +30,8 @@ pushed tag doesn't match that computed version.
 
 ## One-time setup (before the first release)
 
-All four steps must be done once by a maintainer. Nothing publishes until they are.
+All five steps must be done once by a maintainer (all are done for this repository). Nothing
+publishes until they are.
 
 ### 1. Sonatype Central Portal account
 
@@ -67,9 +83,17 @@ Add these four **GitHub Actions secrets** (repo → Settings → Secrets and var
 | `GPG_SIGNING_KEY` | The ASCII-armored GPG **private** key from step 3 |
 | `GPG_SIGNING_PASSWORD` | The passphrase for that GPG key |
 
-The workflow maps these to the Gradle properties the plugin reads
-(`ORG_GRADLE_PROJECT_mavenCentralUsername` / `…Password` /
-`ORG_GRADLE_PROJECT_signingInMemoryKey` / `…KeyPassword`). No secret is ever hardcoded.
+The workflows map the GPG secrets to the Gradle properties the plugin signs with
+(`ORG_GRADLE_PROJECT_signingInMemoryKey` / `…KeyPassword`) and hand the token pair to
+`.github/scripts/central-upload.sh`, which sends it as `Authorization: Bearer base64(user:password)`.
+No secret is ever hardcoded.
+
+### 5. The mirror (GitHub Pages)
+
+The `gh-pages` branch holds the Maven repository: `.nojekyll`, an `index.html`, releases at the
+root and snapshots under `snapshots/`. Pages serves it from `gh-pages` at `/`
+(repo → Settings → Pages). The workflows push to it with `GITHUB_TOKEN` (`contents: write` on the
+publishing jobs only); no extra secret is needed.
 
 ---
 
@@ -87,15 +111,72 @@ The workflow maps these to the Gradle properties the plugin reads
 
    The `release` workflow runs on the tag, verifies it matches `version.properties`, and publishes.
 
-Alternatively, trigger the **release** workflow manually (Actions → *release* → *Run workflow*);
-manual dispatch skips the tag check and publishes whatever `version.properties` currently says.
+The pipeline:
 
-The workflow runs `./gradlew publishAndReleaseToMavenCentral`, which uploads **and** releases the
-deployment — artifacts appear on Maven Central within ~15–30 min (search index can lag a few hours).
+1. **build** — `build.yml` on the ref being released.
+2. **mirror** — builds and signs `:client` once and publishes it with Gradle into the `gh-pages`
+   tree (`publishAllPublicationsToMirrorRepository`, a `mirror` repository added by
+   `.github/mirror-repo.init.gradle.kts`, so it works on tags that predate this pipeline). Gradle
+   merges each artifact's `maven-metadata.xml`. A version already on the mirror is never rebuilt or
+   overwritten; its files are reused. The job also drops the snapshots of the released version and
+   pushes the tree as one orphan commit.
+3. **central** — `central-upload.yml`: `.github/scripts/central-bundle.sh` zips exactly that
+   version's files from `gh-pages` (artifacts, `.asc`, `.md5`, `.sha1`; no `sha256`/`sha512`, no
+   checksums of `.asc`, no `maven-metadata.xml`), checks every artifact has its signature and
+   checksums, and `.github/scripts/central-upload.sh` uploads it to
+   `POST /api/v1/publisher/upload?publishingType=AUTOMATIC`, then polls
+   `POST /api/v1/publisher/status` until `PUBLISHED` (or fails on `FAILED`, printing the errors).
+   A version already on Maven Central is skipped. Artifacts appear on Maven Central within ~15–30 min
+   (search index can lag a few hours).
+4. **refresh-context** — re-indexes Context7 once the mirror has the release; it does not wait on
+   Central.
 
-> First release / inspect-before-release: to upload without releasing, run
-> `./gradlew publishToMavenCentral` locally (with the four `ORG_GRADLE_PROJECT_*` env vars set); the
-> deployment then waits in the Central Portal UI for you to click **Publish**.
+A Central failure never touches the mirror. To retry the upload later, from the files on the
+mirror and without rebuilding:
 
-Maven Central is immutable — a released version can never be overwritten or deleted, so bump the
-version for any change; republishing an existing version is rejected.
+```bash
+gh workflow run central-upload.yml --repo tiducto/spider-sdk-kotlin --ref main -f version=<version>
+```
+
+Manual dispatch of **release** (Actions → *Release* → *Run workflow*) takes `ref`, the tag (or
+branch) to build — the pipeline itself comes from the branch you dispatch on, so an older tag
+publishes with today's pipeline — and `central`, off to publish to the mirror only. A tag `ref` must
+match its `version.properties`; a branch publishes whatever `version.properties` says.
+
+Every `gh-pages` writer (release mirror, snapshots) is in the `gh-pages` concurrency group, so they
+never race. GitHub keeps one pending job per group: if a third writer queues while one runs and
+one waits, the waiting one is cancelled. Rerun it; both are idempotent.
+
+### Publishing 1.10.0 (tagged before the mirror existed)
+
+1.10.0 was refused by Central (monthly file limit, resets 2026-12-01). Once this pipeline is on
+`main`, publish it to the mirror now:
+
+```bash
+gh workflow run release.yml --repo tiducto/spider-sdk-kotlin --ref main -f ref=1.10.0 -f central=false
+```
+
+Then, on or after 2026-12-01, upload the same files to Maven Central:
+
+```bash
+gh workflow run central-upload.yml --repo tiducto/spider-sdk-kotlin --ref main -f version=1.10.0
+```
+
+Maven Central and the mirror are immutable — a released version can never be overwritten or
+deleted, so bump the version for any change.
+
+## Snapshots
+
+Every push to `main` (and a manual dispatch of **Snapshot** on `main`) publishes a snapshot to
+<https://tiducto.github.io/spider-sdk-kotlin/snapshots/>. The version is `version.properties`'
+`<contract>.<patch>-SNAPSHOT` while that version is unreleased, else the next patch (`1.10.0`
+released → `1.10.1-SNAPSHOT`); it is passed as `-PsdkVersion` and nothing is committed to `main`.
+A version is released once it is tagged or on the mirror: a release published to the mirror with
+`central` off and no tag yet (Central later, by pushing its tag) counts too.
+`.github/scripts/snapshot-prune.sh` deletes that version's previous build before Gradle publishes
+it, so each snapshot version keeps only its newest build, and deletes every snapshot version whose
+release is out, rewriting the artifact's `maven-metadata.xml` (or removing the artifact when
+nothing is left). A newer push cancels a running snapshot build. Snapshots never go to Maven Central.
+
+The `gh-pages` tree is always pushed as a single orphan commit, so deleted snapshots do not pile up
+in the branch history.

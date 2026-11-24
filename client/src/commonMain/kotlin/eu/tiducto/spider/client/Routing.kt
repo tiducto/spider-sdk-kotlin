@@ -401,6 +401,9 @@ data class Itinerary(
  * [pickupType] is how the rider boards at the `from` stop and [dropoffType] how they alight at the `to` stop;
  * [PickupDropoffType.COORDINATE_WITH_DRIVER] is a stop on request. [PickupDropoffType.SCHEDULED] on a walk and
  * where the rider stays on board across an interline.
+ *
+ * [vehicle] is the vehicle running the leg's trip run, as the realtime trip update names it; null on a walk and
+ * until a vehicle is matched to the run.
  */
 @Serializable
 data class Leg(
@@ -444,6 +447,7 @@ data class Leg(
     val toStopPosition: Int? = null,
     val pickupType: PickupDropoffType = PickupDropoffType.SCHEDULED,
     val dropoffType: PickupDropoffType = PickupDropoffType.SCHEDULED,
+    val vehicle: TripVehicle? = null,
 )
 
 @Serializable
@@ -487,6 +491,9 @@ data class RoutingError(
  * [pickupType] is how a rider boards here, never [PickupDropoffType.NONE]: the board leaves out departures nobody
  * can board. [dropoffType] is how a rider alights here. [PickupDropoffType.COORDINATE_WITH_DRIVER] is a stop on
  * request.
+ *
+ * [vehicle] is the vehicle running the departure's trip run, as the realtime trip update names it; null until a
+ * vehicle is matched to the run.
  */
 data class Departure(
     val scheduledTime: Instant,
@@ -509,11 +516,15 @@ data class Departure(
     val stopPosition: Int? = null,
     val pickupType: PickupDropoffType = PickupDropoffType.SCHEDULED,
     val dropoffType: PickupDropoffType = PickupDropoffType.SCHEDULED,
+    val vehicle: TripVehicle? = null,
 )
 
 /**
  * One trip on [serviceDate] ("YYYY-MM-DD"), the requested GTFS service date its times are anchored to.
  * [routeColor] and [routeTextColor] are raw GTFS hex without `#` (e.g. `FF0000`), as the feed gives them.
+ *
+ * [vehicle] is the vehicle running the trip run, as the realtime trip update names it; null until a vehicle is
+ * matched to the run.
  */
 data class TripDetails(
     val gtfsId: String,
@@ -530,6 +541,7 @@ data class TripDetails(
     val routeColor: String? = null,
     val routeTextColor: String? = null,
     val wheelchairAccessible: WheelchairBoarding? = null,
+    val vehicle: TripVehicle? = null,
 )
 
 /**

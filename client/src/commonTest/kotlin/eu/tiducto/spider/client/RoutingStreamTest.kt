@@ -46,7 +46,9 @@ class RoutingStreamTest {
                       "to":   { "name": "Dest",   "stop": { "gtfsId": "1:B", "platformCode": "B", "zoneId": "101",
                                                             "wheelchairBoarding": "SOMETHING_NEW" } },
                       "route": { "gtfsId": "1:L12", "shortName": "12", "color": "0055A4", "textColor": "FFFFFF" },
-                      "trip": { "gtfsId": "1:T", "bikesAllowed": "NOT_ALLOWED" }
+                      "trip": { "gtfsId": "1:T", "bikesAllowed": "NOT_ALLOWED" },
+                      "vehicle": { "id": "1:7103", "label": "7103", "wheelchairAccessible": "NOT_POSSIBLE",
+                                   "airConditioning": false, "wifi": true, "cardPayment": null }
                     }
                   ]
                 }
@@ -85,6 +87,10 @@ class RoutingStreamTest {
         assertEquals(null, leg.fromWheelchair)
         assertEquals(WheelchairBoarding.UNKNOWN, leg.toWheelchair)
         assertEquals(BikesAllowed.NOT_ALLOWED, leg.bikesAllowed)
+        assertEquals(
+            TripVehicle("1:7103", "7103", WheelchairBoarding.NOT_POSSIBLE, airConditioning = false, wifi = true, cardPayment = null),
+            leg.vehicle,
+        )
     }
 
     // The `pageInfo` frame is terminal: it maps to Done carrying the continuation cursors the caller feeds

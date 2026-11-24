@@ -1,0 +1,51 @@
+name: Upload to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release on the gh-pages mirror to upload, e.g. 1.10.0
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: central-${{ inputs.version }}
+      cancel-in-progress: false
+    env:
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Check out the pipeline scripts
+        uses: actions/checkout@v5
+        with:
+          path: ci
+          sparse-checkout: .github
+      - name: Check out the Maven repository (gh-pages)
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: pages
+
+      - name: Bundle the mirror's files
+        run: |
+          if ! [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::${VERSION} is not a release version (X.Y.Z)."
+            exit 1
+          fi
+          ci/.github/scripts/central-bundle.sh pages "${VERSION}" "${RUNNER_TEMP}/central-bundle.zip"
+
+      - name: Upload to the Sonatype Central Portal and wait for PUBLISHED
+        env:
+          SONATYPE_CENTRAL_TOKEN_USER: ${{ secrets.SONATYPE_CENTRAL_TOKEN_USER }}
+          SONATYPE_CENTRAL_TOKEN_PASSWORD: ${{ secrets.SONATYPE_CENTRAL_TOKEN_PASSWORD }}
+        run: ci/.github/scripts/central-upload.sh "${RUNNER_TEMP}/central-bundle.zip" "${VERSION}"

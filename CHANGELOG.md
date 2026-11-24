@@ -11,6 +11,20 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 - The `iosX64` and `macosX64` targets (Intel Macs and the iOS simulator on them), which Kotlin deprecates and
   Xcode no longer supports. iOS apps depend on `iosArm64` and `iosSimulatorArm64`, macOS apps on `macosArm64`.
 
+## [1.11.0] - Unreleased
+
+Targets Spider API contract 1.11.
+
+### Added
+
+- `TripVehicle`: the vehicle running a trip run, as the feed's realtime trip update names it, with its `id`
+  (feed-prefixed, the same string as `LiveVehicle.vehicleId`), `label`, `wheelchairAccessible` (a
+  `WheelchairBoarding`, null when there is no information, as on `LiveVehicle`), `airConditioning`, `wifi` and
+  `cardPayment`; each null when the feed doesn't say.
+- `vehicle: TripVehicle?` on `TripUpdate`, `Leg` (batch and streamed plans), `Departure` and `TripDetails`, so a
+  board or an itinerary shows the vehicle's features without a second call. Null when the trip update names no
+  vehicle, on a walk leg, and until a vehicle is matched to the run. It comes last with a null default.
+
 ## [1.10.0] - Unreleased
 
 Targets Spider API contract 1.10.

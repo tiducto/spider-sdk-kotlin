@@ -109,6 +109,49 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `plan, departures and trip map the run's vehicle and its no-information access to null`() = runBlocking<Unit> {
+        val vehicle =
+            """{"id":"1:7103","label":"7103","wheelchairAccessible":"POSSIBLE","airConditioning":true,"wifi":false,"cardPayment":null}"""
+        val unknown =
+            """{"id":null,"label":"2210","wheelchairAccessible":"NO_INFORMATION","airConditioning":null,"wifi":null,"cardPayment":true}"""
+        fun leg(mode: String, vehicle: String) =
+            """{"mode":"$mode","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},"from":{"name":"A"},"to":{"name":"B"},
+               "realtimeState":"SCHEDULED","realTime":false,"distance":1000.0,"duration":600,"pickupType":"SCHEDULED",
+               "dropoffType":"SCHEDULED","interlineWithPreviousLeg":false,"legGeometry":{"points":""},"vehicle":$vehicle}"""
+        fun row(vehicle: String) =
+            """{"serviceDay":1790546400,"serviceDate":"2026-09-28","scheduledDeparture":81000,"realtimeDeparture":81000,
+               "realtime":false,"realtimeState":"SCHEDULED","pickupType":"SCHEDULED","dropoffType":"SCHEDULED",
+               "stop":{"gtfsId":"1:S1"},"trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE","bikesAllowed":"NO_INFORMATION",
+               "route":{"gtfsId":"1:L44","mode":"BUS"}},"vehicle":$vehicle}"""
+        gateway.replies = mapOf(
+            "/routing/v1/plan" to json(
+                """{"itineraries":[{"start":"t1","end":"t2","numberOfTransfers":0,"duration":1200,"waitingTime":0,
+                   "legs":[${leg("WALK", "null")},${leg("TRAM", vehicle)},${leg("BUS", unknown)}]}],
+                   "pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
+            ),
+            "/routing/v1/departures" to json(
+                """{"stop":{"gtfsId":"1:S","name":"S","stoptimesWithoutPatterns":[${row(vehicle)},${row("null")}]}}""",
+            ),
+            "/routing/v1/trip" to json(
+                """{"trip":{"gtfsId":"1:T44","wheelchairAccessible":"NOT_POSSIBLE","bikesAllowed":"NO_INFORMATION",
+                   "route":{"gtfsId":"1:L44","mode":"BUS"},"stoptimesForDate":[],"vehicle":$unknown}}""",
+            ),
+        )
+        val expected = TripVehicle("1:7103", "7103", WheelchairBoarding.POSSIBLE, airConditioning = true, wifi = false, cardPayment = null)
+        val noInformation = TripVehicle(null, "2210", null, null, null, cardPayment = true)
+
+        val legs = assertIs<SpiderResult.Success<Route>>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B")))
+            .data.edges.single().itinerary.legs
+        val departures = assertIs<SpiderResult.Success<List<Departure>>>(routing.departures("1:S")).data
+        val trip = assertIs<SpiderResult.Success<TripDetails>>(routing.trip("1:T44", "2026-09-28")).data
+
+        assertEquals(listOf(null, expected, noInformation), legs.map { it.vehicle })
+        assertEquals(listOf(expected, null), departures.map { it.vehicle })
+        assertEquals(noInformation, trip.vehicle)
+        assertEquals(WheelchairBoarding.NOT_POSSIBLE, trip.wheelchairAccessible)
+    }
+
+    @Test
     fun `plan sends searchWindow as given`() = runBlocking<Unit> {
         gateway.replies = mapOf("/routing/v1/plan" to emptyPlan)
 
