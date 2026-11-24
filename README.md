@@ -13,6 +13,7 @@ Published to Maven Central — no credentials or private registry needed.
 ```kotlin
 repositories {
     mavenCentral()
+    maven("https://tiducto.github.io/spider-sdk-kotlin/")
 }
 
 dependencies {
@@ -20,7 +21,25 @@ dependencies {
 }
 ```
 
+The second repository is our own backup on GitHub Pages: it serves the same signed artifacts as Maven Central, and every release lands there first.
+
 A Kotlin Multiplatform consumer resolves the right platform artifact automatically.
+
+### Snapshots
+
+Every merge to `main` is published as a snapshot to a separate repository, so you opt in on purpose:
+
+```kotlin
+repositories {
+    maven("https://tiducto.github.io/spider-sdk-kotlin/snapshots/")
+}
+
+dependencies {
+    implementation("eu.tiducto:spider-sdk-kotlin-client:1.10.1-SNAPSHOT")
+}
+```
+
+The snapshot version is the next release: `version.properties`' `<contract>.<patch>-SNAPSHOT` while that version is unreleased, else the patch after it (released `1.10.0` → `1.10.1-SNAPSHOT`). Only the newest build of each snapshot version is kept, and a snapshot version disappears once its release is tagged.
 
 ## Quickstart
 

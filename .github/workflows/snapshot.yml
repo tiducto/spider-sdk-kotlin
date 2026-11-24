@@ -1,0 +1,65 @@
+name: Snapshot
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          path: sdk
+          fetch-depth: 0
+      - name: Check out the Maven repository (gh-pages)
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: pages
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v5
+
+      - name: Resolve the snapshot version
+        id: version
+        working-directory: sdk
+        run: |
+          contract="$(grep '^contract=' version.properties | cut -d= -f2)"
+          patch="$(grep '^patch=' version.properties | cut -d= -f2)"
+          if git rev-parse -q --verify "refs/tags/${contract}.${patch}" >/dev/null; then
+            patch=$((patch + 1))
+          fi
+          echo "version=${contract}.${patch}-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "Publishing ${contract}.${patch}-SNAPSHOT."
+
+      - name: Publish to the snapshot repository (gh-pages/snapshots)
+        working-directory: sdk
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: |
+          snapshots="${GITHUB_WORKSPACE}/pages/snapshots"
+          .github/scripts/snapshot-prune.sh "${snapshots}" . "${VERSION}"
+          ./gradlew --init-script .github/mirror-repo.init.gradle.kts -PmirrorRepo="${snapshots}" \
+            -PsdkVersion="${VERSION}" publishAllPublicationsToMirrorRepository --console=plain
+          .github/scripts/pages-push.sh "${GITHUB_WORKSPACE}/pages" "Publish ${VERSION} from ${GITHUB_SHA::7}"
