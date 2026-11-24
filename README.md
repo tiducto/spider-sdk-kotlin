@@ -39,7 +39,7 @@ dependencies {
 }
 ```
 
-The snapshot version is the next release: `version.properties`' `<contract>.<patch>-SNAPSHOT` while that version is unreleased, else the patch after it (released `1.10.0` → `1.10.1-SNAPSHOT`). Only the newest build of each snapshot version is kept, and a snapshot version disappears once its release is tagged.
+The snapshot version is the next release: `version.properties`' `<contract>.<patch>-SNAPSHOT` while that version is unreleased, else the patch after it (released `1.10.0` → `1.10.1-SNAPSHOT`). Only the newest build of each snapshot version is kept, and a snapshot version disappears once its release is out.
 
 ## Quickstart
 

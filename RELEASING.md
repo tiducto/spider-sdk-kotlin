@@ -169,11 +169,13 @@ deleted, so bump the version for any change.
 
 Every push to `main` (and a manual dispatch of **Snapshot** on `main`) publishes a snapshot to
 <https://tiducto.github.io/spider-sdk-kotlin/snapshots/>. The version is `version.properties`'
-`<contract>.<patch>-SNAPSHOT` while that version has no tag, else the next patch (tag `1.10.0`
-exists → `1.10.1-SNAPSHOT`); it is passed as `-PsdkVersion` and nothing is committed to `main`.
+`<contract>.<patch>-SNAPSHOT` while that version is unreleased, else the next patch (`1.10.0`
+released → `1.10.1-SNAPSHOT`); it is passed as `-PsdkVersion` and nothing is committed to `main`.
+A version is released once it is tagged or on the mirror: a release published to the mirror with
+`central` off and no tag yet (Central later, by pushing its tag) counts too.
 `.github/scripts/snapshot-prune.sh` deletes that version's previous build before Gradle publishes
 it, so each snapshot version keeps only its newest build, and deletes every snapshot version whose
-release is tagged, rewriting the artifact's `maven-metadata.xml` (or removing the artifact when
+release is out, rewriting the artifact's `maven-metadata.xml` (or removing the artifact when
 nothing is left). A newer push cancels a running snapshot build. Snapshots never go to Maven Central.
 
 The `gh-pages` tree is always pushed as a single orphan commit, so deleted snapshots do not pile up
