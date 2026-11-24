@@ -754,25 +754,31 @@ class RoutingHttpTest {
         )
 
         routing.trip("1:T", "2026-09-28", startTime = "8:10:00")
+        routing.trip("1:T", "2026-09-28", startTime = "")
         routing.estimatedDelays("1:T", "2026-09-28", 3, startTime = "25:10:00")
         routing.estimatedDelays("1:T", "2026-09-28", 3)
+        routing.estimatedDelays("1:T", "2026-09-28", 3, startTime = "")
 
         assertEquals(
-            Json.parseToJsonElement("""{"id":"1:T","serviceDate":"2026-09-28","startTime":"8:10:00"}"""),
-            Json.parseToJsonElement(gateway.seen.first().body),
+            listOf(
+                """{"id":"1:T","serviceDate":"2026-09-28","startTime":"8:10:00"}""",
+                """{"id":"1:T","serviceDate":"2026-09-28"}""",
+            ).map(Json::parseToJsonElement),
+            gateway.seen.take(2).map { Json.parseToJsonElement(it.body) },
         )
         assertEquals(
             listOf(
                 "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3&startTime=25%3A10%3A00",
                 "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3",
+                "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3",
             ),
-            gateway.seen.drop(1).map { it.query },
+            gateway.seen.drop(2).map { it.query },
         )
     }
 
     @Test
     fun `a malformed start time is a BadRequest without a request`() = runBlocking<Unit> {
-        for (startTime in listOf("", "08:10", "08:10:60", "100:00:00")) {
+        for (startTime in listOf(" ", "08:10", "08:10:60", "100:00:00")) {
             assertBadRequest("startTime", assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28", startTime = startTime)).error, "invalid")
             assertBadRequest("startTime", assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-09-28", 3, startTime)).error, "invalid")
         }

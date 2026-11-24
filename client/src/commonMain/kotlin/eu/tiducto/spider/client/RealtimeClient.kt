@@ -68,11 +68,11 @@ internal class RealtimeClient(
 
     suspend fun vehicleForTrip(tripId: String, serviceDate: String, startTime: String? = null): LiveVehicleUpdate {
         requireServiceDate(serviceDate)
-        requireStartTime(startTime)
+        val run = requireStartTime(startTime)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "vehicles", "by-trip", tripId) }
             parameter("serviceDate", serviceDate)
-            parameter("startTime", startTime)
+            parameter("startTime", run)
         }
         // No vehicle currently reporting for this trip is a normal state, not a failure; a plan-limit code in
         // the body still decides, whatever status a proxy passes on.

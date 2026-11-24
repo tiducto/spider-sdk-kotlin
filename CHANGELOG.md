@@ -35,8 +35,8 @@ Targets Spider API contract 1.10.
   of a frequency-based trip to answer, by its start time.
 - `trip(…, startTime: String? = null)` and `estimatedDelays(…, startTime: String? = null)`: the run of a
   frequency-based trip to answer. Null answers the first run, as before.
-- In every `startTime` parameter, a value that is not a GTFS time (`H:MM:SS` or `HH:MM:SS`, hours up to 99) returns
-  `BadRequest` for `startTime` without a request.
+- In every `startTime` parameter, null or empty sends nothing, and any other value that is not a GTFS time
+  (`H:MM:SS` or `HH:MM:SS`, hours up to 99) returns `BadRequest` for `startTime` without a request.
 
 ### Deprecated
 

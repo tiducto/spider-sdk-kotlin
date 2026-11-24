@@ -6,6 +6,7 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
@@ -358,8 +359,15 @@ class StopsRealtimeHttpTest {
         val vehicle = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(
             realtime.vehicleForTrip("1:T1", "2026-09-27", startTime = "25:10:00"),
         ).data.vehicle
+        assertIs<SpiderResult.Success<LiveVehicleUpdate>>(realtime.vehicleForTrip("1:T1", "2026-09-27", startTime = ""))
+        assertIs<SpiderResult.Success<LiveVehicleUpdate>>(
+            realtime.pollVehicleForTrip("1:T1", "2026-09-27", startTime = "").first(),
+        )
 
-        assertEquals("serviceDate=2026-09-27&startTime=25%3A10%3A00", gateway.seen.single().query)
+        assertEquals(
+            listOf("serviceDate=2026-09-27&startTime=25%3A10%3A00", "serviceDate=2026-09-27", "serviceDate=2026-09-27"),
+            gateway.seen.map { it.query },
+        )
         assertEquals("25:10:00", vehicle?.startTime)
         assertEquals(WheelchairBoarding.POSSIBLE, vehicle?.wheelchairAccessible)
         assertEquals(true, vehicle?.airConditioning)
@@ -369,7 +377,7 @@ class StopsRealtimeHttpTest {
 
     @Test
     fun `a malformed vehicle start time is a BadRequest without a request`() = runBlocking<Unit> {
-        for (startTime in listOf("", "8:10", "08:61:00", "100:00:00", "8h10")) {
+        for (startTime in listOf(" ", "8:10", "08:61:00", "100:00:00", "8h10")) {
             val error = assertIs<SpiderError.BadRequest>(
                 assertIs<SpiderResult.Error>(realtime.vehicleForTrip("1:T1", "2026-09-27", startTime)).error,
             )

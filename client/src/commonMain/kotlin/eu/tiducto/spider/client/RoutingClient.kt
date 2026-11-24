@@ -207,11 +207,11 @@ internal class RoutingClient(
     /** [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD". */
     suspend fun trip(tripId: String, serviceDate: String, reliability: Reliability?, startTime: String? = null): TripDetails {
         requireServiceDate(serviceDate)
-        requireStartTime(startTime)
+        val run = requireStartTime(startTime)
         val body = TripRequest(
             id = tripId,
             serviceDate = serviceDate,
-            startTime = startTime,
+            startTime = run,
             reliability = reliability?.toWire(),
         )
         val trip = postJson<TripRequest, TripResponse>(TRIP, body).trip
@@ -269,12 +269,12 @@ internal class RoutingClient(
         startTime: String? = null,
     ): EstimatedDelays? {
         requireServiceDate(serviceDate)
-        requireStartTime(startTime)
+        val run = requireStartTime(startTime)
         val entries = getJson<EstimatedDelaysResponse>(ESTIMATED_DELAYS) {
             parameter("tripId", tripId)
             parameter("serviceDate", serviceDate)
             parameter("stopPosition", stopPosition)
-            parameter("startTime", startTime)
+            parameter("startTime", run)
         }.estimatedDelays ?: return null
 
         fun at(level: WireReliability): Duration =

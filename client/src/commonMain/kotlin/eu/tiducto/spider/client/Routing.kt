@@ -219,9 +219,9 @@ class SpiderRouting(
      *
      * [startTime] picks the run of a frequency-based trip (`frequencies.txt`) by its start time, the time it leaves
      * the trip's first stop: a GTFS time `H:MM:SS` or `HH:MM:SS`, hours up to 99, the same value as
-     * [LiveVehicle.startTime] and [TripUpdate.startTime]. Null answers the trip's first run on [serviceDate]; a
-     * trip without frequencies has one run. A value of another form returns [SpiderError.BadRequest] without a
-     * request, and one no run starts at is answered as an unknown trip.
+     * [LiveVehicle.startTime] and [TripUpdate.startTime]. Null or empty sends nothing and answers the trip's first
+     * run on [serviceDate]; a trip without frequencies has one run. A value of another form returns
+     * [SpiderError.BadRequest] without a request, and one no run starts at is answered as an unknown trip.
      */
     suspend fun trip(
         tripId: String,
@@ -244,8 +244,9 @@ class SpiderRouting(
      * [TripStop.typicalDelay] at that level wherever that is not null. A level with no shift is zero. The result
      * is null when the trip id resolves to no trip, the stop position is not on the trip, or there is no history.
      *
-     * [startTime] picks the run of a frequency-based trip as in [trip]; null answers the first run. A value of
-     * another form returns [SpiderError.BadRequest] without a request, and one no run starts at gives null.
+     * [startTime] picks the run of a frequency-based trip as in [trip]; null or empty sends nothing and answers the
+     * first run. A value of another form returns [SpiderError.BadRequest] without a request, and one no run starts
+     * at gives null.
      */
     suspend fun estimatedDelays(
         tripId: String,

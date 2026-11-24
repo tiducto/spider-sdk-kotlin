@@ -48,9 +48,9 @@ class SpiderRealtime(
      * returns [SpiderError.BadRequest] without a request.
      *
      * [startTime] picks the run of a frequency-based trip (`frequencies.txt`) by the start time the feed reports
-     * it with ([LiveVehicle.startTime]): a GTFS time `H:MM:SS` or `HH:MM:SS`, hours up to 99. Null answers the run
-     * with the earliest start time, so a trip that isn't frequency-based answers as without it. Any other value
-     * returns [SpiderError.BadRequest] without a request.
+     * it with ([LiveVehicle.startTime]): a GTFS time `H:MM:SS` or `HH:MM:SS`, hours up to 99. Null or empty sends
+     * nothing and answers the run with the earliest start time, so a trip that isn't frequency-based answers as
+     * without it. Any other value returns [SpiderError.BadRequest] without a request.
      */
     suspend fun vehicleForTrip(
         tripId: String,
