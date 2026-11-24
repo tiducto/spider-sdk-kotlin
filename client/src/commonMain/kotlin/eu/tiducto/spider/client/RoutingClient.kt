@@ -32,6 +32,7 @@ import eu.tiducto.spider.contract.routing.TransitMode as WireTransitMode
 import eu.tiducto.spider.contract.routing.TransitPreferencesInput
 import eu.tiducto.spider.contract.routing.TripRequest
 import eu.tiducto.spider.contract.routing.TripResponse
+import eu.tiducto.spider.contract.routing.TripVehicle as WireTripVehicle
 import eu.tiducto.spider.contract.routing.WheelchairPreferencesInput
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.SSE
@@ -200,6 +201,7 @@ internal class RoutingClient(
                 stopPosition = st.stopPosition,
                 pickupType = pickupDropoffFromWire(st.pickupType),
                 dropoffType = pickupDropoffFromWire(st.dropoffType),
+                vehicle = st.vehicle?.toDomain(),
             )
         }.toImmutableList()
     }
@@ -257,6 +259,7 @@ internal class RoutingClient(
             routeColor = trip.route.color,
             routeTextColor = trip.route.textColor,
             wheelchairAccessible = wheelchairFromWire(trip.wheelchairAccessible.value),
+            vehicle = trip.vehicle?.toDomain(),
         )
     }
 
@@ -442,6 +445,16 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     toStopPosition = to.stopPosition,
     pickupType = pickupDropoffFromWire(pickupType),
     dropoffType = pickupDropoffFromWire(dropoffType),
+    vehicle = vehicle?.toDomain(),
+)
+
+private fun WireTripVehicle.toDomain(): TripVehicle = TripVehicle(
+    id = id,
+    label = label,
+    wheelchairAccessible = wheelchairFromWire(wheelchairAccessible.value),
+    airConditioning = airConditioning,
+    wifi = wifi,
+    cardPayment = cardPayment,
 )
 
 private const val SSE_DEFAULT_EVENT = "message"

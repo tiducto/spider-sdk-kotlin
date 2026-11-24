@@ -246,11 +246,14 @@ data class TripDelays(
  * tells apart the runs of a frequency-based trip; null when the feed gives none. [delaySeconds] is the trip-level
  * delay (positive = late), null when the updates give only absolute times; [scheduleRelationship] is the raw
  * GTFS-RT value (`SCHEDULED` / `CANCELED` / …). A run that only [modifications] select has empty
- * [stopTimeUpdates] and null [routeId], [delaySeconds] and [scheduleRelationship].
+ * [stopTimeUpdates] and null [routeId], [delaySeconds], [scheduleRelationship] and [vehicle].
  *
  * [modifications] is **experimental**, as GTFS-RT `TripModifications` is: the detours that apply to this run, in
  * feed order, their delays accumulating along the trip; empty when none applies. Its shape may change in a
  * minor version as the GTFS-RT spec settles.
+ *
+ * [vehicle] is the vehicle the update names as running the run (GTFS-RT `TripUpdate.vehicle`), with its features;
+ * null when the update names none, as it names one only once the vehicle is actually on the run.
  */
 data class TripUpdate(
     val tripId: String,
@@ -260,6 +263,7 @@ data class TripUpdate(
     val scheduleRelationship: String?,
     val stopTimeUpdates: ImmutableList<StopTimeUpdate>,
     val modifications: ImmutableList<TripModification>,
+    val vehicle: TripVehicle? = null,
 )
 
 /**
