@@ -9,8 +9,7 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 ### Removed
 
 - The `iosX64` and `macosX64` targets (Intel Macs and the iOS simulator on them), which Kotlin deprecates and
-  Xcode no longer supports, and the `macosArm64` target. iOS apps depend on `iosArm64` and `iosSimulatorArm64`;
-  macOS apps use the `jvm` target or the Swift SDK.
+  Xcode no longer supports. iOS apps depend on `iosArm64` and `iosSimulatorArm64`, macOS apps on `macosArm64`.
 
 ## [1.10.0] - Unreleased
 
