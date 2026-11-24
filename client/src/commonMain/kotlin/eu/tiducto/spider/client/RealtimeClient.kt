@@ -5,6 +5,10 @@ import eu.tiducto.spider.contract.realtime.AlertsResponseDto
 import eu.tiducto.spider.contract.realtime.DelayDto
 import eu.tiducto.spider.contract.realtime.DelaysResponseDto
 import eu.tiducto.spider.contract.realtime.StopTimeUpdateDto
+import eu.tiducto.spider.contract.realtime.TripModificationDto
+import eu.tiducto.spider.contract.realtime.TripUpdateDto
+import eu.tiducto.spider.contract.realtime.TripUpdatesResponseDto
+import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.realtime.VehicleByTripResponseDto
 import eu.tiducto.spider.contract.realtime.VehicleDto
 import eu.tiducto.spider.contract.realtime.VehiclesResponseDto
@@ -22,6 +26,7 @@ import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.time.Instant
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.serialization.json.Json
 
@@ -61,11 +66,13 @@ internal class RealtimeClient(
         )
     }
 
-    suspend fun vehicleForTrip(tripId: String, serviceDate: String): LiveVehicleUpdate {
+    suspend fun vehicleForTrip(tripId: String, serviceDate: String, startTime: String? = null): LiveVehicleUpdate {
         requireServiceDate(serviceDate)
+        val run = requireStartTime(startTime)
         val response = rtGet {
             url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "vehicles", "by-trip", tripId) }
             parameter("serviceDate", serviceDate)
+            parameter("startTime", run)
         }
         // No vehicle currently reporting for this trip is a normal state, not a failure; a plan-limit code in
         // the body still decides, whatever status a proxy passes on.
@@ -77,6 +84,23 @@ internal class RealtimeClient(
         val dto: VehicleByTripResponseDto = response.decodeOrThrow(BY_TRIP)
         return LiveVehicleUpdate(
             vehicle = dto.vehicle?.toDomain(),
+            freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
+        )
+    }
+
+    suspend fun tripUpdates(serviceDate: String, tripIds: List<String>): TripUpdates {
+        requireServiceDate(serviceDate)
+        val ids = delayTripIdsParam(tripIds)
+        val response = rtGet {
+            url { takeFrom(baseUrl); appendPathSegments("realtime", "v1", "trip-updates") }
+            parameter("serviceDate", serviceDate)
+            parameter("tripIds", ids)
+        }
+        val dto: TripUpdatesResponseDto = response.decodeOrThrow("realtime/v1/trip-updates")
+        return TripUpdates(
+            serviceDate = dto.serviceDate,
+            tripUpdates = dto.tripUpdates.map { it.toDomain() }.toImmutableList(),
+            missing = dto.missing.toImmutableList(),
             freshness = FeedFreshness(dto.feedTimestamp.toInstantOrNull(), dto.staleSeconds),
         )
     }
@@ -157,7 +181,51 @@ private fun VehicleDto.toDomain(): LiveVehicle = LiveVehicle(
     currentStatus = currentStatus,
     occupancy = OccupancyStatus.fromWire(occupancyStatus),
     timestamp = timestamp.toInstantOrNull(),
+    startTime = startTime,
+    wheelchairAccessible = vehicleWheelchairFromWire(wheelchairAccessible),
+    airConditioning = airConditioning,
+    wifi = wifi,
+    cardPayment = cardPayment,
 )
+
+internal fun vehicleWheelchairFromWire(raw: String?): WheelchairBoarding? = when (raw) {
+    null, "UNKNOWN" -> null
+    "WHEELCHAIR_ACCESSIBLE" -> WheelchairBoarding.POSSIBLE
+    "WHEELCHAIR_INACCESSIBLE" -> WheelchairBoarding.NOT_POSSIBLE
+    else -> WheelchairBoarding.UNKNOWN
+}
+
+private fun TripUpdateDto.toDomain(): TripUpdate = TripUpdate(
+    tripId = tripId,
+    startTime = startTime,
+    routeId = routeId,
+    delaySeconds = delaySeconds,
+    scheduleRelationship = scheduleRelationship,
+    stopTimeUpdates = stopTimeUpdates.map { it.toDomain() }.toImmutableList(),
+    modifications = modifications.orEmpty().map { it.toDomain() }.toImmutableList(),
+)
+
+private fun TripModificationDto.toDomain(): TripModification = TripModification(
+    id = id,
+    startTimes = startTimes.orEmpty().toImmutableList(),
+    startStop = startStop?.let { StopSelector(it.stopSequence, it.stopId) },
+    endStop = endStop?.let { StopSelector(it.stopSequence, it.stopId) },
+    replacementStops = replacementStops.map {
+        ReplacementStop(
+            stopId = it.stopId,
+            travelTimeToStop = it.travelTimeToStop,
+            name = it.name,
+            latitude = it.latitude,
+            longitude = it.longitude,
+        )
+    }.toImmutableList(),
+    propagatedModificationDelay = propagatedModificationDelay,
+    alertId = alertId,
+    lastModifiedTime = lastModifiedTime.toInstantOrNull(),
+    shape = shape?.let { decodePolyline(it, precision = SHAPE_PRECISION).toImmutableList() } ?: persistentListOf(),
+)
+
+private const val SHAPE_PRECISION = 1e5
 
 private fun DelayDto.toDomain(): TripDelay = TripDelay(
     tripId = tripId,

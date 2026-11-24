@@ -4,6 +4,45 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [1.10.0] - Unreleased
+
+Targets Spider API contract 1.10.
+
+### Added
+
+- `departures(…, excludedModes: Set<TransitMode>? = null)`: the board leaves out every departure of those modes.
+  The API drops them before it counts `numberOfDepartures`, so the board, and each later one paged by `startTime`,
+  still holds up to `numberOfDepartures` departures of the other modes. Sent as `excludeModes`.
+- `excludedTransitModes: Set<TransitMode>? = null` on `plan`, `planStream`, `planStreamNext` and
+  `planStreamPrevious`, kept on `PlanRequest` so `planNext` / `planPrevious` resend it: the modes routing must not
+  ride, with every other mode usable, including one the API adds later. Sent as `modes.transit.exclude`.
+  `allowedTransitModes` stays. Passing both, each non-empty, returns `BadRequest` for `modes.transit` without a
+  request, as the API answers it.
+- In both, null or empty means no filter, and `TransitMode.WALK` and `TransitMode.UNKNOWN` are ignored, as in
+  `allowedTransitModes`.
+- `realtime.tripUpdates(serviceDate, tripIds)` and `pollTripUpdates`, the successor of `delays`
+  (`GET /realtime/v1/trip-updates`): `TripUpdates` holds one `TripUpdate` per trip run, so a frequency-based trip
+  has one per live run, told apart by `TripUpdate.startTime`. Look up with `updatesFor(tripId)` (every run) or
+  `updateFor(tripId)` (the first run, the one `delays` answers).
+- `TripUpdate.modifications` (experimental, as GTFS-RT `TripModifications`): the detours that apply to the run, as
+  `TripModification` (replaced span by `StopSelector`, `ReplacementStop`s, propagated delay, alert id, last-modified
+  time, and the modified path decoded into `shape`). Empty when none applies.
+- `LiveVehicle.startTime` (the run of a frequency-based trip), `LiveVehicle.wheelchairAccessible` (a
+  `WheelchairBoarding`: GTFS-RT `WHEELCHAIR_ACCESSIBLE` is `POSSIBLE`, `WHEELCHAIR_INACCESSIBLE` `NOT_POSSIBLE`,
+  `UNKNOWN` null), and `LiveVehicle.airConditioning`, `wifi` and `cardPayment`; each null when the feed doesn't
+  say. They come last with null defaults.
+- `vehicleForTrip(…, startTime: String? = null)` and `pollVehicleForTrip(…, startTime: String? = null)`: the run
+  of a frequency-based trip to answer, by its start time.
+- `trip(…, startTime: String? = null)` and `estimatedDelays(…, startTime: String? = null)`: the run of a
+  frequency-based trip to answer. Null answers the first run, as before.
+- In every `startTime` parameter, null or empty sends nothing, and any other value that is not a GTFS time
+  (`H:MM:SS` or `HH:MM:SS`, hours up to 99) returns `BadRequest` for `startTime` without a request.
+
+### Deprecated
+
+- `realtime.delays` and `pollDelays`: use `tripUpdates` / `pollTripUpdates`. The API's `GET /realtime/v1/delays` is
+  deprecated in contract 1.10 and keeps working until it is retired with notice, not before 2027-05-24.
+
 ## [1.9.0] - Unreleased
 
 Targets Spider API contract 1.9.

@@ -153,6 +153,74 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `excluded transit modes ride every plan call and every continuation`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/plan" to json(
+                """{"itineraries":[],"pageInfo":{"hasNextPage":true,"hasPreviousPage":true,"startCursor":"c-prev","endCursor":"c-next"},"routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
+            ),
+            "/routing/v1/plan-stream" to emptyDone,
+        )
+        val excluded = setOf(TransitMode.TRAM, TransitMode.UNKNOWN)
+        val (a, b) = Location.Stop("1:A") to Location.Stop("1:B")
+
+        val first = assertIs<SpiderResult.Success<Route>>(routing.plan(a, b, excludedTransitModes = excluded)).data
+        routing.planNext(first)
+        routing.planPrevious(first)
+        routing.planStream(a, b, targetResults = 5, maxWindow = 2.hours, excludedTransitModes = excluded).toList()
+        routing.planStreamNext(a, b, targetResults = 5, maxWindow = 2.hours, after = "c-next", excludedTransitModes = excluded).toList()
+        routing.planStreamPrevious(a, b, targetResults = 5, maxWindow = 2.hours, before = "c-prev", excludedTransitModes = excluded).toList()
+        routing.plan(a, b, excludedTransitModes = emptySet())
+
+        val modes = Json.parseToJsonElement("""{"transit":{"exclude":["TRAM"]}}""")
+        assertEquals(List(6) { modes } + listOf(null), bodies().map { it["modes"] })
+    }
+
+    @Test
+    fun `an allow-list with an exclusion is a BadRequest without a request on plan and planStream`() = runBlocking<Unit> {
+        val allowed = setOf(TransitMode.BUS)
+        val excluded = setOf(TransitMode.TRAM)
+        val (a, b) = Location.Stop("1:A") to Location.Stop("1:B")
+
+        val planError = assertIs<SpiderResult.Error>(
+            routing.plan(a, b, allowedTransitModes = allowed, excludedTransitModes = excluded),
+        ).error
+        val streamError = assertIs<PlanStreamEvent.Failure>(
+            routing.planStream(
+                a, b, allowedTransitModes = allowed, targetResults = 5, maxWindow = 2.hours, excludedTransitModes = excluded,
+            ).toList().single(),
+        ).error
+
+        for (error in listOf(planError, streamError)) {
+            assertBadRequest("modes.transit", error, state = "invalid")
+            assertEquals(null, error.httpStatus)
+        }
+        assertEquals(emptyList(), gateway.seen.toList())
+    }
+
+    @Test
+    fun `departures send excludeModes only when a transit mode is excluded`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/departures" to json("""{"stop":{"gtfsId":"1:S","name":"S","stoptimesWithoutPatterns":[]}}"""),
+        )
+
+        routing.departures("1:S", excludedModes = setOf(TransitMode.TRAM, TransitMode.WALK, TransitMode.TROLLEYBUS))
+        routing.departures("1:S", excludedModes = emptySet())
+        routing.departures("1:S", excludedModes = setOf(TransitMode.UNKNOWN))
+        routing.departures("1:S")
+
+        val plain = """{"id":"1:S","numberOfDepartures":30,"timeRange":86400}"""
+        assertEquals(
+            listOf(
+                """{"id":"1:S","numberOfDepartures":30,"timeRange":86400,"excludeModes":["TRAM","TROLLEYBUS"]}""",
+                plain,
+                plain,
+                plain,
+            ).map(Json::parseToJsonElement),
+            bodies(),
+        )
+    }
+
+    @Test
     fun `a routing HTTP 400 is a BadRequest carrying the body field`() = runBlocking<Unit> {
         val field = "preferences.transit.transfer.maximumTransfers"
         val invalid = Reply(400, "application/json", """{"code":"bad_request","message":"$field is out of range","field":"$field"}""")
@@ -625,7 +693,7 @@ class RoutingHttpTest {
         val tripError = assertIs<SpiderResult.Error>(routing.trip("1:T", "20260928")).error
         val estimatedError = assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-9-28", 3)).error
         val delaysError = assertIs<SpiderResult.Error>(
-            SpiderRealtime(gateway.baseUrl, "test-key").delays("2026-02-30", listOf("1:T")),
+            SpiderRealtime(gateway.baseUrl, "test-key").tripUpdates("2026-02-30", listOf("1:T")),
         ).error
 
         for (error in listOf(tripError, estimatedError, delaysError)) {
@@ -676,6 +744,45 @@ class RoutingHttpTest {
         val request = gateway.seen.single()
         assertEquals("GET", request.method)
         assertEquals("tripId=1%3AT+7&serviceDate=2026-09-28&stopPosition=3", request.query)
+    }
+
+    @Test
+    fun `trip and estimatedDelays send the run's start time only when it is set`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/trip" to json("""{"trip":null}"""),
+            "/routing/v1/estimated-delays" to json("""{"estimatedDelays":null}"""),
+        )
+
+        routing.trip("1:T", "2026-09-28", startTime = "8:10:00")
+        routing.trip("1:T", "2026-09-28", startTime = "")
+        routing.estimatedDelays("1:T", "2026-09-28", 3, startTime = "25:10:00")
+        routing.estimatedDelays("1:T", "2026-09-28", 3)
+        routing.estimatedDelays("1:T", "2026-09-28", 3, startTime = "")
+
+        assertEquals(
+            listOf(
+                """{"id":"1:T","serviceDate":"2026-09-28","startTime":"8:10:00"}""",
+                """{"id":"1:T","serviceDate":"2026-09-28"}""",
+            ).map(Json::parseToJsonElement),
+            gateway.seen.take(2).map { Json.parseToJsonElement(it.body) },
+        )
+        assertEquals(
+            listOf(
+                "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3&startTime=25%3A10%3A00",
+                "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3",
+                "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3",
+            ),
+            gateway.seen.drop(2).map { it.query },
+        )
+    }
+
+    @Test
+    fun `a malformed start time is a BadRequest without a request`() = runBlocking<Unit> {
+        for (startTime in listOf(" ", "08:10", "08:10:60", "100:00:00")) {
+            assertBadRequest("startTime", assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28", startTime = startTime)).error, "invalid")
+            assertBadRequest("startTime", assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-09-28", 3, startTime)).error, "invalid")
+        }
+        assertEquals(emptyList(), gateway.seen.toList())
     }
 
     @Test

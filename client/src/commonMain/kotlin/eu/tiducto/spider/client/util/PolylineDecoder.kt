@@ -3,10 +3,10 @@ package eu.tiducto.spider.client.util
 import eu.tiducto.spider.client.LatLon
 
 /**
- * Decode a Google Encoded Polyline (precision 1e6) into a list of points.
+ * Decode a Google Encoded Polyline into a list of points, at [precision] (1e6 for routing, 1e5 for realtime shapes).
  * https://developers.google.com/maps/documentation/utilities/polylinealgorithm
  */
-internal fun decodePolyline(encoded: String): List<LatLon> {
+internal fun decodePolyline(encoded: String, precision: Double = 1e6): List<LatLon> {
     if (encoded.isEmpty()) return emptyList()
     val points = ArrayList<LatLon>(encoded.length / 4)
     var index = 0
@@ -36,7 +36,7 @@ internal fun decodePolyline(encoded: String): List<LatLon> {
         val dLon = if ((result and 1) != 0) (result shr 1).inv() else (result shr 1)
         lon += dLon
 
-        points.add(LatLon(lat = lat / 1e6, lon = lon / 1e6))
+        points.add(LatLon(lat = lat / precision, lon = lon / precision))
     }
     return points
 }

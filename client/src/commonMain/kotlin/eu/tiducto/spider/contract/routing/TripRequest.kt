@@ -11,6 +11,8 @@ internal data class TripRequest(
     val id: String,
     /** The trip's GTFS service date, `YYYY-MM-DD` (`YYYYMMDD` also works). Absent or null is a 400 `serviceDate is required`, and a value that is not a real date a 400 `serviceDate is invalid`. */
     val serviceDate: String,
+    /** The run of a frequency-based trip (`frequencies.txt`) to answer, by its start time: a GTFS time `H:MM:SS` or `HH:MM:SS` (hours up to 99), compared as a time (`8:10:00` is `08:10:00`), the same value as the GTFS-RT `start_time` and the realtime API's `startTime`. A trip without frequencies has one run, starting at its first scheduled departure. Omitted or null, the trip's first run on `serviceDate` is answered. A value no run of the trip starts at is answered as an unknown trip: `trip` is null. Any other value not of that form is a 400 `startTime is invalid`. */
+    val startTime: String? = null,
     /** The level `typicalDelay` is given at; the times do not depend on it. Omitted or null, `typicalDelay` is null. A value outside `Reliability` is a 400 `reliability is invalid`. */
     val reliability: Reliability? = null
 )

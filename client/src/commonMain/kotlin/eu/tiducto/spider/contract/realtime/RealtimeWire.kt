@@ -11,8 +11,8 @@ import kotlinx.serialization.Serializable
  *
  * Members the contract requires are non-null; every other member is nullable, because GTFS-RT producers
  * populate different subsets and an absent member is normal. The enum-ish strings ([VehicleDto.currentStatus],
- * [DelayDto.scheduleRelationship], [AlertDto.cause]/[effect][AlertDto.severityLevel],
- * [VehicleDto.occupancyStatus]) are deliberately kept as raw `String` — they are passed through unchanged
+ * [DelayDto.scheduleRelationship], [TripUpdateDto.scheduleRelationship], [AlertDto.cause]/[effect][AlertDto.severityLevel],
+ * [VehicleDto.occupancyStatus], [VehicleDto.wheelchairAccessible]) are deliberately kept as raw `String` — they are passed through unchanged
  * so a producer's newer values still surface. Timestamps are epoch **seconds** (`Long`), mapped to
  * `Instant` in `:client`.
  *
@@ -39,6 +39,7 @@ internal data class VehicleByTripResponseDto(
 internal data class VehicleDto(
     val tripId: String,
     val serviceDate: String,
+    val startTime: String? = null,
     val routeId: String? = null,
     val vehicleId: String? = null,
     val label: String? = null,
@@ -50,6 +51,58 @@ internal data class VehicleDto(
     val currentStatus: String? = null,
     val occupancyStatus: String? = null,
     val timestamp: Long? = null,
+    val wheelchairAccessible: String? = null,
+    val airConditioning: Boolean? = null,
+    val wifi: Boolean? = null,
+    val cardPayment: Boolean? = null,
+)
+
+@Serializable
+internal data class TripUpdatesResponseDto(
+    val serviceDate: String,
+    val tripUpdates: List<TripUpdateDto>,
+    val missing: List<String>,
+    val feedTimestamp: Long? = null,
+    val staleSeconds: Int? = null,
+)
+
+@Serializable
+internal data class TripUpdateDto(
+    val tripId: String,
+    val startTime: String? = null,
+    val routeId: String? = null,
+    val delaySeconds: Int? = null,
+    val scheduleRelationship: String? = null,
+    val stopTimeUpdates: List<StopTimeUpdateDto>,
+    val modifications: List<TripModificationDto>? = null,
+)
+
+@Serializable
+internal data class TripModificationDto(
+    val id: String,
+    val startTimes: List<String>? = null,
+    val startStop: StopSelectorDto? = null,
+    val endStop: StopSelectorDto? = null,
+    val replacementStops: List<ReplacementStopDto>,
+    val propagatedModificationDelay: Int,
+    val alertId: String? = null,
+    val lastModifiedTime: Long? = null,
+    val shape: String? = null,
+)
+
+@Serializable
+internal data class StopSelectorDto(
+    val stopSequence: Int? = null,
+    val stopId: String? = null,
+)
+
+@Serializable
+internal data class ReplacementStopDto(
+    val stopId: String? = null,
+    val travelTimeToStop: Int? = null,
+    val name: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
 )
 
 @Serializable

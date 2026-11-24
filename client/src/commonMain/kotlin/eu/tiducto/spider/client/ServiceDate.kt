@@ -14,3 +14,13 @@ internal fun requireServiceDate(value: String) {
         throw SpiderTransportException.BadRequest("serviceDate", "serviceDate is invalid")
     }
 }
+
+private val GTFS_TIME = Regex("""\d{1,2}:[0-5]\d:[0-5]\d""")
+
+internal fun requireStartTime(value: String?): String? {
+    if (value.isNullOrEmpty()) return null
+    if (!GTFS_TIME.matches(value)) {
+        throw SpiderTransportException.BadRequest("startTime", "startTime is invalid")
+    }
+    return value
+}

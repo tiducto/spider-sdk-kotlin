@@ -17,13 +17,27 @@ fun SpiderRealtime.pollVehicleForTrip(
     tripId: String,
     serviceDate: String,
     interval: Duration = 15.seconds,
-): Flow<SpiderResult<LiveVehicleUpdate>> = poll(interval) { vehicleForTrip(tripId, serviceDate) }
+    startTime: String? = null,
+): Flow<SpiderResult<LiveVehicleUpdate>> = poll(interval) { vehicleForTrip(tripId, serviceDate, startTime) }
 
+fun SpiderRealtime.pollTripUpdates(
+    serviceDate: String,
+    tripIds: List<String>,
+    interval: Duration = 15.seconds,
+): Flow<SpiderResult<TripUpdates>> = poll(interval) { tripUpdates(serviceDate, tripIds) }
+
+@Deprecated(
+    "Use pollTripUpdates; /realtime/v1/delays retires no earlier than 2027-05-24.",
+    ReplaceWith("pollTripUpdates(serviceDate, tripIds, interval)"),
+)
 fun SpiderRealtime.pollDelays(
     serviceDate: String,
     tripIds: List<String>,
     interval: Duration = 15.seconds,
-): Flow<SpiderResult<TripDelays>> = poll(interval) { delays(serviceDate, tripIds) }
+): Flow<SpiderResult<TripDelays>> = poll(interval) {
+    @Suppress("DEPRECATION")
+    delays(serviceDate, tripIds)
+}
 
 fun SpiderRealtime.pollAlerts(
     interval: Duration = 30.seconds,
