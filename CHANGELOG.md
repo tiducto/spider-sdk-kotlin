@@ -43,6 +43,11 @@ Targets Spider API contract 1.10.
 - `realtime.delays` and `pollDelays`: use `tripUpdates` / `pollTripUpdates`. The API's `GET /realtime/v1/delays` is
   deprecated in contract 1.10 and keeps working until it is retired with notice, not before 2027-05-24.
 
+### Removed
+
+- The `iosX64` and `macosX64` targets (Intel Macs and the iOS simulator on them), which Kotlin deprecates and
+  Xcode no longer supports. Apple apps depend on the `iosArm64`, `iosSimulatorArm64` and `macosArm64` targets.
+
 ## [1.9.0] - Unreleased
 
 Targets Spider API contract 1.9.

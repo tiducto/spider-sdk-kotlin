@@ -38,9 +38,7 @@ kotlin {
 
     iosArm64()
     iosSimulatorArm64()
-    iosX64()
     macosArm64()
-    macosX64()
 
     // Kept minimal on purpose: no npm publish, no TS-definition generation, no browser-bundle
     // shaping. Those were all for the retired plain-JS/npm consumption path (now
