@@ -27,5 +27,7 @@ internal data class StopDeparturesStoptime(
     val stopPosition: Int?,
     /** The platform or stand the departure leaves from, which tells a station's platforms apart. */
     val stop: StopDeparturesStop,
-    val trip: StopDeparturesTrip
+    val trip: StopDeparturesTrip,
+    /** The vehicle running the departure's trip run, as the realtime trip update names it. A Spider extension: OTP 2.10 has no vehicle on a departure. Null until a vehicle is matched to the run. Its `wheelchairAccessible` is the vehicle's realtime access, separate from `trip.wheelchairAccessible`, which stays the timetable's. */
+    val vehicle: TripVehicle?
 )
