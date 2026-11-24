@@ -7,6 +7,7 @@ import eu.tiducto.spider.contract.realtime.DelaysResponseDto
 import eu.tiducto.spider.contract.realtime.StopTimeUpdateDto
 import eu.tiducto.spider.contract.realtime.TripModificationDto
 import eu.tiducto.spider.contract.realtime.TripUpdateDto
+import eu.tiducto.spider.contract.realtime.TripUpdateVehicleDto
 import eu.tiducto.spider.contract.realtime.TripUpdatesResponseDto
 import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.realtime.VehicleByTripResponseDto
@@ -203,6 +204,16 @@ private fun TripUpdateDto.toDomain(): TripUpdate = TripUpdate(
     scheduleRelationship = scheduleRelationship,
     stopTimeUpdates = stopTimeUpdates.map { it.toDomain() }.toImmutableList(),
     modifications = modifications.orEmpty().map { it.toDomain() }.toImmutableList(),
+    vehicle = vehicle?.toDomain(),
+)
+
+private fun TripUpdateVehicleDto.toDomain(): TripVehicle = TripVehicle(
+    id = id,
+    label = label,
+    wheelchairAccessible = vehicleWheelchairFromWire(wheelchairAccessible),
+    airConditioning = airConditioning,
+    wifi = wifi,
+    cardPayment = cardPayment,
 )
 
 private fun TripModificationDto.toDomain(): TripModification = TripModification(
