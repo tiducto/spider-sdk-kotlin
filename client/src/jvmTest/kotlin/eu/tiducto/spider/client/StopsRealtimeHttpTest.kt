@@ -434,6 +434,38 @@ class StopsRealtimeHttpTest {
     }
 
     @Test
+    fun `tripUpdates maps the vehicle a run names, partial or absent`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/realtime/v1/trip-updates" to json(
+                """
+                {"serviceDate":"2026-09-28",
+                 "tripUpdates":[
+                   {"tripId":"1:T1","stopTimeUpdates":[],
+                    "vehicle":{"id":"1:7103","label":"7103","wheelchairAccessible":"WHEELCHAIR_ACCESSIBLE",
+                      "airConditioning":true,"wifi":false,"cardPayment":true,"futureField":1}},
+                   {"tripId":"1:T2","stopTimeUpdates":[],
+                    "vehicle":{"label":"2210","wheelchairAccessible":"UNKNOWN"}},
+                   {"tripId":"1:T3","stopTimeUpdates":[],"vehicle":{"wheelchairAccessible":"WHEELCHAIR_INACCESSIBLE"}},
+                   {"tripId":"1:T4","stopTimeUpdates":[]}],
+                 "missing":[]}
+                """.trimIndent(),
+            ),
+        )
+
+        val updates = assertIs<SpiderResult.Success<TripUpdates>>(
+            realtime.tripUpdates("2026-09-28", listOf("1:T1", "1:T2", "1:T3", "1:T4")),
+        ).data
+
+        assertEquals(
+            TripVehicle("1:7103", "7103", WheelchairBoarding.POSSIBLE, airConditioning = true, wifi = false, cardPayment = true),
+            updates.updateFor("1:T1")?.vehicle,
+        )
+        assertEquals(TripVehicle(null, "2210", null, null, null, null), updates.updateFor("1:T2")?.vehicle)
+        assertEquals(WheelchairBoarding.NOT_POSSIBLE, updates.updateFor("1:T3")?.vehicle?.wheelchairAccessible)
+        assertEquals(null, updates.updateFor("1:T4")?.vehicle)
+    }
+
+    @Test
     fun `tripUpdates with no ids, a blank id or more than 50 is a BadRequest without a request`() = runBlocking<Unit> {
         assertBadRequest("tripIds is required", realtime.tripUpdates("2026-09-28", emptyList()))
         assertBadRequest("tripIds is invalid", realtime.tripUpdates("2026-09-28", listOf("1:T1", " ")))

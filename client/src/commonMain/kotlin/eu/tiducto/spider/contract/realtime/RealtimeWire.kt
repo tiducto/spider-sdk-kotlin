@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  * Members the contract requires are non-null; every other member is nullable, because GTFS-RT producers
  * populate different subsets and an absent member is normal. The enum-ish strings ([VehicleDto.currentStatus],
  * [DelayDto.scheduleRelationship], [TripUpdateDto.scheduleRelationship], [AlertDto.cause]/[effect][AlertDto.severityLevel],
- * [VehicleDto.occupancyStatus], [VehicleDto.wheelchairAccessible]) are deliberately kept as raw `String` — they are passed through unchanged
+ * [VehicleDto.occupancyStatus], [VehicleDto.wheelchairAccessible], [TripUpdateVehicleDto.wheelchairAccessible]) are deliberately kept as raw `String` — they are passed through unchanged
  * so a producer's newer values still surface. Timestamps are epoch **seconds** (`Long`), mapped to
  * `Instant` in `:client`.
  *
@@ -75,6 +75,17 @@ internal data class TripUpdateDto(
     val scheduleRelationship: String? = null,
     val stopTimeUpdates: List<StopTimeUpdateDto>,
     val modifications: List<TripModificationDto>? = null,
+    val vehicle: TripUpdateVehicleDto? = null,
+)
+
+@Serializable
+internal data class TripUpdateVehicleDto(
+    val id: String? = null,
+    val label: String? = null,
+    val wheelchairAccessible: String? = null,
+    val airConditioning: Boolean? = null,
+    val wifi: Boolean? = null,
+    val cardPayment: Boolean? = null,
 )
 
 @Serializable

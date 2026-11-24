@@ -17,5 +17,7 @@ internal data class TripTimetable(
     val route: TripRoute,
     val stoptimesForDate: List<Stoptime>,
     /** The trip's path; null when the feed has no shapes. */
-    val tripGeometry: TripGeometry?
+    val tripGeometry: TripGeometry?,
+    /** The vehicle running the trip run answered (the requested `serviceDate`, and `startTime` for a frequency-based trip), as the realtime trip update names it. A Spider extension: OTP 2.10 has no vehicle on a trip. Null until a vehicle is matched to the run. Its `wheelchairAccessible` is the vehicle's realtime access, separate from this trip's `wheelchairAccessible`, which stays the timetable's. */
+    val vehicle: TripVehicle?
 )
