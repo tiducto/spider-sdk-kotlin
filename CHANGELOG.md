@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [Unreleased]
+
+### Removed
+
+- The `iosX64` and `macosX64` targets (Intel Macs and the iOS simulator on them), which Kotlin deprecates and
+  Xcode no longer supports, and the `macosArm64` target. iOS apps depend on `iosArm64` and `iosSimulatorArm64`;
+  macOS apps use the `jvm` target or the Swift SDK.
+
 ## [1.10.0] - Unreleased
 
 Targets Spider API contract 1.10.
@@ -42,11 +50,6 @@ Targets Spider API contract 1.10.
 
 - `realtime.delays` and `pollDelays`: use `tripUpdates` / `pollTripUpdates`. The API's `GET /realtime/v1/delays` is
   deprecated in contract 1.10 and keeps working until it is retired with notice, not before 2027-05-24.
-
-### Removed
-
-- The `iosX64` and `macosX64` targets (Intel Macs and the iOS simulator on them), which Kotlin deprecates and
-  Xcode no longer supports. Apple apps depend on the `iosArm64`, `iosSimulatorArm64` and `macosArm64` targets.
 
 ## [1.9.0] - Unreleased
 

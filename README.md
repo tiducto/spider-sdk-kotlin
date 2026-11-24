@@ -4,7 +4,7 @@ Kotlin Multiplatform SDK for **Spider** — the managed transit API by Tiducto. 
 
 ## Supported targets
 
-JVM · Android (compileSdk 36, minSdk 30) · iOS (`iosArm64`, `iosSimulatorArm64`) · macOS (`macosArm64`) · JS/IR (`browser`) · Wasm/JS (`browser`, `nodejs`)
+JVM · Android (compileSdk 36, minSdk 30) · iOS (`iosArm64`, `iosSimulatorArm64`) · JS/IR (`browser`) · Wasm/JS (`browser`, `nodejs`)
 
 ## Install
 

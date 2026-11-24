@@ -5,7 +5,7 @@ name: Build SDK
 # real SDK — a stale or wrong example (bad API, wrong error-code casing) fails the build.
 # This is both the PR merge gate and the first stage of the release pipeline.
 #
-# Runs on macOS because the repo declares Apple targets (iosArm64/macos*), which can't
+# Runs on macOS because the repo declares Apple targets (iosArm64/iosSimulatorArm64), which can't
 # compile on Linux. Draft PRs skip it; ready_for_review re-triggers. Exposed via
 # workflow_call so release.yml runs it before publishing — a tag on a broken commit
 # never reaches Maven Central. Concurrency cancels superseded pushes.

@@ -38,7 +38,6 @@ kotlin {
 
     iosArm64()
     iosSimulatorArm64()
-    macosArm64()
 
     // Kept minimal on purpose: no npm publish, no TS-definition generation, no browser-bundle
     // shaping. Those were all for the retired plain-JS/npm consumption path (now
@@ -97,7 +96,7 @@ kotlin {
                 implementation(libs.ktor.client.okhttp)
             }
         }
-        // appleMain covers all ios* and macos* targets (default hierarchy template).
+        // appleMain covers the ios* targets (default hierarchy template).
         val appleMain by getting {
             dependencies {
                 implementation(libs.ktor.client.darwin)
