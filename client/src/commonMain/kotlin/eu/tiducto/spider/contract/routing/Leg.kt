@@ -36,5 +36,7 @@ internal data class Leg(
     val dropoffType: PickupDropoffType,
     /** True on a transit leg ridden in the same vehicle as the previous leg: the vehicle carries on as another trip, often under another line number, and the rider stays on board. That change is not counted in `numberOfTransfers`. False on every other leg. */
     val interlineWithPreviousLeg: Boolean,
-    val legGeometry: Geometry
+    val legGeometry: Geometry,
+    /** The vehicle running the leg's trip run, as the realtime trip update names it. A Spider extension: OTP 2.10 has no vehicle on a leg. Null on a walk leg and until a vehicle is matched to the run. */
+    val vehicle: TripVehicle?
 )
