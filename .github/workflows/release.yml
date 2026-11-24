@@ -1,41 +1,86 @@
 name: Release
 
-# Release pipeline: build -> publish -> refresh-context, chained so each stage gates the next.
+# Release pipeline: build -> mirror -> central + refresh-context, chained so each stage gates the next.
 # A semver tag push (X.Y.Z) IS the release action (also manual dispatch).
 #
 #   build            reuses build.yml (workflow_call): compiles all targets + :examples + tests,
-#                    so a tag on a broken commit never reaches Maven Central.
-#   publish          needs build. Uploads :client to the Sonatype Central Portal (vanniktech
-#                    plugin). Published version comes from version.properties (contract.patch),
-#                    NOT the tag; a guard fails the run on tag/version drift.
-#   refresh-context  needs publish. Re-indexes Context7 (reuses context7-refresh.yml) only
-#                    after the artifact is actually live.
+#                    so a tag on a broken commit never reaches either repository.
+#   mirror           needs build. Builds and signs :client once and publishes it with Gradle into the
+#                    gh-pages Maven repository (https://tiducto.github.io/spider-sdk-kotlin/), which
+#                    merges maven-metadata.xml. A version already on gh-pages is never rebuilt or
+#                    overwritten. The tree is pushed as a single orphan commit; every gh-pages writer
+#                    shares the `gh-pages` concurrency group. Published version comes from
+#                    version.properties (contract.patch), NOT the tag; a guard fails the run on
+#                    tag/version drift.
+#   central          needs mirror. Reuses central-upload.yml: bundles exactly the files on gh-pages
+#                    and uploads them to the Sonatype Central Portal. A failure here leaves the mirror
+#                    release in place; rerun central-upload.yml with the version to retry. A manual
+#                    dispatch with `central` off skips it.
+#   refresh-context  needs mirror. Re-indexes Context7 (reuses context7-refresh.yml) once the
+#                    artifact is live on the mirror, without waiting on Central.
 #
-# Runs on macOS for the Apple targets. Credentials come from repo secrets. See RELEASING.md
-# for the one-time account/secret setup.
+# Manual dispatch takes `ref`, the tag (or branch) to build: the pipeline logic comes from the ref
+# the run is dispatched on, the published code from `ref`, so an older tag that predates the mirror
+# (e.g. 1.10.0) publishes with today's pipeline. Runs on macOS for the Apple targets. Credentials
+# come from repo secrets. See RELEASING.md for the one-time account/secret setup.
 on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag (or branch) to build and publish. Empty publishes the ref this run is dispatched on.
+        required: false
+        default: ''
+        type: string
+      central:
+        description: Also upload to Maven Central (off publishes to the mirror only; upload later with central-upload.yml).
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
 
 concurrency:
   # Never cancel an in-flight publish — a half-uploaded Central deployment is worse than a queue.
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.ref || github.ref }}
   cancel-in-progress: false
 
 jobs:
   build:
     uses: ./.github/workflows/build.yml
+    with:
+      ref: ${{ inputs.ref }}
 
-  publish:
+  mirror:
     needs: build
     runs-on: macos-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: gh-pages
+      cancel-in-progress: false
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v5
+      - name: Check out the pipeline scripts
+        uses: actions/checkout@v5
+        with:
+          path: ci
+          sparse-checkout: .github
+      - name: Check out the SDK to release
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          path: sdk
+          fetch-depth: 0
+      - name: Check out the Maven repository (gh-pages)
+        uses: actions/checkout@v5
+        with:
+          ref: gh-pages
+          path: pages
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -43,28 +88,49 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Verify tag matches version.properties
-        if: startsWith(github.ref, 'refs/tags/')
+        id: version
+        working-directory: sdk
+        env:
+          REF: ${{ inputs.ref || github.ref }}
         run: |
           contract="$(grep '^contract=' version.properties | cut -d= -f2)"
           patch="$(grep '^patch=' version.properties | cut -d= -f2)"
           version="${contract}.${patch}"
-          if [ "${GITHUB_REF_NAME}" != "${version}" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match version.properties (${version}). Bump version.properties or retag."
+          tag="${REF#refs/tags/}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null && [ "${tag}" != "${version}" ]; then
+            echo "::error::Tag ${tag} does not match version.properties (${version}). Bump version.properties or retag."
             exit 1
           fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "Releasing version ${version}."
 
-      # --no-configuration-cache: releasing to Maven Central is a known configuration-cache exception
-      # in the vanniktech plugin (a Gradle limitation), so it is disabled for this task only.
-      - name: Publish to Maven Central (Sonatype Central Portal)
-        run: ./gradlew publishAndReleaseToMavenCentral --no-configuration-cache --console=plain
+      - name: Publish to the mirror (gh-pages)
+        working-directory: sdk
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_CENTRAL_TOKEN_USER }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_CENTRAL_TOKEN_PASSWORD }}
+          VERSION: ${{ steps.version.outputs.version }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+        run: |
+          pages="${GITHUB_WORKSPACE}/pages"
+          scripts="${GITHUB_WORKSPACE}/ci/.github"
+          if [ -d "${pages}/eu/tiducto/spider-sdk-kotlin-client/${VERSION}" ]; then
+            echo "::notice::${VERSION} is already on the mirror; keeping its files for Central."
+          else
+            ./gradlew --init-script "${scripts}/mirror-repo.init.gradle.kts" -PmirrorRepo="${pages}" \
+              publishAllPublicationsToMirrorRepository --console=plain
+          fi
+          "${scripts}/scripts/snapshot-prune.sh" "${pages}/snapshots" .
+          "${scripts}/scripts/pages-push.sh" "${pages}" "Publish ${VERSION}"
+
+  central:
+    needs: mirror
+    if: github.event_name != 'workflow_dispatch' || inputs.central
+    uses: ./.github/workflows/central-upload.yml
+    with:
+      version: ${{ needs.mirror.outputs.version }}
+    secrets: inherit
 
   refresh-context:
-    needs: publish
+    needs: mirror
     uses: ./.github/workflows/context7-refresh.yml
     secrets: inherit
