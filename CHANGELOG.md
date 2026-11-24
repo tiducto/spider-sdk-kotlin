@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions track the Spider API contract:
 the `major.minor` mirror the contract version and the trailing number is the SDK patch.
 
+## [Unreleased]
+
+### Removed
+
+- The `iosX64` and `macosX64` targets (Intel Macs and the iOS simulator on them), which Kotlin deprecates and
+  Xcode no longer supports. iOS apps depend on `iosArm64` and `iosSimulatorArm64`, macOS apps on `macosArm64`.
+
 ## [1.11.0] - Unreleased
 
 Targets Spider API contract 1.11.
