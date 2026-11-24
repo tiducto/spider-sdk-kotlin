@@ -7,6 +7,7 @@ if [[ $# -lt 2 || $# -gt 3 ]]; then
 fi
 
 repo="$1"
+releases="$(cd "$repo/.." && pwd)/eu/tiducto"
 tags="$(git -C "$2" tag -l)"
 replace="${3:-}"
 group="eu.tiducto"
@@ -53,7 +54,7 @@ for dir in spider-sdk-kotlin-client spider-sdk-kotlin-client-*; do
         version="$(basename "$version_dir")"
         if [[ "$version" == "$replace" ]]; then
             echo "Replacing $dir/$version."
-        elif grep -qxF "${version%-SNAPSHOT}" <<<"$tags"; then
+        elif grep -qxF "${version%-SNAPSHOT}" <<<"$tags" || [[ -d "$releases/$dir/${version%-SNAPSHOT}" ]]; then
             echo "Removing $dir/$version: ${version%-SNAPSHOT} is released."
         else
             continue

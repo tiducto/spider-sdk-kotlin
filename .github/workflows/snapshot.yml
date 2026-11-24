@@ -45,7 +45,8 @@ jobs:
         run: |
           contract="$(grep '^contract=' version.properties | cut -d= -f2)"
           patch="$(grep '^patch=' version.properties | cut -d= -f2)"
-          if git rev-parse -q --verify "refs/tags/${contract}.${patch}" >/dev/null; then
+          if git rev-parse -q --verify "refs/tags/${contract}.${patch}" >/dev/null \
+            || [ -d "${GITHUB_WORKSPACE}/pages/eu/tiducto/spider-sdk-kotlin-client/${contract}.${patch}" ]; then
             patch=$((patch + 1))
           fi
           echo "version=${contract}.${patch}-SNAPSHOT" >> "$GITHUB_OUTPUT"
