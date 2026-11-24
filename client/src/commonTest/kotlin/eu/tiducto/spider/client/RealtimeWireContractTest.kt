@@ -2,6 +2,7 @@ package eu.tiducto.spider.client
 
 import eu.tiducto.spider.contract.realtime.AlertsResponseDto
 import eu.tiducto.spider.contract.realtime.DelaysResponseDto
+import eu.tiducto.spider.contract.realtime.TripUpdatesResponseDto
 import eu.tiducto.spider.contract.realtime.VehicleByTripResponseDto
 import eu.tiducto.spider.contract.realtime.VehiclesResponseDto
 import kotlin.test.Test
@@ -81,6 +82,69 @@ class RealtimeWireContractTest {
         assertEquals(90, delay.delaySeconds)
         assertEquals("1:S1", delay.stopTimeUpdates.single().stopId)
         assertNull(dto.staleSeconds)
+    }
+
+    @Test
+    fun `vehicle decodes the run start time and features and leaves them null when absent`() {
+        val body =
+            """
+            {"vehicles":[
+              {"tripId":"1:T1","serviceDate":"2026-07-19","startTime":"24:05:00","latitude":49.2,"longitude":16.6,
+               "wheelchairAccessible":"WHEELCHAIR_INACCESSIBLE","airConditioning":false,"wifi":true,"cardPayment":true},
+              {"tripId":"1:T2","serviceDate":"2026-07-19","latitude":49.21,"longitude":16.61}
+            ],"missing":[]}
+            """.trimIndent()
+        val (full, bare) = json.decodeFromString(VehiclesResponseDto.serializer(), body).vehicles
+        assertEquals("24:05:00", full.startTime)
+        assertEquals("WHEELCHAIR_INACCESSIBLE", full.wheelchairAccessible)
+        assertEquals(false, full.airConditioning)
+        assertEquals(true, full.wifi)
+        assertEquals(true, full.cardPayment)
+        assertNull(bare.startTime)
+        assertNull(bare.wheelchairAccessible)
+        assertNull(bare.airConditioning)
+        assertNull(bare.wifi)
+        assertNull(bare.cardPayment)
+    }
+
+    @Test
+    fun `vehicle wheelchair accessibility maps known values and hides no information`() {
+        assertEquals(WheelchairBoarding.POSSIBLE, vehicleWheelchairFromWire("WHEELCHAIR_ACCESSIBLE"))
+        assertEquals(WheelchairBoarding.NOT_POSSIBLE, vehicleWheelchairFromWire("WHEELCHAIR_INACCESSIBLE"))
+        assertNull(vehicleWheelchairFromWire("UNKNOWN"))
+        assertNull(vehicleWheelchairFromWire(null))
+        assertEquals(WheelchairBoarding.UNKNOWN, vehicleWheelchairFromWire("SOMETHING_NEW"))
+    }
+
+    @Test
+    fun `trip updates response decodes runs with and without modifications`() {
+        val body =
+            """
+            {"serviceDate":"2026-07-19",
+             "tripUpdates":[
+               {"tripId":"1:T1","startTime":"08:00:00","delaySeconds":90,"scheduleRelationship":"SCHEDULED",
+                "stopTimeUpdates":[{"stopId":"1:S1","departureDelay":90,"scheduleRelationship":"SKIPPED"}]},
+               {"tripId":"1:T1","stopTimeUpdates":[],
+                "modifications":[{"id":"1:M1","startStop":{"stopSequence":2,"stopId":"1:S2"},
+                  "replacementStops":[{"stopId":"1:S9"}],"propagatedModificationDelay":0,"futureField":1}]}],
+             "missing":["1:T2"]}
+            """.trimIndent()
+        val dto = json.decodeFromString(TripUpdatesResponseDto.serializer(), body)
+        assertEquals(listOf("1:T2"), dto.missing)
+        assertNull(dto.feedTimestamp)
+        val (scheduled, modified) = dto.tripUpdates
+        assertEquals("08:00:00", scheduled.startTime)
+        assertEquals("SKIPPED", scheduled.stopTimeUpdates.single().scheduleRelationship)
+        assertNull(scheduled.modifications)
+        assertNull(modified.startTime)
+        assertNull(modified.delaySeconds)
+        val modification = modified.modifications!!.single()
+        assertEquals(2, modification.startStop?.stopSequence)
+        assertNull(modification.endStop)
+        assertNull(modification.startTimes)
+        assertNull(modification.shape)
+        assertEquals("1:S9", modification.replacementStops.single().stopId)
+        assertNull(modification.replacementStops.single().travelTimeToStop)
     }
 
     @Test

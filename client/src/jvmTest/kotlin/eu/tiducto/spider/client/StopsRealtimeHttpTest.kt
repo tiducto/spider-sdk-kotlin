@@ -99,7 +99,7 @@ class StopsRealtimeHttpTest {
     fun `an HTTP 400 field in the body names the field on stop search and realtime`() = runBlocking<Unit> {
         gateway.replies = mapOf(
             "/stops/v1/search" to Reply(400, "application/json", """{"code":"bad_request","message":"q is invalid","field":"q"}"""),
-            "/realtime/v1/delays" to Reply(
+            "/realtime/v1/trip-updates" to Reply(
                 400,
                 "application/json",
                 """{"code":"bad_request","message":"serviceDate is out of range","field":"serviceDate"}""",
@@ -108,7 +108,7 @@ class StopsRealtimeHttpTest {
 
         val stopsError = assertIs<SpiderError.BadRequest>(assertIs<SpiderResult.Error>(stops.near(49.19, 16.61)).error)
         val realtimeError = assertIs<SpiderError.BadRequest>(
-            assertIs<SpiderResult.Error>(realtime.delays("2026-10-07", listOf("1:T"))).error,
+            assertIs<SpiderResult.Error>(realtime.tripUpdates("2026-10-07", listOf("1:T"))).error,
         )
 
         assertEquals("q", stopsError.field)
@@ -271,6 +271,7 @@ class StopsRealtimeHttpTest {
         assertEquals(emptyList(), gateway.seen.toList())
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `delays with no ids or a blank id is a BadRequest without a request`() = runBlocking<Unit> {
         assertBadRequest("tripIds is required", realtime.delays("2026-09-28", emptyList()))
@@ -279,6 +280,7 @@ class StopsRealtimeHttpTest {
         assertEquals(emptyList(), gateway.seen.toList())
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `more than 50 realtime trip ids is a BadRequest without a request`() = runBlocking<Unit> {
         val ids = (1..51).map { "1:T$it" }
@@ -290,6 +292,7 @@ class StopsRealtimeHttpTest {
         assertIs<SpiderResult.Success<TripDelays>>(realtime.delays("2026-09-28", ids.take(50) + ids.take(50)))
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `delays is one GET with distinct sorted prefixed ids and maps the flat response`() = runBlocking<Unit> {
         gateway.replies = mapOf(
@@ -339,6 +342,95 @@ class StopsRealtimeHttpTest {
         )
         assertEquals("2026-09-27", positions.vehicles.single().serviceDate)
         assertEquals("2026-09-27", update.vehicle?.serviceDate)
+    }
+
+    @Test
+    fun `vehicleForTrip sends the run's start time and maps the vehicle features`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/realtime/v1/vehicles/by-trip/1:T1" to json(
+                """
+                {"vehicle":{"tripId":"1:T1","serviceDate":"2026-09-27","startTime":"25:10:00","latitude":49.2,
+                 "longitude":16.6,"wheelchairAccessible":"WHEELCHAIR_ACCESSIBLE","airConditioning":true,"wifi":false}}
+                """.trimIndent(),
+            ),
+        )
+
+        val vehicle = assertIs<SpiderResult.Success<LiveVehicleUpdate>>(
+            realtime.vehicleForTrip("1:T1", "2026-09-27", startTime = "25:10:00"),
+        ).data.vehicle
+
+        assertEquals("serviceDate=2026-09-27&startTime=25%3A10%3A00", gateway.seen.single().query)
+        assertEquals("25:10:00", vehicle?.startTime)
+        assertEquals(WheelchairBoarding.POSSIBLE, vehicle?.wheelchairAccessible)
+        assertEquals(true, vehicle?.airConditioning)
+        assertEquals(false, vehicle?.wifi)
+        assertEquals(null, vehicle?.cardPayment)
+    }
+
+    @Test
+    fun `a malformed vehicle start time is a BadRequest without a request`() = runBlocking<Unit> {
+        for (startTime in listOf("", "8:10", "08:61:00", "100:00:00", "8h10")) {
+            val error = assertIs<SpiderError.BadRequest>(
+                assertIs<SpiderResult.Error>(realtime.vehicleForTrip("1:T1", "2026-09-27", startTime)).error,
+            )
+            assertEquals("startTime", error.field)
+            assertEquals("startTime is invalid", error.message)
+        }
+        assertEquals(emptyList(), gateway.seen.toList())
+    }
+
+    @Test
+    fun `tripUpdates is one GET with distinct sorted ids and maps runs and modifications`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/realtime/v1/trip-updates" to json(
+                """
+                {"serviceDate":"2026-09-28",
+                 "tripUpdates":[
+                   {"tripId":"1:T2","startTime":"08:00:00","routeId":"1:R1","delaySeconds":60,
+                    "scheduleRelationship":"SCHEDULED","stopTimeUpdates":[{"stopId":"1:S1","arrivalDelay":60}]},
+                   {"tripId":"1:T2","startTime":"08:10:00","stopTimeUpdates":[],
+                    "modifications":[{"id":"1:M1","startTimes":["08:10:00"],"startStop":{"stopSequence":3},
+                      "endStop":{"stopId":"1:S5"},
+                      "replacementStops":[{"stopId":"1:RS1","travelTimeToStop":120,"name":"Detour","latitude":49.2,"longitude":16.6}],
+                      "propagatedModificationDelay":90,"alertId":"1:A1","lastModifiedTime":1721385600,
+                      "shape":"_p~iF~ps|U_ulLnnqC_mqNvxq`@"}]}],
+                 "missing":["1:T10"],
+                 "feedTimestamp":1721385600,"staleSeconds":4}
+                """.trimIndent(),
+            ),
+        )
+
+        val updates = assertIs<SpiderResult.Success<TripUpdates>>(
+            realtime.tripUpdates("2026-09-28", listOf("1:T2", "1:T10", "1:T2")),
+        ).data
+
+        val request = gateway.seen.single()
+        assertEquals("GET", request.method)
+        assertEquals("serviceDate=2026-09-28&tripIds=1%3AT10%2C1%3AT2", request.query)
+        assertEquals(listOf("1:T10"), updates.missing)
+        assertEquals(4, updates.freshness.staleSeconds)
+        assertEquals(listOf("08:00:00", "08:10:00"), updates.updatesFor("1:T2").map { it.startTime })
+        val first = assertIs<TripUpdate>(updates.updateFor("1:T2"))
+        assertEquals(60, first.delaySeconds)
+        assertEquals(emptyList(), first.modifications)
+        val modification = updates.updatesFor("1:T2")[1].modifications.single()
+        assertEquals(listOf("08:10:00"), modification.startTimes)
+        assertEquals(StopSelector(stopSequence = 3, stopId = null), modification.startStop)
+        assertEquals(StopSelector(stopSequence = null, stopId = "1:S5"), modification.endStop)
+        assertEquals(ReplacementStop("1:RS1", 120, "Detour", 49.2, 16.6), modification.replacementStops.single())
+        assertEquals(90, modification.propagatedModificationDelay)
+        assertEquals("1:A1", modification.alertId)
+        assertEquals(1721385600L, modification.lastModifiedTime?.epochSeconds)
+        assertEquals(listOf(LatLon(38.5, -120.2), LatLon(40.7, -120.95), LatLon(43.252, -126.453)), modification.shape)
+        assertEquals(null, updates.updateFor("1:T10"))
+    }
+
+    @Test
+    fun `tripUpdates with no ids, a blank id or more than 50 is a BadRequest without a request`() = runBlocking<Unit> {
+        assertBadRequest("tripIds is required", realtime.tripUpdates("2026-09-28", emptyList()))
+        assertBadRequest("tripIds is invalid", realtime.tripUpdates("2026-09-28", listOf("1:T1", " ")))
+        assertOutOfRange("tripIds", realtime.tripUpdates("2026-09-28", (1..51).map { "1:T$it" }))
+        assertEquals(emptyList(), gateway.seen.toList())
     }
 
     @Test

@@ -243,6 +243,17 @@ class RoutingWireContractTest {
     }
 
     @Test
+    fun `trip body carries the run's start time only when set`() {
+        assertEquals(
+            json.parseToJsonElement("""{"id":"1:T","serviceDate":"2026-10-07","startTime":"25:10:00"}"""),
+            json.encodeToJsonElement(
+                TripRequest.serializer(),
+                TripRequest(id = "1:T", serviceDate = "2026-10-07", startTime = "25:10:00"),
+            ),
+        )
+    }
+
+    @Test
     fun `PlanRequest with no filters omits modes and preferences`() {
         assertEquals(null, request.toModesInput(), "no allowedTransitModes ⇒ modes omitted")
         assertEquals(null, request.toPreferencesInput(), "no maxTransfers/wheelchair ⇒ preferences omitted")

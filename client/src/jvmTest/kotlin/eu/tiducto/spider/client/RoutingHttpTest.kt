@@ -693,7 +693,7 @@ class RoutingHttpTest {
         val tripError = assertIs<SpiderResult.Error>(routing.trip("1:T", "20260928")).error
         val estimatedError = assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-9-28", 3)).error
         val delaysError = assertIs<SpiderResult.Error>(
-            SpiderRealtime(gateway.baseUrl, "test-key").delays("2026-02-30", listOf("1:T")),
+            SpiderRealtime(gateway.baseUrl, "test-key").tripUpdates("2026-02-30", listOf("1:T")),
         ).error
 
         for (error in listOf(tripError, estimatedError, delaysError)) {
@@ -744,6 +744,39 @@ class RoutingHttpTest {
         val request = gateway.seen.single()
         assertEquals("GET", request.method)
         assertEquals("tripId=1%3AT+7&serviceDate=2026-09-28&stopPosition=3", request.query)
+    }
+
+    @Test
+    fun `trip and estimatedDelays send the run's start time only when it is set`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/trip" to json("""{"trip":null}"""),
+            "/routing/v1/estimated-delays" to json("""{"estimatedDelays":null}"""),
+        )
+
+        routing.trip("1:T", "2026-09-28", startTime = "8:10:00")
+        routing.estimatedDelays("1:T", "2026-09-28", 3, startTime = "25:10:00")
+        routing.estimatedDelays("1:T", "2026-09-28", 3)
+
+        assertEquals(
+            Json.parseToJsonElement("""{"id":"1:T","serviceDate":"2026-09-28","startTime":"8:10:00"}"""),
+            Json.parseToJsonElement(gateway.seen.first().body),
+        )
+        assertEquals(
+            listOf(
+                "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3&startTime=25%3A10%3A00",
+                "tripId=1%3AT&serviceDate=2026-09-28&stopPosition=3",
+            ),
+            gateway.seen.drop(1).map { it.query },
+        )
+    }
+
+    @Test
+    fun `a malformed start time is a BadRequest without a request`() = runBlocking<Unit> {
+        for (startTime in listOf("", "08:10", "08:10:60", "100:00:00")) {
+            assertBadRequest("startTime", assertIs<SpiderResult.Error>(routing.trip("1:T", "2026-09-28", startTime = startTime)).error, "invalid")
+            assertBadRequest("startTime", assertIs<SpiderResult.Error>(routing.estimatedDelays("1:T", "2026-09-28", 3, startTime)).error, "invalid")
+        }
+        assertEquals(emptyList(), gateway.seen.toList())
     }
 
     @Test

@@ -30,7 +30,7 @@ fun setupWithRetry() {
 
 suspend fun CoroutineScope.poll(client: SpiderClient, tripIds: List<String>, serviceDate: String) {
     while (isActive) {
-        when (val result = client.realtime.delays(serviceDate, tripIds)) {
+        when (val result = client.realtime.tripUpdates(serviceDate, tripIds)) {
             is SpiderResult.Success -> updateBoard(result.data)
             is SpiderResult.Error -> log("realtime poll failed: ${result.error}")
         }
@@ -73,16 +73,17 @@ suspend fun vehicleForTrip(client: SpiderClient, tripId: String, serviceDate: St
     }
 }
 
-suspend fun delays(client: SpiderClient, tripIds: List<String>, serviceDate: String) {
-    when (val result = client.realtime.delays(serviceDate, tripIds)) {
+suspend fun tripUpdates(client: SpiderClient, tripIds: List<String>, serviceDate: String) {
+    when (val result = client.realtime.tripUpdates(serviceDate, tripIds)) {
         is SpiderResult.Success ->
-            result.data.delays.forEach { delay ->
-                val seconds = delay.delaySeconds ?: return@forEach
+            result.data.tripUpdates.forEach { update ->
+                if (update.modifications.isNotEmpty()) println("${update.tripId}: detour")
+                val seconds = update.delaySeconds ?: return@forEach
                 val minutes = seconds / 60
-                println("${delay.tripId}: ${if (minutes >= 0) "+$minutes" else "$minutes"} min")
+                println("${update.tripId}: ${if (minutes >= 0) "+$minutes" else "$minutes"} min")
             }
         is SpiderResult.Error ->
-            println("Failed to load delays: ${result.error}")
+            println("Failed to load trip updates: ${result.error}")
     }
 }
 

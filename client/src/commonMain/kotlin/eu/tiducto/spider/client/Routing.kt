@@ -216,14 +216,21 @@ class SpiderRouting(
      * [Departure.serviceDate] or [Leg.serviceDate]). A malformed date returns [SpiderError.BadRequest] without a
      * request. [reliability] is the level [TripStop.typicalDelay] is given at; null leaves it null. The times
      * don't depend on it.
+     *
+     * [startTime] picks the run of a frequency-based trip (`frequencies.txt`) by its start time, the time it leaves
+     * the trip's first stop: a GTFS time `H:MM:SS` or `HH:MM:SS`, hours up to 99, the same value as
+     * [LiveVehicle.startTime] and [TripUpdate.startTime]. Null answers the trip's first run on [serviceDate]; a
+     * trip without frequencies has one run. A value of another form returns [SpiderError.BadRequest] without a
+     * request, and one no run starts at is answered as an unknown trip.
      */
     suspend fun trip(
         tripId: String,
         serviceDate: String,
         reliability: Reliability? = null,
+        startTime: String? = null,
     ): SpiderResult<TripDetails> = context(log) {
         spiderCall(tag = "SpiderRouting", message = { "trip failed against $baseUrl (tripId=$tripId)" }) {
-            routing.trip(tripId, serviceDate, reliability)
+            routing.trip(tripId, serviceDate, reliability, startTime)
         }
     }
 
@@ -236,14 +243,18 @@ class SpiderRouting(
      * [TripStop.typicalDelay] is null. For a trip without live realtime they equal [trip]'s
      * [TripStop.typicalDelay] at that level wherever that is not null. A level with no shift is zero. The result
      * is null when the trip id resolves to no trip, the stop position is not on the trip, or there is no history.
+     *
+     * [startTime] picks the run of a frequency-based trip as in [trip]; null answers the first run. A value of
+     * another form returns [SpiderError.BadRequest] without a request, and one no run starts at gives null.
      */
     suspend fun estimatedDelays(
         tripId: String,
         serviceDate: String,
         stopPosition: Int,
+        startTime: String? = null,
     ): SpiderResult<EstimatedDelays?> = context(log) {
         spiderCall(tag = "SpiderRouting", message = { "estimatedDelays failed against $baseUrl (tripId=$tripId)" }) {
-            routing.estimatedDelays(tripId, serviceDate, stopPosition)
+            routing.estimatedDelays(tripId, serviceDate, stopPosition, startTime)
         }
     }
 

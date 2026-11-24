@@ -19,8 +19,8 @@ import kotlinx.collections.immutable.persistentListOf
  *     is SpiderResult.Error -> Unit // keep the last known position
  * }
  *
- * // Delays for trips running on one service date (pass the leg's serviceDate through).
- * val delays = client.realtime.delays(serviceDate = "2026-09-22", tripIds = listOf("1:1012_7_260922"))
+ * // Trip updates for trips running on one service date (pass the leg's serviceDate through).
+ * val updates = client.realtime.tripUpdates(serviceDate = "2026-09-22", tripIds = listOf("1:1012_7_260922"))
  * ```
  */
 class SpiderRealtime(
@@ -46,17 +46,46 @@ class SpiderRealtime(
      * or [Departure.serviceDate] through). A run with no vehicle currently reporting returns a
      * [LiveVehicleUpdate] with a null [LiveVehicleUpdate.vehicle] — a normal state, not an error. A malformed date
      * returns [SpiderError.BadRequest] without a request.
+     *
+     * [startTime] picks the run of a frequency-based trip (`frequencies.txt`) by the start time the feed reports
+     * it with ([LiveVehicle.startTime]): a GTFS time `H:MM:SS` or `HH:MM:SS`, hours up to 99. Null answers the run
+     * with the earliest start time, so a trip that isn't frequency-based answers as without it. Any other value
+     * returns [SpiderError.BadRequest] without a request.
      */
-    suspend fun vehicleForTrip(tripId: String, serviceDate: String): SpiderResult<LiveVehicleUpdate> =
-        runCatchingRealtime("vehicleForTrip($tripId)") { realtime.vehicleForTrip(tripId, serviceDate) }
+    suspend fun vehicleForTrip(
+        tripId: String,
+        serviceDate: String,
+        startTime: String? = null,
+    ): SpiderResult<LiveVehicleUpdate> =
+        runCatchingRealtime("vehicleForTrip($tripId)") { realtime.vehicleForTrip(tripId, serviceDate, startTime) }
+
+    /**
+     * Live trip updates for [tripIds] running on one GTFS [serviceDate] (`YYYY-MM-DD`), one [TripUpdate] per trip
+     * run: its delay, its stop-time updates and the [TripUpdate.modifications] (detours) that select it. Pass the
+     * [Leg.serviceDate] or [Departure.serviceDate] through, and the trip ids exactly as routing returns them
+     * (`<feedId>:<id>`). A frequency-based trip has one item per live run, told apart by [TripUpdate.startTime].
+     * Trips on several dates take one call per date. Duplicate ids are sent once and the ids are sent sorted, so
+     * equal calls share one cached response. No ids, a blank id, more than 50 distinct ids or a malformed date
+     * returns [SpiderError.BadRequest] without a request. The successor of [delays].
+     */
+    suspend fun tripUpdates(serviceDate: String, tripIds: List<String>): SpiderResult<TripUpdates> =
+        runCatchingRealtime("tripUpdates(${tripIds.size})") { realtime.tripUpdates(serviceDate, tripIds) }
 
     /**
      * Live delays for [tripIds] running on one GTFS [serviceDate] (`YYYY-MM-DD`); pass the [Leg.serviceDate] or
      * [Departure.serviceDate] through, and the trip ids exactly as routing returns them (`<feedId>:<id>`). Trips
      * on several dates take one call per date. Duplicate ids are sent once and the ids are sent sorted, so equal
      * calls share one cached response. No ids, a blank id, more than 50 distinct ids or a malformed date returns
-     * [SpiderError.BadRequest] without a request.
+     * [SpiderError.BadRequest] without a request. A frequency-based trip answers its run with the earliest start
+     * time; [tripUpdates] lists every run.
+     *
+     * Deprecated with the API's `GET /realtime/v1/delays` in contract 1.10, which keeps working until it is
+     * retired with notice, not before 2027-05-24.
      */
+    @Deprecated(
+        "Use tripUpdates, which answers every trip run with its trip modifications; /realtime/v1/delays retires no earlier than 2027-05-24.",
+        ReplaceWith("tripUpdates(serviceDate, tripIds)"),
+    )
     suspend fun delays(serviceDate: String, tripIds: List<String>): SpiderResult<TripDelays> =
         runCatchingRealtime("delays(${tripIds.size})") { realtime.delays(serviceDate, tripIds) }
 
@@ -96,6 +125,13 @@ data class FeedFreshness(
  * `VehicleStopStatus` string (`INCOMING_AT` / `STOPPED_AT` / `IN_TRANSIT_TO`), passed through
  * unchanged so a producer's newer values still surface. [serviceDate] is the GTFS service date (`YYYY-MM-DD`) of
  * the trip run the vehicle is on.
+ *
+ * [startTime] is the run's start time as the feed's GTFS-RT `start_time` gives it (`HH:MM:SS`, may exceed
+ * `24:00:00`); it tells apart the runs of a frequency-based trip, and is null when the feed gives none.
+ * [wheelchairAccessible], [airConditioning], [wifi] and [cardPayment] describe the vehicle the feed reports for
+ * the trip, each null when the feed doesn't say. [wheelchairAccessible] maps GTFS-RT
+ * `VehicleDescriptor.WheelchairAccessible`: `WHEELCHAIR_ACCESSIBLE` is [WheelchairBoarding.POSSIBLE],
+ * `WHEELCHAIR_INACCESSIBLE` [WheelchairBoarding.NOT_POSSIBLE], and `UNKNOWN` (no information) null.
  */
 data class LiveVehicle(
     val tripId: String,
@@ -111,6 +147,11 @@ data class LiveVehicle(
     val currentStatus: String?,
     val occupancy: OccupancyStatus?,
     val timestamp: Instant?,
+    val startTime: String? = null,
+    val wheelchairAccessible: WheelchairBoarding? = null,
+    val airConditioning: Boolean? = null,
+    val wifi: Boolean? = null,
+    val cardPayment: Boolean? = null,
 )
 
 /**
@@ -197,6 +238,86 @@ data class TripDelays(
 ) {
     /** The delay for [tripId] on [serviceDate], if the feed reported one. */
     fun delayFor(tripId: String): TripDelay? = delays.firstOrNull { it.tripId == tripId }
+}
+
+/**
+ * Live update for one trip run, from [SpiderRealtime.tripUpdates]. [tripId] and [routeId] are feed-prefixed
+ * (`<feedId>:<id>`). [startTime] is the run's GTFS-RT `start_time` (`HH:MM:SS`, may exceed `24:00:00`), which
+ * tells apart the runs of a frequency-based trip; null when the feed gives none. [delaySeconds] is the trip-level
+ * delay (positive = late), null when the updates give only absolute times; [scheduleRelationship] is the raw
+ * GTFS-RT value (`SCHEDULED` / `CANCELED` / …). A run that only [modifications] select has empty
+ * [stopTimeUpdates] and null [routeId], [delaySeconds] and [scheduleRelationship].
+ *
+ * [modifications] is **experimental**, as GTFS-RT `TripModifications` is: the detours that apply to this run, in
+ * feed order, their delays accumulating along the trip; empty when none applies. Its shape may change in a
+ * minor version as the GTFS-RT spec settles.
+ */
+data class TripUpdate(
+    val tripId: String,
+    val startTime: String?,
+    val routeId: String?,
+    val delaySeconds: Int?,
+    val scheduleRelationship: String?,
+    val stopTimeUpdates: ImmutableList<StopTimeUpdate>,
+    val modifications: ImmutableList<TripModification>,
+)
+
+/**
+ * **Experimental**, as GTFS-RT `TripModifications.Modification`: a span of the trip's stop times, from [startStop]
+ * to [endStop] inclusive, replaced by [replacementStops]. [id] is the feed-prefixed id of the entity holding the
+ * modifications. [startTimes] are the runs of a frequency-based trip it applies to; empty when it applies to every
+ * run. [endStop] is null when no stop time is replaced. [propagatedModificationDelay] is the seconds added to every
+ * arrival and departure after the modification. [alertId] is the feed-prefixed id of the [ServiceAlert] describing
+ * it. [shape] is the modified trip's path, empty when the feed has no realtime shape for it.
+ */
+data class TripModification(
+    val id: String,
+    val startTimes: ImmutableList<String>,
+    val startStop: StopSelector?,
+    val endStop: StopSelector?,
+    val replacementStops: ImmutableList<ReplacementStop>,
+    val propagatedModificationDelay: Int,
+    val alertId: String?,
+    val lastModifiedTime: Instant?,
+    val shape: ImmutableList<LatLon>,
+)
+
+/** **Experimental**, as GTFS-RT `StopSelector`: an original stop time of the trip, by [stopSequence] and/or [stopId]. */
+data class StopSelector(
+    val stopSequence: Int?,
+    val stopId: String?,
+)
+
+/**
+ * **Experimental**, as GTFS-RT `ReplacementStop`: a stop a modified trip visits. [stopId] is feed-prefixed.
+ * [travelTimeToStop] is the seconds from the arrival at the stop before [TripModification.startStop] to the arrival
+ * here. [name], [latitude] and [longitude] are set only for a stop the feed defines in realtime; a static stop is
+ * found through stop search.
+ */
+data class ReplacementStop(
+    val stopId: String?,
+    val travelTimeToStop: Int?,
+    val name: String?,
+    val latitude: Double?,
+    val longitude: Double?,
+)
+
+/**
+ * Result of [SpiderRealtime.tripUpdates] for one [serviceDate]: one [TripUpdate] per trip run, in order of
+ * [TripUpdate.startTime] within a trip (a run without one first), the [missing] trip ids with neither a live update
+ * nor a trip modification (exactly as sent), and feed freshness.
+ */
+data class TripUpdates(
+    val serviceDate: String,
+    val tripUpdates: ImmutableList<TripUpdate>,
+    val missing: ImmutableList<String>,
+    val freshness: FeedFreshness,
+) {
+    /** Every run of [tripId] the feed reported, in order of [TripUpdate.startTime]. */
+    fun updatesFor(tripId: String): List<TripUpdate> = tripUpdates.filter { it.tripId == tripId }
+
+    /** The first run of [tripId] the feed reported (the one [SpiderRealtime.delays] answers), if any. */
+    fun updateFor(tripId: String): TripUpdate? = tripUpdates.firstOrNull { it.tripId == tripId }
 }
 
 /**

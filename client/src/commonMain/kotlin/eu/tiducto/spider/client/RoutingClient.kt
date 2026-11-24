@@ -205,9 +205,15 @@ internal class RoutingClient(
     }
 
     /** [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD". */
-    suspend fun trip(tripId: String, serviceDate: String, reliability: Reliability?): TripDetails {
+    suspend fun trip(tripId: String, serviceDate: String, reliability: Reliability?, startTime: String? = null): TripDetails {
         requireServiceDate(serviceDate)
-        val body = TripRequest(id = tripId, serviceDate = serviceDate, reliability = reliability?.toWire())
+        requireStartTime(startTime)
+        val body = TripRequest(
+            id = tripId,
+            serviceDate = serviceDate,
+            startTime = startTime,
+            reliability = reliability?.toWire(),
+        )
         val trip = postJson<TripRequest, TripResponse>(TRIP, body).trip
             ?: throw SpiderTransportException.NoData("routing returned no trip for id=$tripId")
 
@@ -256,12 +262,19 @@ internal class RoutingClient(
 
     // Null is the API's answer for an unknown trip, a stop position off the trip, or no history. Entries are
     // matched by level; a level that is missing or repeated is a malformed body.
-    suspend fun estimatedDelays(tripId: String, serviceDate: String, stopPosition: Int): EstimatedDelays? {
+    suspend fun estimatedDelays(
+        tripId: String,
+        serviceDate: String,
+        stopPosition: Int,
+        startTime: String? = null,
+    ): EstimatedDelays? {
         requireServiceDate(serviceDate)
+        requireStartTime(startTime)
         val entries = getJson<EstimatedDelaysResponse>(ESTIMATED_DELAYS) {
             parameter("tripId", tripId)
             parameter("serviceDate", serviceDate)
             parameter("stopPosition", stopPosition)
+            parameter("startTime", startTime)
         }.estimatedDelays ?: return null
 
         fun at(level: WireReliability): Duration =
