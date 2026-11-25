@@ -196,6 +196,47 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `preferences ride every plan call and every continuation`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/plan" to json(
+                """{"itineraries":[],"pageInfo":{"hasNextPage":true,"hasPreviousPage":true,"startCursor":"c-prev","endCursor":"c-next"},"routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
+            ),
+            "/routing/v1/plan-stream" to emptyDone,
+        )
+        val preferences = RoutePreferences(walkSpeed = 1.0, transferSlack = 3.minutes, excludedRoutes = setOf("1:L4"))
+        val (a, b) = Location.Stop("1:A") to Location.Stop("1:B")
+
+        val first = assertIs<SpiderResult.Success<Route>>(routing.plan(a, b, preferences = preferences)).data
+        routing.planNext(first)
+        routing.planPrevious(first)
+        routing.planStream(a, b, targetResults = 5, maxWindow = 2.hours, preferences = preferences).toList()
+        routing.planStreamNext(a, b, targetResults = 5, maxWindow = 2.hours, after = "c-next", preferences = preferences).toList()
+        routing.planStreamPrevious(a, b, targetResults = 5, maxWindow = 2.hours, before = "c-prev", preferences = preferences).toList()
+        routing.plan(a, b)
+
+        val expected = Json.parseToJsonElement(
+            """{"street":{"walk":{"speed":1.0}},"transit":{"transfer":{"slack":"PT3M"},"filters":[{"exclude":[{"routes":["1:L4"]}]}]}}""",
+        )
+        assertEquals(List(6) { expected } + null, bodies().map { it["preferences"] })
+    }
+
+    @Test
+    fun `a preference out of range fails plan and planStream without a request`() = runBlocking<Unit> {
+        val preferences = RoutePreferences(boardSlack = 2.hours)
+
+        val plan = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), preferences = preferences))
+        val stream = assertIs<PlanStreamEvent.Failure>(
+            routing.planStream(
+                Location.Stop("1:A"), Location.Stop("1:B"), targetResults = 5, maxWindow = 2.hours, preferences = preferences,
+            ).toList().single(),
+        )
+
+        assertBadRequest("preferences.transit.board.slack", plan.error)
+        assertBadRequest("preferences.transit.board.slack", stream.error)
+        assertEquals(emptyList(), gateway.seen.toList())
+    }
+
+    @Test
     fun `excluded transit modes ride every plan call and every continuation`() = runBlocking<Unit> {
         gateway.replies = mapOf(
             "/routing/v1/plan" to json(

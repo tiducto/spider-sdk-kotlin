@@ -22,8 +22,9 @@ class SpiderRouting(
      * One page of itineraries. [allowedTransitModes] restricts routing to those modes, and [excludedTransitModes]
      * keeps it off those modes while every other mode, including one the API adds later, stays usable. Use one of
      * them: both non-empty returns [SpiderError.BadRequest] for `modes.transit` without a request. Null or empty
-     * means no filter, and [TransitMode.WALK] and [TransitMode.UNKNOWN] are ignored in either. [planNext] and
-     * [planPrevious] resend the same filters.
+     * means no filter, and [TransitMode.WALK] and [TransitMode.UNKNOWN] are ignored in either. [preferences] tunes
+     * walking, transfers and boarding and leaves out routes or agencies; null keeps the environment's defaults.
+     * [planNext] and [planPrevious] resend the same filters and preferences.
      */
     suspend fun plan(
         origin: Location,
@@ -36,10 +37,12 @@ class SpiderRouting(
         wheelchairAccessible: Boolean = false,
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
+        preferences: RoutePreferences? = null,
     ): SpiderResult<Route> = page(
         PlanRequest(
             origin, destination, time, via,
             allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible, reliability, excludedTransitModes,
+            preferences,
         ),
     )
 
@@ -86,7 +89,8 @@ class SpiderRouting(
      * environment's search-window limit. Both are required. A [maxWindow] under 2 hours ends the stream in a
      * [PlanStreamEvent.Failure] with [SpiderError.BadRequest] before any request; the API rejects values over
      * the environment's limits the same way. [reliability] plans arrivals with typical delays, and
-     * [allowedTransitModes] / [excludedTransitModes] filter modes, as in [plan]; a continuation must repeat them.
+     * [allowedTransitModes] / [excludedTransitModes] filter modes and [preferences] tunes the search, as in [plan];
+     * a continuation must repeat them, since its cursor carries only the time and the window it continues.
      *
      * To continue, call [planStreamNext] with `after` = [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor]
      * (or [planStreamPrevious] with `before` = [RoutePageInfo.startCursor] to walk earlier). For a single
@@ -104,9 +108,11 @@ class SpiderRouting(
         maxWindow: Duration,
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
+        preferences: RoutePreferences? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, before = null, after = null,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences,
+        before = null, after = null,
     )
 
     /**
@@ -127,9 +133,11 @@ class SpiderRouting(
         after: String,
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
+        preferences: RoutePreferences? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, before = null, after = after,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences,
+        before = null, after = after,
     )
 
     /**
@@ -150,9 +158,11 @@ class SpiderRouting(
         before: String,
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
+        preferences: RoutePreferences? = null,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, before = before, after = null,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences,
+        before = before, after = null,
     )
 
     private fun stream(
@@ -167,6 +177,7 @@ class SpiderRouting(
         maxWindow: Duration,
         reliability: Reliability?,
         excludedTransitModes: Set<TransitMode>?,
+        preferences: RoutePreferences?,
         before: String?,
         after: String?,
     ): Flow<PlanStreamEvent> = routing.planConnectionStream(
@@ -180,6 +191,7 @@ class SpiderRouting(
             wheelchairAccessible = wheelchairAccessible,
             reliability = reliability,
             excludedTransitModes = excludedTransitModes,
+            preferences = preferences,
         ),
         targetResults = targetResults,
         maxWindow = maxWindow,
@@ -326,6 +338,41 @@ data class PlanRequest(
     // empty both mean "no filter"; WALK/UNKNOWN drop out. An alternative to allowedTransitModes: both non-empty is
     // BadRequest for modes.transit without a request.
     val excludedTransitModes: Set<TransitMode>? = null,
+    // null keeps every one of the environment's routing defaults.
+    val preferences: RoutePreferences? = null,
+)
+
+/**
+ * Optional routing preferences for [SpiderRouting.plan] and [SpiderRouting.planStream]. Each member left null keeps
+ * the environment's default, so `RoutePreferences()` asks for nothing. A value outside its range returns
+ * [SpiderError.BadRequest] for the member's contract path (such as `preferences.street.walk.speed`) without a
+ * request; the API never clamps one. The API rounds the multipliers and the walking speed to its own steps.
+ *
+ * [walkSpeed] is the walking speed on flat ground in metres per second, at least 0.1. [walkReluctance] is how much
+ * worse walking is than riding for the same time, a multiplier from 0.1 to 100000: above the default it walks less.
+ * [boardCost] is a generalized cost added for each boarding and [transferCost] one added for each transfer, each from
+ * 0 to 1000000: higher favours fewer rides. [waitReluctance] is how much worse waiting at a stop is than riding for
+ * the same time, from 0.1 to 100000: above the default it rather walks on than waits.
+ *
+ * [transferSlack] is the least time between alighting one vehicle and boarding the next, on top of the walk between
+ * the stops; [boardSlack] the least time at the stop before boarding; [alightSlack] the least time needed to
+ * alight. Each is from zero to 1 hour.
+ *
+ * [excludedRoutes] and [excludedAgencies] leave out every trip of those feed-prefixed route or agency ids
+ * (`<feedId>:<id>`; a route id as [Leg.routeGtfsId] and [Departure.routeGtfsId] give it). An id the environment's feed
+ * doesn't know excludes nothing, and null or empty excludes nothing.
+ */
+data class RoutePreferences(
+    val walkSpeed: Double? = null,
+    val walkReluctance: Double? = null,
+    val boardCost: Int? = null,
+    val transferCost: Int? = null,
+    val transferSlack: Duration? = null,
+    val waitReluctance: Double? = null,
+    val boardSlack: Duration? = null,
+    val alightSlack: Duration? = null,
+    val excludedRoutes: Set<String>? = null,
+    val excludedAgencies: Set<String>? = null,
 )
 
 /**
