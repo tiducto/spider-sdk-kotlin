@@ -518,6 +518,8 @@ internal fun PlanRequest.toPlanTripRequest(before: String?, after: String?): Pla
         via = toViaInputs(),
         modes = toModesInput(),
         preferences = toPreferencesInput(),
+        first = numberOfItineraries.takeIf { before == null },
+        last = numberOfItineraries.takeIf { before != null },
         before = before,
         after = after,
         reliability = reliability?.toWire(),
@@ -570,8 +572,9 @@ internal fun PlanRequest.toModesInput(): PlanModesInput? {
     val exclude = excludedTransitModes.toWireTransitModes()
     // The API refuses both lists in one request; refuse it here, before the request, with the API's own field.
     if (transit != null && exclude != null) throw SpiderTransportException.BadRequest(MODES_TRANSIT, "$MODES_TRANSIT is invalid")
-    if (transit == null && exclude == null) return null
-    return PlanModesInput(transit = PlanTransitModesInput(transit = transit, exclude = exclude))
+    val transitModes = if (transit == null && exclude == null) null else PlanTransitModesInput(transit = transit, exclude = exclude)
+    if (transitModes == null && !transitOnly) return null
+    return PlanModesInput(transitOnly = transitOnly.takeIf { it }, transit = transitModes)
 }
 
 private const val MODES_TRANSIT = "modes.transit"

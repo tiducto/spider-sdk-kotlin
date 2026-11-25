@@ -357,6 +357,44 @@ class RoutingWireContractTest {
     }
 
     @Test
+    fun `transitOnly sends modes transitOnly beside the mode filters and nothing when false`() {
+        fun modesOf(planned: PlanRequest) = listOf(
+            encode(planned.toPlanTripRequest(before = null, after = null))["modes"],
+            json.encodeToJsonElement(
+                PlanStreamRequest.serializer(),
+                planned.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null),
+            ).jsonObject["modes"],
+        )
+
+        val only = json.parseToJsonElement("""{ "transitOnly": true }""")
+        assertEquals(listOf(only, only), modesOf(request.copy(transitOnly = true)))
+        val withExclusion = json.parseToJsonElement("""{ "transitOnly": true, "transit": { "exclude": ["TRAM"] } }""")
+        assertEquals(
+            listOf(withExclusion, withExclusion),
+            modesOf(request.copy(transitOnly = true, excludedTransitModes = setOf(TransitMode.TRAM))),
+        )
+        assertEquals(listOf(null, null), modesOf(request.copy(transitOnly = false)))
+        assertEquals(
+            encode(request.toPlanTripRequest(before = null, after = null)),
+            encode(request.copy(transitOnly = false).toPlanTripRequest(before = null, after = null)),
+        )
+    }
+
+    @Test
+    fun `numberOfItineraries is first on the first page and after a cursor and last before one`() {
+        val sized = request.copy(numberOfItineraries = 3)
+        fun countsOf(body: PlanTripRequest) = encode(body).let { it["first"] to it["last"] }
+        val three = json.parseToJsonElement("3")
+
+        assertEquals(three to null, countsOf(sized.toPlanTripRequest(before = null, after = null)))
+        assertEquals(three to null, countsOf(sized.toPlanTripRequest(before = null, after = "c-next")))
+        assertEquals(null to three, countsOf(sized.toPlanTripRequest(before = "c-prev", after = null)))
+        for ((before, after) in listOf(null to null, null to "c-next", "c-prev" to null)) {
+            assertEquals(null to null, countsOf(request.toPlanTripRequest(before = before, after = after)))
+        }
+    }
+
+    @Test
     fun `PlanRequest with no filters omits modes and preferences`() {
         assertEquals(null, request.toModesInput(), "no allowedTransitModes ⇒ modes omitted")
         assertEquals(null, request.toPreferencesInput(), "no maxTransfers/wheelchair ⇒ preferences omitted")

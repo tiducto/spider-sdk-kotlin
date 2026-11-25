@@ -24,7 +24,10 @@ class SpiderRouting(
      * them: both non-empty returns [SpiderError.BadRequest] for `modes.transit` without a request. Null or empty
      * means no filter, and [TransitMode.WALK] and [TransitMode.UNKNOWN] are ignored in either. [preferences] tunes
      * walking, transfers and boarding and leaves out routes or agencies; null keeps the environment's defaults.
-     * [planNext] and [planPrevious] resend the same filters and preferences.
+     * [transitOnly] leaves out every itinerary without a transit leg, such as walking the whole way.
+     * [numberOfItineraries] is how many itineraries the page holds at most, from 1 up to the environment's itinerary
+     * limit; null means the limit. The API rejects a value out of range, never clamps it.
+     * [planNext] and [planPrevious] resend the same filters, preferences, [transitOnly] and [numberOfItineraries].
      */
     suspend fun plan(
         origin: Location,
@@ -38,27 +41,39 @@ class SpiderRouting(
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
         preferences: RoutePreferences? = null,
+        transitOnly: Boolean = false,
+        numberOfItineraries: Int? = null,
     ): SpiderResult<Route> = page(
         PlanRequest(
             origin, destination, time, via,
             allowedTransitModes, maxTransfers, searchWindow, wheelchairAccessible, reliability, excludedTransitModes,
-            preferences,
+            preferences, transitOnly, numberOfItineraries,
         ),
     )
 
     /**
      * Plans the next window of itineraries (later departures). Returns null if no next window is available.
+     * [numberOfItineraries] sizes this page as in [plan]; it defaults to the one [prev] was asked with, and the
+     * pages after this one keep it.
      */
-    suspend fun planNext(prev: Route): SpiderResult<Route>? =
+    suspend fun planNext(
+        prev: Route,
+        numberOfItineraries: Int? = prev.request.numberOfItineraries,
+    ): SpiderResult<Route>? =
         if (!prev.pageInfo.hasNextPage) null
-        else page(prev.request, after = prev.pageInfo.endCursor)
+        else page(prev.request.copy(numberOfItineraries = numberOfItineraries), after = prev.pageInfo.endCursor)
 
     /**
      * Plans the previous window of itineraries (earlier departures). Returns null if no previous window is available.
+     * [numberOfItineraries] sizes this page as in [plan]; it defaults to the one [prev] was asked with, and the
+     * pages before this one keep it.
      */
-    suspend fun planPrevious(prev: Route): SpiderResult<Route>? =
+    suspend fun planPrevious(
+        prev: Route,
+        numberOfItineraries: Int? = prev.request.numberOfItineraries,
+    ): SpiderResult<Route>? =
         if (!prev.pageInfo.hasPreviousPage) null
-        else page(prev.request, before = prev.pageInfo.startCursor)
+        else page(prev.request.copy(numberOfItineraries = numberOfItineraries), before = prev.pageInfo.startCursor)
 
     // Cursor paging only — no page-size count. Each page is one search window, holding at most the
     // environment's result count; `before`/`after` walk the windows.
@@ -89,7 +104,8 @@ class SpiderRouting(
      * environment's search-window limit. Both are required. A [maxWindow] under 2 hours ends the stream in a
      * [PlanStreamEvent.Failure] with [SpiderError.BadRequest] before any request; the API rejects values over
      * the environment's limits the same way. [reliability] plans arrivals with typical delays, and
-     * [allowedTransitModes] / [excludedTransitModes] filter modes and [preferences] tunes the search, as in [plan];
+     * [allowedTransitModes] / [excludedTransitModes] filter modes, [transitOnly] leaves out itineraries without a
+     * transit leg and [preferences] tunes the search, as in [plan];
      * a continuation must repeat them, since its cursor carries only the time and the window it continues.
      *
      * To continue, call [planStreamNext] with `after` = [PlanStreamEvent.Done]'s [RoutePageInfo.endCursor]
@@ -109,9 +125,10 @@ class SpiderRouting(
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
         preferences: RoutePreferences? = null,
+        transitOnly: Boolean = false,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences, transitOnly,
         before = null, after = null,
     )
 
@@ -134,9 +151,10 @@ class SpiderRouting(
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
         preferences: RoutePreferences? = null,
+        transitOnly: Boolean = false,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences, transitOnly,
         before = null, after = after,
     )
 
@@ -159,9 +177,10 @@ class SpiderRouting(
         reliability: Reliability? = null,
         excludedTransitModes: Set<TransitMode>? = null,
         preferences: RoutePreferences? = null,
+        transitOnly: Boolean = false,
     ): Flow<PlanStreamEvent> = stream(
         origin, destination, time, via, allowedTransitModes, maxTransfers,
-        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences,
+        wheelchairAccessible, targetResults, maxWindow, reliability, excludedTransitModes, preferences, transitOnly,
         before = before, after = null,
     )
 
@@ -178,6 +197,7 @@ class SpiderRouting(
         reliability: Reliability?,
         excludedTransitModes: Set<TransitMode>?,
         preferences: RoutePreferences?,
+        transitOnly: Boolean,
         before: String?,
         after: String?,
     ): Flow<PlanStreamEvent> = routing.planConnectionStream(
@@ -192,6 +212,7 @@ class SpiderRouting(
             reliability = reliability,
             excludedTransitModes = excludedTransitModes,
             preferences = preferences,
+            transitOnly = transitOnly,
         ),
         targetResults = targetResults,
         maxWindow = maxWindow,
@@ -340,6 +361,11 @@ data class PlanRequest(
     val excludedTransitModes: Set<TransitMode>? = null,
     // null keeps every one of the environment's routing defaults.
     val preferences: RoutePreferences? = null,
+    // true leaves out every itinerary without a transit leg. Sent as modes.transitOnly only when true.
+    val transitOnly: Boolean = false,
+    // The most itineraries a plan() page holds, 1 up to the environment's limit; null = the limit. Sent as `first`
+    // on the first page and after a cursor, as `last` before one. Not used by planStream (targetResults).
+    val numberOfItineraries: Int? = null,
 )
 
 /**
