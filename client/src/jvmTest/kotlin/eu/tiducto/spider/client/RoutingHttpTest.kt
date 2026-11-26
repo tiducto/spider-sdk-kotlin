@@ -276,7 +276,7 @@ class RoutingHttpTest {
             ),
             "/routing/v1/plan-stream" to emptyDone,
         )
-        val preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 0.8, TransitMode.BUS to 1.5))
+        val preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 1.0, TransitMode.BUS to 1.5))
         val excluded = setOf(TransitMode.RAIL)
         val (a, b) = Location.Stop("1:A") to Location.Stop("1:B")
 
@@ -295,7 +295,7 @@ class RoutingHttpTest {
         routing.plan(a, b)
 
         val expected = Json.parseToJsonElement(
-            """{"transit":{"exclude":["RAIL"],"costs":[{"mode":"BUS","reluctance":1.5},{"mode":"TRAM","reluctance":0.8}]}}""",
+            """{"transit":{"exclude":["RAIL"],"costs":[{"mode":"BUS","reluctance":1.5},{"mode":"TRAM","reluctance":1.0}]}}""",
         )
         assertEquals(List(6) { expected } + null, bodies().map { it["modes"] })
         assertEquals(List(7) { null }, bodies().map { it["preferences"] })
@@ -303,7 +303,7 @@ class RoutingHttpTest {
 
     @Test
     fun `a mode reluctance out of range fails plan and planStream without a request`() = runBlocking<Unit> {
-        val preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 0.01))
+        val preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 0.99))
 
         val plan = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), preferences = preferences))
         val stream = assertIs<PlanStreamEvent.Failure>(

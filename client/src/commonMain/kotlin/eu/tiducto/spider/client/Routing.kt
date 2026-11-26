@@ -396,11 +396,11 @@ data class PlanRequest(
  * [SpiderError.BadRequest] for the member's contract path (such as `preferences.street.walk.speed`) without a
  * request; the API never clamps one. The API rounds the multipliers and the walking speed to its own steps.
  *
- * [walkSpeed] is the walking speed on flat ground in metres per second, at least 0.1. [walkReluctance] is how much
- * worse walking is than riding for the same time, a multiplier from 0.1 to 100000: above the default it walks less.
+ * [walkSpeed] is the walking speed on flat ground in metres per second, from 0.3 to 5. [walkReluctance] is how much
+ * worse walking is than riding for the same time, a multiplier from 1 to 100: above the default it walks less.
  * [boardCost] is a generalized cost added for each boarding and [transferCost] one added for each transfer, each from
- * 0 to 1000000: higher favours fewer rides. [waitReluctance] is how much worse waiting at a stop is than riding for
- * the same time, from 0.1 to 100000: above the default it rather walks on than waits.
+ * 0 to 86400: higher favours fewer rides. [waitReluctance] is how much worse waiting at a stop is than riding for
+ * the same time, from 1 to 100: above the default it rather walks on than waits.
  *
  * [transferSlack] is the least time between alighting one vehicle and boarding the next, on top of the walk between
  * the stops; [boardSlack] the least time at the stop before boarding; [alightSlack] the least time needed to
@@ -410,8 +410,8 @@ data class PlanRequest(
  * (`<feedId>:<id>`; a route id as [Leg.routeGtfsId] and [Departure.routeGtfsId] give it). An id the environment's feed
  * doesn't know excludes nothing, and null or empty excludes nothing.
  *
- * [modeReluctance] is how much worse riding each listed mode is than riding for the same time, a multiplier from 0.1
- * to 100000: above 1 avoids the mode, below 1 favours it, and a mode not listed keeps 1. It restricts no mode, and a
+ * [modeReluctance] is how much worse riding each listed mode is than riding for the same time, a multiplier from 1
+ * to 100: 1 rides the mode as any other, above 1 avoids it, and a mode not listed keeps 1. It restricts no mode, and a
  * mode in [PlanRequest.excludedTransitModes] stays excluded. Without [PlanRequest.allowedTransitModes] it is sent as
  * `modes.transit.costs`, in [TransitMode] order; with them, each allowed mode's reluctance goes on its own
  * `modes.transit.transit[].cost.reluctance`, and a mode that isn't allowed drops out. A value out of range returns
