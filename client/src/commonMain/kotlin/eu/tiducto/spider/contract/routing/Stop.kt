@@ -9,5 +9,7 @@ internal data class Stop(
     /** Null when the feed has none. */
     val platformCode: String?,
     /** Null when the feed has none. */
-    val zoneId: String?
+    val zoneId: String?,
+    /** The station this stop belongs to, as OTP's `Stop.parentStation`; null when the stop has none. */
+    val parentStation: ParentStation?
 )

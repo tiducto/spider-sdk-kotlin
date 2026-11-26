@@ -481,4 +481,115 @@ class RoutingWireContractTest {
         assertEquals("1:L1", trip.route.gtfsId)
         assertNull(json.decodeFromString(TripResponse.serializer(), """{"trip":null}""").trip)
     }
+
+    private fun modesOf(planned: PlanRequest) = listOf(
+        encode(planned.toPlanTripRequest(before = null, after = null))["modes"],
+        json.encodeToJsonElement(
+            PlanStreamRequest.serializer(),
+            planned.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null),
+        ).jsonObject["modes"],
+    )
+
+    @Test
+    fun `mode reluctance is sent as costs beside exclude in TransitMode order`() {
+        val planned = request.copy(
+            excludedTransitModes = setOf(TransitMode.RAIL),
+            preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TROLLEYBUS to 0.9, TransitMode.BUS to 1.5, TransitMode.RAIL to 2.5)),
+        )
+
+        val expected = json.parseToJsonElement(
+            """{ "transit": { "exclude": ["RAIL"], "costs": [
+              { "mode": "BUS", "reluctance": 1.5 }, { "mode": "TROLLEYBUS", "reluctance": 0.9 }, { "mode": "RAIL", "reluctance": 2.5 }
+            ] } }""",
+        )
+        assertEquals(listOf(expected, expected), modesOf(planned))
+    }
+
+    @Test
+    fun `mode reluctance alone is sent as costs without the street and unknown modes`() {
+        val planned = request.copy(
+            preferences = RoutePreferences(
+                modeReluctance = mapOf(TransitMode.TRAM to 0.5, TransitMode.WALK to 3.0, TransitMode.UNKNOWN to 2.0),
+            ),
+        )
+
+        val expected = json.parseToJsonElement("""{ "transit": { "costs": [ { "mode": "TRAM", "reluctance": 0.5 } ] } }""")
+        assertEquals(listOf(expected, expected), modesOf(planned))
+        assertNull(encode(planned.toPlanTripRequest(before = null, after = null))["preferences"])
+    }
+
+    @Test
+    fun `mode reluctance folds into an allow-list and drops the modes it does not allow`() {
+        val planned = request.copy(
+            allowedTransitModes = setOf(TransitMode.BUS, TransitMode.TRAM),
+            preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 0.9, TransitMode.RAIL to 5.0)),
+        )
+
+        val expected = json.parseToJsonElement(
+            """{ "transit": { "transit": [ { "mode": "BUS" }, { "mode": "TRAM", "cost": { "reluctance": 0.9 } } ] } }""",
+        )
+        assertEquals(listOf(expected, expected), modesOf(planned))
+    }
+
+    @Test
+    fun `a null or empty mode reluctance sends no costs`() {
+        for (reluctance in listOf(null, emptyMap(), mapOf(TransitMode.WALK to 2.0))) {
+            val planned = request.copy(preferences = RoutePreferences(modeReluctance = reluctance))
+            assertEquals(listOf(null, null), modesOf(planned), "$reluctance")
+            assertEquals(
+                encode(request.toPlanTripRequest(before = null, after = null)),
+                encode(planned.toPlanTripRequest(before = null, after = null)),
+            )
+            val excluding = json.parseToJsonElement("""{ "transit": { "exclude": ["TRAM"] } }""")
+            assertEquals(
+                listOf(excluding, excluding),
+                modesOf(planned.copy(excludedTransitModes = setOf(TransitMode.TRAM))),
+                "$reluctance beside an exclusion",
+            )
+        }
+    }
+
+    @Test
+    fun `a mode reluctance out of range is rejected with its path before any body is built`() {
+        val outOfRange = listOf(0.09, 100_001.0, 0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)
+        val allowed = setOf(TransitMode.BUS)
+        for (value in outOfRange) {
+            for ((planned, field) in listOf(
+                request.copy(preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to value))) to
+                    "modes.transit.costs.reluctance",
+                request.copy(
+                    allowedTransitModes = allowed,
+                    preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.BUS to value)),
+                ) to "modes.transit.transit.cost.reluctance",
+            )) {
+                val plan = assertFailsWith<SpiderTransportException.BadRequest> { planned.toPlanTripRequest(before = null, after = null) }
+                val stream = assertFailsWith<SpiderTransportException.BadRequest> {
+                    planned.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null)
+                }
+                for (error in listOf(plan, stream)) {
+                    assertEquals(field, error.field, "$value")
+                    assertEquals("$field is out of range", error.message)
+                }
+            }
+        }
+        for (value in listOf(0.1, 100_000.0)) {
+            request.copy(preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to value)))
+                .toPlanTripRequest(before = null, after = null)
+        }
+    }
+
+    @Test
+    fun `stops and departures decode their parent station and null without one`() {
+        val board = json.decodeFromString(
+            DeparturesResponse.serializer(),
+            """{"stop":{"gtfsId":"1:S1","name":"Česká","wheelchairBoarding":"POSSIBLE",
+              |"parentStation":{"gtfsId":"1:S","name":"Česká"},"stoptimesWithoutPatterns":[]}}""".trimMargin(),
+        ).stop!!
+        assertEquals("1:S" to "Česká", board.parentStation!!.let { it.gtfsId to it.name })
+        val station = json.decodeFromString(
+            DeparturesResponse.serializer(),
+            """{"stop":{"gtfsId":"1:S","name":"Česká","wheelchairBoarding":null,"parentStation":null,"stoptimesWithoutPatterns":[]}}""",
+        ).stop!!
+        assertNull(station.parentStation)
+    }
 }

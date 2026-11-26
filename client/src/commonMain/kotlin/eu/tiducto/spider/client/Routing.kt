@@ -23,7 +23,8 @@ class SpiderRouting(
      * keeps it off those modes while every other mode, including one the API adds later, stays usable. Use one of
      * them: both non-empty returns [SpiderError.BadRequest] for `modes.transit` without a request. Null or empty
      * means no filter, and [TransitMode.WALK] and [TransitMode.UNKNOWN] are ignored in either. [preferences] tunes
-     * walking, transfers and boarding and leaves out routes or agencies; null keeps the environment's defaults.
+     * walking, transfers, boarding and each mode's reluctance and leaves out routes or agencies; null keeps the
+     * environment's defaults.
      * [transitOnly] leaves out every itinerary without a transit leg, such as walking the whole way.
      * [numberOfItineraries] is how many itineraries the page holds at most, from 1 up to the environment's itinerary
      * limit; null means the limit. The API rejects a value out of range, never clamps it.
@@ -230,6 +231,8 @@ class SpiderRouting(
      * counts [numberOfDepartures], so the board still holds up to [numberOfDepartures] departures of the other
      * modes, and so does each later board paged by [startTime]. Null or empty leaves out nothing; [TransitMode.WALK]
      * and [TransitMode.UNKNOWN] aren't transit modes and are ignored.
+     *
+     * The rows of [stopDepartures], without the stop or station they belong to.
      */
     suspend fun departures(
         id: String,
@@ -238,7 +241,26 @@ class SpiderRouting(
         timeRange: Duration = 24.hours,
         reliability: Reliability? = null,
         excludedModes: Set<TransitMode>? = null,
-    ): SpiderResult<ImmutableList<Departure>> = context(log) {
+    ): SpiderResult<ImmutableList<Departure>> =
+        when (val result = stopDepartures(id, numberOfDepartures, startTime, timeRange, reliability, excludedModes)) {
+            is SpiderResult.Success -> SpiderResult.Success(result.data.departures)
+            is SpiderResult.Error -> result
+        }
+
+    /**
+     * The departures of a stop or station with the stop or station itself: its [StopDepartures.gtfsId], name and
+     * wheelchair boarding, and for a stop the [StopDepartures.parentStation] it belongs to, whose
+     * [ParentStation.gtfsId] asks for the whole station's departures. The parameters and the rows are those of
+     * [departures]. An id that resolves to no stop or station is an error, as in [departures].
+     */
+    suspend fun stopDepartures(
+        id: String,
+        numberOfDepartures: Int = 30,
+        startTime: Instant? = null,
+        timeRange: Duration = 24.hours,
+        reliability: Reliability? = null,
+        excludedModes: Set<TransitMode>? = null,
+    ): SpiderResult<StopDepartures> = context(log) {
         spiderCall(tag = "SpiderRouting", message = { "departures failed against $baseUrl (stopId=$id)" }) {
             routing.stopDepartures(id, numberOfDepartures, startTime, timeRange, reliability, excludedModes)
         }
@@ -387,6 +409,15 @@ data class PlanRequest(
  * [excludedRoutes] and [excludedAgencies] leave out every trip of those feed-prefixed route or agency ids
  * (`<feedId>:<id>`; a route id as [Leg.routeGtfsId] and [Departure.routeGtfsId] give it). An id the environment's feed
  * doesn't know excludes nothing, and null or empty excludes nothing.
+ *
+ * [modeReluctance] is how much worse riding each listed mode is than riding for the same time, a multiplier from 0.1
+ * to 100000: above 1 avoids the mode, below 1 favours it, and a mode not listed keeps 1. It restricts no mode, and a
+ * mode in [PlanRequest.excludedTransitModes] stays excluded. Without [PlanRequest.allowedTransitModes] it is sent as
+ * `modes.transit.costs`, in [TransitMode] order; with them, each allowed mode's reluctance goes on its own
+ * `modes.transit.transit[].cost.reluctance`, and a mode that isn't allowed drops out. A value out of range returns
+ * [SpiderError.BadRequest] for `modes.transit.costs.reluctance`, or `modes.transit.transit.cost.reluctance` beside
+ * allowed modes. [TransitMode.WALK] and [TransitMode.UNKNOWN] aren't transit modes and are ignored, and null or empty
+ * sends nothing.
  */
 data class RoutePreferences(
     val walkSpeed: Double? = null,
@@ -399,6 +430,7 @@ data class RoutePreferences(
     val alightSlack: Duration? = null,
     val excludedRoutes: Set<String>? = null,
     val excludedAgencies: Set<String>? = null,
+    val modeReluctance: Map<TransitMode, Double>? = null,
 )
 
 /**
@@ -477,6 +509,9 @@ data class Itinerary(
  *
  * [vehicle] is the vehicle running the leg's trip run, as the realtime trip update names it; null on a walk and
  * until a vehicle is matched to the run.
+ *
+ * [fromParentStation] and [toParentStation] are the stations the boarding and alighting stops belong to; null for a
+ * stop without one and where the leg ends at no stop, such as a coordinate.
  */
 @Serializable
 data class Leg(
@@ -521,7 +556,16 @@ data class Leg(
     val pickupType: PickupDropoffType = PickupDropoffType.SCHEDULED,
     val dropoffType: PickupDropoffType = PickupDropoffType.SCHEDULED,
     val vehicle: TripVehicle? = null,
+    val fromParentStation: ParentStation? = null,
+    val toParentStation: ParentStation? = null,
 )
+
+/**
+ * The station a stop belongs to (GTFS `parent_station`). [gtfsId] is a station id, feed-prefixed, that
+ * [Location.Stop] and [SpiderRouting.departures] accept for the whole station.
+ */
+@Serializable
+data class ParentStation(val gtfsId: String, val name: String)
 
 @Serializable
 data class LatLon(val lat: Double, val lon: Double)
@@ -546,6 +590,19 @@ data class RoutingError(
     val code: RoutingErrorCode,
     val description: String,
     val inputField: InputField?,
+)
+
+/**
+ * [SpiderRouting.stopDepartures]: the stop or station [gtfsId] asked for, with its [departures]. [wheelchairBoarding]
+ * is the stop's, null for a station and when the feed has no information. [parentStation] is the station a stop
+ * belongs to; null for a station's departures and for a stop without one.
+ */
+data class StopDepartures(
+    val gtfsId: String,
+    val name: String,
+    val wheelchairBoarding: WheelchairBoarding?,
+    val parentStation: ParentStation?,
+    val departures: ImmutableList<Departure>,
 )
 
 /**
@@ -641,6 +698,8 @@ data class EstimatedDelays(
  *
  * [pickupType] and [dropoffType] are how a rider boards and alights here; [PickupDropoffType.COORDINATE_WITH_DRIVER]
  * is a stop on request. Null when the stop is canceled: the trip is canceled or realtime skips the stop.
+ *
+ * [parentStation] is the station the stop belongs to; null for a stop without one.
  */
 data class TripStop(
     val gtfsId: String,
@@ -660,4 +719,5 @@ data class TripStop(
     val geometryIndex: Int? = null,
     val pickupType: PickupDropoffType? = null,
     val dropoffType: PickupDropoffType? = null,
+    val parentStation: ParentStation? = null,
 )
