@@ -1,0 +1,200 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../spider-sdk-kotlin-client/1.12.0/spider-sdk-kotlin-client-1.12.0.module",
+    "group": "eu.tiducto",
+    "module": "spider-sdk-kotlin-client",
+    "version": "1.12.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.4.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "jsApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.js.compiler": "ir",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-dom-api-compat",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-collections-immutable",
+          "version": {
+            "requires": "0.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "client-js-1.12.0.klib",
+          "url": "spider-sdk-kotlin-client-js-1.12.0.klib",
+          "size": 664486,
+          "sha512": "77539f41f8710c3555389b405a269946475366bccb04ca35e178c15c10a1f4f3256244925a44a1c773e9ff99c7c45a0b3a2a36a96d2d9e15d3e290ab7440f75c",
+          "sha256": "236452f73bb00332a6a21dd274d8ec83ba263a4b6fbb6e603c8137fc3abd3eea",
+          "sha1": "8e39b913ede6879706c946161e6d29e2477aad22",
+          "md5": "d1d79f00b363fd26f2180b743e789414"
+        }
+      ]
+    },
+    {
+      "name": "jsRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.js.compiler": "ir",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-dom-api-compat",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-collections-immutable",
+          "version": {
+            "requires": "0.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-js",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-content-negotiation",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-logging",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-serialization-kotlinx-json",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "co.touchlab",
+          "module": "kermit",
+          "version": {
+            "requires": "2.1.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "client-js-1.12.0.klib",
+          "url": "spider-sdk-kotlin-client-js-1.12.0.klib",
+          "size": 664486,
+          "sha512": "77539f41f8710c3555389b405a269946475366bccb04ca35e178c15c10a1f4f3256244925a44a1c773e9ff99c7c45a0b3a2a36a96d2d9e15d3e290ab7440f75c",
+          "sha256": "236452f73bb00332a6a21dd274d8ec83ba263a4b6fbb6e603c8137fc3abd3eea",
+          "sha1": "8e39b913ede6879706c946161e6d29e2477aad22",
+          "md5": "d1d79f00b363fd26f2180b743e789414"
+        }
+      ]
+    },
+    {
+      "name": "jsSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.js.compiler": "ir",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "files": [
+        {
+          "name": "client-js-1.12.0-sources.jar",
+          "url": "spider-sdk-kotlin-client-js-1.12.0-sources.jar",
+          "size": 100327,
+          "sha512": "db4621cf912633d1a147ad7d059a5e3f4b30932f78f0975ec1226a1d3d22775d1fe0b2895cde68563a13ce622f723440f01988246091248c82f306f39d7f6184",
+          "sha256": "d72cfd904cafb3a622cabfbb689593b3f036c3fc1b7269f4893f4fd6a3f652c9",
+          "sha1": "4f98579ea503f9bb9f55f6a8505a201e2d79f7ae",
+          "md5": "5e4ea0cddb9461c9b9253ee3e25340ab"
+        }
+      ]
+    }
+  ]
+}

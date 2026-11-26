@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spider SDK for Kotlin – Maven repository</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 46rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; color: #1b1b1b; background: #fff; }
+pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+@media (prefers-color-scheme: dark) { body { color: #e6e6e6; background: #161616; } pre { background: #242424; } }
+</style>
+</head>
+<body>
+<h1>Spider SDK for Kotlin – Maven repository</h1>
+<p>Maven repository for <code>eu.tiducto:spider-sdk-kotlin-client</code>. Releases here are the same signed artifacts as on Maven Central. Source: <a href="https://github.com/tiducto/spider-sdk-kotlin">github.com/tiducto/spider-sdk-kotlin</a>.</p>
+<pre><code>repositories {
+    mavenCentral()
+    maven("https://tiducto.github.io/spider-sdk-kotlin/")
+}
+
+dependencies {
+    implementation("eu.tiducto:spider-sdk-kotlin-client:&lt;version&gt;")
+}</code></pre>
+<p>Snapshots of <code>main</code> are in a separate repository: <code>maven("https://tiducto.github.io/spider-sdk-kotlin/snapshots/")</code>.</p>
+</body>
+</html>

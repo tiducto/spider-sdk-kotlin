@@ -1,0 +1,186 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../spider-sdk-kotlin-client/1.11.0/spider-sdk-kotlin-client-1.11.0.module",
+    "group": "eu.tiducto",
+    "module": "spider-sdk-kotlin-client",
+    "version": "1.11.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.4.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "wasmJsApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-collections-immutable",
+          "version": {
+            "requires": "0.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "client-wasm-js-1.11.0.klib",
+          "url": "spider-sdk-kotlin-client-wasm-js-1.11.0.klib",
+          "size": 630365,
+          "sha512": "136b6c3bd4b7aca0d9e8f05263ef7ec5369ba8613582bfcf353f8fc94fcc1e53365109066e26353a5e04b863ba06753798580e8995d298d668c578d76f288cdb",
+          "sha256": "b30594f8503eb092a95aa7a5f224932bc9612ffff50ba957f68c82b68db44ba6",
+          "sha1": "91a1ec4c9674d0a1577b9bde112abafc0b03439d",
+          "md5": "4bdf63b826d2ae603b59c5de37d13436"
+        }
+      ]
+    },
+    {
+      "name": "wasmJsRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-collections-immutable",
+          "version": {
+            "requires": "0.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-js",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-content-negotiation",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-logging",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-serialization-kotlinx-json",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "co.touchlab",
+          "module": "kermit",
+          "version": {
+            "requires": "2.1.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "client-wasm-js-1.11.0.klib",
+          "url": "spider-sdk-kotlin-client-wasm-js-1.11.0.klib",
+          "size": 630365,
+          "sha512": "136b6c3bd4b7aca0d9e8f05263ef7ec5369ba8613582bfcf353f8fc94fcc1e53365109066e26353a5e04b863ba06753798580e8995d298d668c578d76f288cdb",
+          "sha256": "b30594f8503eb092a95aa7a5f224932bc9612ffff50ba957f68c82b68db44ba6",
+          "sha1": "91a1ec4c9674d0a1577b9bde112abafc0b03439d",
+          "md5": "4bdf63b826d2ae603b59c5de37d13436"
+        }
+      ]
+    },
+    {
+      "name": "wasmJsSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "files": [
+        {
+          "name": "client-wasm-js-1.11.0-sources.jar",
+          "url": "spider-sdk-kotlin-client-wasm-js-1.11.0-sources.jar",
+          "size": 96091,
+          "sha512": "0c4b1d4f70b90130f009c8e9dd170d67ed5aa7fb5dbdeb0708a72f5c0ff556a780416a504bf81d63a14c10400a2a6e890ca38ddc08d0efc41f1b1032e55d3f82",
+          "sha256": "74d00aee113e8cfe0c6e3f477e88d3da5bddde471f6eeef70ffbb823d54f5e7b",
+          "sha1": "49de36bcfc417aede56c83630c7e825bf0adb331",
+          "md5": "d61874a8958cd54315c8a86dd2b41cc2"
+        }
+      ]
+    }
+  ]
+}

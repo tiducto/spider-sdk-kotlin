@@ -1,0 +1,582 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "eu.tiducto",
+    "module": "spider-sdk-kotlin-client",
+    "version": "1.11.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.4.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "metadataApiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-collections-immutable",
+          "version": {
+            "requires": "0.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-darwin",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-content-negotiation",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-logging",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-serialization-kotlinx-json",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "co.touchlab",
+          "module": "kermit",
+          "version": {
+            "requires": "2.1.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "client-metadata-1.11.0.jar",
+          "url": "spider-sdk-kotlin-client-1.11.0.jar",
+          "size": 111649,
+          "sha512": "e989188699c9ba259147408bb819c776183e9bb466bf245fe2060ba6dac60612084b1e3ee26c86a3293776c74b189c27123f8d49056922b6824fb4d90038f2c8",
+          "sha256": "976a9962470fcece27edbfb8f42a99a8311cb6fd72b37eebdd039ca45d26110e",
+          "sha1": "f18b18307ef44f7243cf6b96c42ce8e0c42ee331",
+          "md5": "1d67fac0477f2b1bae43ac9f0d5f9ebd"
+        }
+      ]
+    },
+    {
+      "name": "metadataSourcesElements",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "files": [
+        {
+          "name": "client-kotlin-1.11.0-sources.jar",
+          "url": "spider-sdk-kotlin-client-1.11.0-sources.jar",
+          "size": 96091,
+          "sha512": "0c4b1d4f70b90130f009c8e9dd170d67ed5aa7fb5dbdeb0708a72f5c0ff556a780416a504bf81d63a14c10400a2a6e890ca38ddc08d0efc41f1b1032e55d3f82",
+          "sha256": "74d00aee113e8cfe0c6e3f477e88d3da5bddde471f6eeef70ffbb823d54f5e7b",
+          "sha1": "49de36bcfc417aede56c83630c7e825bf0adb331",
+          "md5": "d61874a8958cd54315c8a86dd2b41cc2"
+        }
+      ]
+    },
+    {
+      "name": "androidApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-android/1.11.0/spider-sdk-kotlin-client-android-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-android",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "androidRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-android/1.11.0/spider-sdk-kotlin-client-android-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-android",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "androidSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-android/1.11.0/spider-sdk-kotlin-client-android-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-android",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosArm64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iosarm64/1.11.0/spider-sdk-kotlin-client-iosarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iosarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iosarm64/1.11.0/spider-sdk-kotlin-client-iosarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iosarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosArm64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iosarm64/1.11.0/spider-sdk-kotlin-client-iosarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iosarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iossimulatorarm64/1.11.0/spider-sdk-kotlin-client-iossimulatorarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iossimulatorarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iossimulatorarm64/1.11.0/spider-sdk-kotlin-client-iossimulatorarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iossimulatorarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosSimulatorArm64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_simulator_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iossimulatorarm64/1.11.0/spider-sdk-kotlin-client-iossimulatorarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iossimulatorarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosX64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "ios_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iosx64/1.11.0/spider-sdk-kotlin-client-iosx64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iosx64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosX64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "ios_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iosx64/1.11.0/spider-sdk-kotlin-client-iosx64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iosx64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "iosX64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "ios_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-iosx64/1.11.0/spider-sdk-kotlin-client-iosx64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-iosx64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "jsApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.js.compiler": "ir",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-js/1.11.0/spider-sdk-kotlin-client-js-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-js",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "jsRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.js.compiler": "ir",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-js/1.11.0/spider-sdk-kotlin-client-js-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-js",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "jsSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.js.compiler": "ir",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-js/1.11.0/spider-sdk-kotlin-client-js-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-js",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "jvmApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-jvm/1.11.0/spider-sdk-kotlin-client-jvm-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-jvm",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "jvmRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-jvm/1.11.0/spider-sdk-kotlin-client-jvm-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-jvm",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "jvmSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-jvm/1.11.0/spider-sdk-kotlin-client-jvm-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-jvm",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "macosArm64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-macosarm64/1.11.0/spider-sdk-kotlin-client-macosarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-macosarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "macosArm64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-macosarm64/1.11.0/spider-sdk-kotlin-client-macosarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-macosarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "macosArm64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "macos_arm64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-macosarm64/1.11.0/spider-sdk-kotlin-client-macosarm64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-macosarm64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "macosX64ApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "macos_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-macosx64/1.11.0/spider-sdk-kotlin-client-macosx64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-macosx64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "macosX64SourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.native.target": "macos_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-macosx64/1.11.0/spider-sdk-kotlin-client-macosx64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-macosx64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "macosX64MetadataElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-metadata",
+        "org.jetbrains.kotlin.native.target": "macos_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-macosx64/1.11.0/spider-sdk-kotlin-client-macosx64-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-macosx64",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "wasmJsApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-wasm-js/1.11.0/spider-sdk-kotlin-client-wasm-js-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-wasm-js",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "wasmJsRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-wasm-js/1.11.0/spider-sdk-kotlin-client-wasm-js-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-wasm-js",
+        "version": "1.11.0"
+      }
+    },
+    {
+      "name": "wasmJsSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "non-jvm",
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "wasm",
+        "org.jetbrains.kotlin.wasm.target": "js"
+      },
+      "available-at": {
+        "url": "../../spider-sdk-kotlin-client-wasm-js/1.11.0/spider-sdk-kotlin-client-wasm-js-1.11.0.module",
+        "group": "eu.tiducto",
+        "module": "spider-sdk-kotlin-client-wasm-js",
+        "version": "1.11.0"
+      }
+    }
+  ]
+}

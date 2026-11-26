@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>eu.tiducto</groupId>
+  <artifactId>spider-sdk-kotlin-client-iosarm64</artifactId>
+  <versioning>
+    <latest>1.11.1-SNAPSHOT</latest>
+    <versions>
+      <version>1.10.1-SNAPSHOT</version>
+      <version>1.11.1-SNAPSHOT</version>
+    </versions>
+    <lastUpdated>20261126020343</lastUpdated>
+  </versioning>
+</metadata>

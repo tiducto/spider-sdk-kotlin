@@ -1,0 +1,186 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../spider-sdk-kotlin-client/1.11.1-SNAPSHOT/spider-sdk-kotlin-client-1.11.1-SNAPSHOT.module",
+    "group": "eu.tiducto",
+    "module": "spider-sdk-kotlin-client",
+    "version": "1.11.1-SNAPSHOT",
+    "attributes": {
+      "org.gradle.status": "integration"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "9.4.1"
+    }
+  },
+  "variants": [
+    {
+      "name": "androidApiElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-collections-immutable",
+          "version": {
+            "requires": "0.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "client.aar",
+          "url": "spider-sdk-kotlin-client-android-1.11.1-SNAPSHOT.aar",
+          "size": 933758,
+          "sha512": "2e99f37b90f57c7dd7610097f663eba1d970e11ec123208d1cca7498e36e2a430216579cfd810865d1bd15d94e3fcc4a6acf0b32b8daeb63e7cad96caa07f9cd",
+          "sha256": "956e779773691b31903e61839116d87312229fd53d3a9bd8d1b667fc7ebdc271",
+          "sha1": "30733e79a77187ae0e8239107295e2228f78c343",
+          "md5": "8221209b37fc8cd29b43694098255e9b"
+        }
+      ]
+    },
+    {
+      "name": "androidRuntimeElements-published",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "aar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-coroutines-core",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-collections-immutable",
+          "version": {
+            "requires": "0.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-core",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib",
+          "version": {
+            "requires": "2.4.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-okhttp",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlinx",
+          "module": "kotlinx-serialization-json",
+          "version": {
+            "requires": "1.11.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-content-negotiation",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-client-logging",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "io.ktor",
+          "module": "ktor-serialization-kotlinx-json",
+          "version": {
+            "requires": "3.5.0"
+          }
+        },
+        {
+          "group": "co.touchlab",
+          "module": "kermit",
+          "version": {
+            "requires": "2.1.0"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "client.aar",
+          "url": "spider-sdk-kotlin-client-android-1.11.1-SNAPSHOT.aar",
+          "size": 933758,
+          "sha512": "2e99f37b90f57c7dd7610097f663eba1d970e11ec123208d1cca7498e36e2a430216579cfd810865d1bd15d94e3fcc4a6acf0b32b8daeb63e7cad96caa07f9cd",
+          "sha256": "956e779773691b31903e61839116d87312229fd53d3a9bd8d1b667fc7ebdc271",
+          "sha1": "30733e79a77187ae0e8239107295e2228f78c343",
+          "md5": "8221209b37fc8cd29b43694098255e9b"
+        }
+      ]
+    },
+    {
+      "name": "androidSourcesElements-published",
+      "attributes": {
+        "org.gradle.category": "documentation",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.docstype": "sources",
+        "org.gradle.jvm.environment": "android",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "files": [
+        {
+          "name": "client-android-1.11.1-SNAPSHOT-sources.jar",
+          "url": "spider-sdk-kotlin-client-android-1.11.1-SNAPSHOT-sources.jar",
+          "size": 97851,
+          "sha512": "31c0e8a395aef42935b97fe25e8ea20814d016657d3c22030d6833fdac2dedfd5b7cff9c1e5c20b0501e6db58c8963c973103a0f6594086e99edfd492bd5cdb3",
+          "sha256": "0b8b171bff90c1bc1504162c76cbb05117780d82d3be123ac9cd033047251b42",
+          "sha1": "1ce71a2a8ca96efeb9d503acc09779d3a669291e",
+          "md5": "349aef1bc3558825e78b3c2d37214918"
+        }
+      ]
+    }
+  ]
+}
