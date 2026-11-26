@@ -6,6 +6,8 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 ## [Unreleased]
 
+Targets Spider API contract 1.12.
+
 ### Added
 
 - `RoutePreferences` and `preferences: RoutePreferences? = null` on `plan`, `planStream`, `planStreamNext` and
@@ -28,6 +30,23 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
   `planNext(prev, numberOfItineraries = prev.request.numberOfItineraries)` / `planPrevious(…)` take it too, so a
   page keeps its size unless the caller changes it. Sent as `first` on the first page and after a cursor, as `last`
   before one. `planStream` sizes itself by `targetResults` and doesn't take it.
+- `RoutePreferences.modeReluctance: Map<TransitMode, Double>? = null`: how much worse riding each listed mode is
+  than riding for the same time, a multiplier from 0.1 to 100000 (above 1 avoids the mode, below 1 favours it). It
+  restricts no mode, and a mode in `excludedTransitModes` stays excluded. Without `allowedTransitModes` it is sent as
+  `modes.transit.costs`, beside `modes.transit.exclude` when that is set, in `TransitMode` order. With them, each
+  allowed mode's reluctance goes on its own `modes.transit.transit[].cost.reluctance` and a mode that isn't allowed
+  drops out, since the API refuses `costs` beside an allow-list. Null or empty sends nothing, and `TransitMode.WALK`
+  and `TransitMode.UNKNOWN` are ignored. A value out of range returns `BadRequest` for
+  `modes.transit.costs.reluctance` (or `modes.transit.transit.cost.reluctance` beside allowed modes) without a
+  request. Kept on `PlanRequest` with the other preferences, so `planNext` / `planPrevious` resend it.
+- `ParentStation(gtfsId, name)`: the station a stop belongs to, whose `gtfsId` plans from the whole station or asks
+  for its departures. `Leg.fromParentStation` / `Leg.toParentStation` (batch and streamed plans) and
+  `TripStop.parentStation` carry it, null for a stop without one and where a leg ends at no stop. They come last
+  with null defaults.
+- `stopDepartures(…)`, with the parameters of `departures(…)`: a `StopDepartures` holding the stop or station's
+  `gtfsId`, `name`, `wheelchairBoarding` and `parentStation` (null for a station's departures and for a stop
+  without one) beside its `departures`. `departures(…)` keeps its signature and answers, and returns the same rows;
+  an id that resolves to no stop or station is `NotFound` in both.
 
 ### Removed
 

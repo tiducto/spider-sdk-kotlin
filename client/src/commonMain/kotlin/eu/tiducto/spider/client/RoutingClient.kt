@@ -9,6 +9,7 @@ import eu.tiducto.spider.contract.routing.DeparturesResponse
 import eu.tiducto.spider.contract.routing.EstimatedDelaysResponse
 import eu.tiducto.spider.contract.routing.Itinerary as WireItinerary
 import eu.tiducto.spider.contract.routing.Leg as WireLeg
+import eu.tiducto.spider.contract.routing.ParentStation as WireParentStation
 import eu.tiducto.spider.contract.routing.PickupDropoffType as WirePickupDropoffType
 import eu.tiducto.spider.contract.routing.PlanCoordinateInput
 import eu.tiducto.spider.contract.routing.PlanDateTimeInput
@@ -34,6 +35,8 @@ import eu.tiducto.spider.contract.routing.TransferPreferencesInput
 import eu.tiducto.spider.contract.routing.TransitFilterInput
 import eu.tiducto.spider.contract.routing.TransitFilterSelectInput
 import eu.tiducto.spider.contract.routing.TransitMode as WireTransitMode
+import eu.tiducto.spider.contract.routing.TransitModeCostInput
+import eu.tiducto.spider.contract.routing.TransitModePreferenceCostInput
 import eu.tiducto.spider.contract.routing.TransitPreferencesInput
 import eu.tiducto.spider.contract.routing.TripRequest
 import eu.tiducto.spider.contract.routing.TripResponse
@@ -62,7 +65,6 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlin.time.measureTime
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CancellationException
@@ -170,7 +172,7 @@ internal class RoutingClient(
         timeRange: Duration,
         reliability: Reliability?,
         excludedModes: Set<TransitMode>?,
-    ): ImmutableList<Departure> {
+    ): StopDepartures {
         val timeRangeSeconds = timeRange.inWholeSeconds
         requireInRange("timeRange", timeRangeSeconds in 1..MAX_TIME_RANGE_SECONDS)
         val body = DeparturesRequest(
@@ -184,7 +186,7 @@ internal class RoutingClient(
         val stop = postJson<DeparturesRequest, DeparturesResponse>(DEPARTURES, body).stop
             ?: throw SpiderTransportException.NoData("routing returned no stop or station for id=$id")
 
-        return stop.stoptimesWithoutPatterns.map { st ->
+        val departures = stop.stoptimesWithoutPatterns.map { st ->
             val route = st.trip.route
             Departure(
                 scheduledTime = Instant.fromEpochSeconds(st.serviceDay + st.scheduledDeparture),
@@ -210,6 +212,14 @@ internal class RoutingClient(
                 vehicle = st.vehicle?.toDomain(),
             )
         }.toImmutableList()
+
+        return StopDepartures(
+            gtfsId = stop.gtfsId,
+            name = stop.name,
+            wheelchairBoarding = stop.wheelchairBoarding?.let { wheelchairFromWire(it.value) },
+            parentStation = stop.parentStation?.toDomain(),
+            departures = departures,
+        )
     }
 
     /** [serviceDate] is the GTFS service date, formatted "YYYY-MM-DD". */
@@ -246,6 +256,7 @@ internal class RoutingClient(
                 geometryIndex = st.geometryIndex,
                 pickupType = st.pickupType?.let(::pickupDropoffFromWire),
                 dropoffType = st.dropoffType?.let(::pickupDropoffFromWire),
+                parentStation = s.parentStation?.toDomain(),
             )
         }
 
@@ -452,7 +463,11 @@ private fun WireLeg.toDomainLeg(): Leg = Leg(
     pickupType = pickupDropoffFromWire(pickupType),
     dropoffType = pickupDropoffFromWire(dropoffType),
     vehicle = vehicle?.toDomain(),
+    fromParentStation = from.stop?.parentStation?.toDomain(),
+    toParentStation = to.stop?.parentStation?.toDomain(),
 )
+
+private fun WireParentStation.toDomain(): ParentStation = ParentStation(gtfsId = gtfsId, name = name)
 
 private fun WireTripVehicle.toDomain(): TripVehicle = TripVehicle(
     id = id,
@@ -568,16 +583,38 @@ private const val MAX_TIME_RANGE_SECONDS = 86_400L
 // everything else stays null so the environment's routing defaults apply.
 internal fun PlanRequest.toModesInput(): PlanModesInput? {
     // WALK/UNKNOWN have no transit-mode wire value (WALK is a street mode) and drop out; empty ⇒ no filter.
-    val transit = allowedTransitModes.toWireTransitModes()?.map { PlanTransitModePreferenceInput(mode = it) }
+    val allowed = allowedTransitModes.toWireTransitModes()
     val exclude = excludedTransitModes.toWireTransitModes()
     // The API refuses both lists in one request; refuse it here, before the request, with the API's own field.
-    if (transit != null && exclude != null) throw SpiderTransportException.BadRequest(MODES_TRANSIT, "$MODES_TRANSIT is invalid")
-    val transitModes = if (transit == null && exclude == null) null else PlanTransitModesInput(transit = transit, exclude = exclude)
+    if (allowed != null && exclude != null) throw SpiderTransportException.BadRequest(MODES_TRANSIT, "$MODES_TRANSIT is invalid")
+    val reluctances = preferences?.modeReluctance.toWireReluctances(if (allowed == null) COSTS_RELUCTANCE else ALLOWED_RELUCTANCE)
+    // An allow-list carries its modes' reluctances itself, and the API refuses costs beside one.
+    val transit = allowed?.map { mode ->
+        PlanTransitModePreferenceInput(mode = mode, cost = reluctances[mode]?.let(::TransitModePreferenceCostInput))
+    }
+    val costs = if (allowed == null) reluctances.map { (mode, reluctance) -> TransitModeCostInput(mode, reluctance) }.takeIf { it.isNotEmpty() } else null
+    val transitModes = if (transit == null && exclude == null && costs == null) {
+        null
+    } else {
+        PlanTransitModesInput(transit = transit, exclude = exclude, costs = costs)
+    }
     if (transitModes == null && !transitOnly) return null
     return PlanModesInput(transitOnly = transitOnly.takeIf { it }, transit = transitModes)
 }
 
+// In TransitMode declaration order, so the body is deterministic; WALK/UNKNOWN drop out after the range check.
+private fun Map<TransitMode, Double>?.toWireReluctances(field: String): Map<WireTransitMode, Double> {
+    if (this == null) return emptyMap()
+    values.forEach { requireInRange(field, it in MIN_MULTIPLIER..MAX_MULTIPLIER) }
+    return TransitMode.entries.mapNotNull { mode ->
+        val reluctance = this[mode] ?: return@mapNotNull null
+        mode.toWireTransitMode()?.let { it to reluctance }
+    }.toMap()
+}
+
 private const val MODES_TRANSIT = "modes.transit"
+private const val COSTS_RELUCTANCE = "$MODES_TRANSIT.costs.reluctance"
+private const val ALLOWED_RELUCTANCE = "$MODES_TRANSIT.transit.cost.reluctance"
 
 // A filter's wire modes: WALK/UNKNOWN drop out, and null or empty (also once they have) is no filter.
 private fun Set<TransitMode>?.toWireTransitModes(): List<WireTransitMode>? =

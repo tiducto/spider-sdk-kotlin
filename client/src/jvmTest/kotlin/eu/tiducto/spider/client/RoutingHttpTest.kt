@@ -269,6 +269,128 @@ class RoutingHttpTest {
     }
 
     @Test
+    fun `mode reluctance rides every plan call and every continuation`() = runBlocking<Unit> {
+        gateway.replies = mapOf(
+            "/routing/v1/plan" to json(
+                """{"itineraries":[],"pageInfo":{"hasNextPage":true,"hasPreviousPage":true,"startCursor":"c-prev","endCursor":"c-next"},"routingErrors":[],"searchDateTime":"2026-10-07T08:00:00+02:00"}""",
+            ),
+            "/routing/v1/plan-stream" to emptyDone,
+        )
+        val preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 0.8, TransitMode.BUS to 1.5))
+        val excluded = setOf(TransitMode.RAIL)
+        val (a, b) = Location.Stop("1:A") to Location.Stop("1:B")
+
+        val first = assertIs<SpiderResult.Success<Route>>(
+            routing.plan(a, b, excludedTransitModes = excluded, preferences = preferences),
+        ).data
+        routing.planNext(first)
+        routing.planPrevious(first)
+        routing.planStream(a, b, targetResults = 5, maxWindow = 2.hours, excludedTransitModes = excluded, preferences = preferences).toList()
+        routing.planStreamNext(
+            a, b, targetResults = 5, maxWindow = 2.hours, after = "c-next", excludedTransitModes = excluded, preferences = preferences,
+        ).toList()
+        routing.planStreamPrevious(
+            a, b, targetResults = 5, maxWindow = 2.hours, before = "c-prev", excludedTransitModes = excluded, preferences = preferences,
+        ).toList()
+        routing.plan(a, b)
+
+        val expected = Json.parseToJsonElement(
+            """{"transit":{"exclude":["RAIL"],"costs":[{"mode":"BUS","reluctance":1.5},{"mode":"TRAM","reluctance":0.8}]}}""",
+        )
+        assertEquals(List(6) { expected } + null, bodies().map { it["modes"] })
+        assertEquals(List(7) { null }, bodies().map { it["preferences"] })
+    }
+
+    @Test
+    fun `a mode reluctance out of range fails plan and planStream without a request`() = runBlocking<Unit> {
+        val preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 0.01))
+
+        val plan = assertIs<SpiderResult.Error>(routing.plan(Location.Stop("1:A"), Location.Stop("1:B"), preferences = preferences))
+        val stream = assertIs<PlanStreamEvent.Failure>(
+            routing.planStream(
+                Location.Stop("1:A"), Location.Stop("1:B"), targetResults = 5, maxWindow = 2.hours, preferences = preferences,
+            ).toList().single(),
+        )
+
+        assertBadRequest("modes.transit.costs.reluctance", plan.error)
+        assertBadRequest("modes.transit.costs.reluctance", stream.error)
+        assertEquals(emptyList(), gateway.seen.toList())
+    }
+
+    @Test
+    fun `plan and planStream legs carry the parent stations of their stops`() = runBlocking<Unit> {
+        val leg =
+            """{"mode":"TRAM","start":{"scheduledTime":"t1"},"end":{"scheduledTime":"t2"},
+               "from":{"name":"Česká","stop":{"gtfsId":"1:U1Z1","wheelchairBoarding":"POSSIBLE","parentStation":{"gtfsId":"1:U1","name":"Česká"}}},
+               "to":{"name":"Hlavní nádraží","stop":{"gtfsId":"1:U2Z3","wheelchairBoarding":"POSSIBLE","parentStation":null}},
+               "realtimeState":"SCHEDULED","realTime":false,"distance":1000.0,"duration":600,"pickupType":"SCHEDULED",
+               "dropoffType":"SCHEDULED","interlineWithPreviousLeg":false,"legGeometry":{"points":""}}"""
+        val walk =
+            """{"mode":"WALK","start":{"scheduledTime":"t2"},"end":{"scheduledTime":"t3"},"from":{"name":"Hlavní nádraží",
+               "stop":{"gtfsId":"1:U2Z3","wheelchairBoarding":"POSSIBLE"}},"to":{"name":"Destination"},
+               "realtimeState":"SCHEDULED","realTime":false,"distance":100.0,"duration":60,"pickupType":"SCHEDULED",
+               "dropoffType":"SCHEDULED","interlineWithPreviousLeg":false,"legGeometry":{"points":""}}"""
+        val itinerary = """{"start":"t1","end":"t3","numberOfTransfers":0,"duration":660,"waitingTime":0,"legs":[$leg,$walk]}"""
+        gateway.replies = mapOf(
+            "/routing/v1/plan" to json(
+                """{"itineraries":[$itinerary],"pageInfo":{"hasNextPage":false,"hasPreviousPage":false},"routingErrors":[],
+                   "searchDateTime":"2026-10-07T08:00:00+02:00"}""",
+            ),
+            "/routing/v1/plan-stream" to events(
+                "event: chunk\ndata: {\"frontier\":600,\"found\":1,\"finalized\":1,\"results\":[" +
+                    itinerary.replace("\n", " ").replace(Regex("\\s+"), " ") + "]}\n\n" + pageInfoEvent + doneEvent,
+            ),
+        )
+        val (a, b) = Location.Stop("1:U1") to Location.Coordinate(49.19, 16.61)
+
+        val planned = assertIs<SpiderResult.Success<Route>>(routing.plan(a, b)).data.edges.single().itinerary.legs
+        val streamed = assertIs<PlanStreamEvent.Result>(
+            routing.planStream(a, b, targetResults = 5, maxWindow = 2.hours).toList().first(),
+        ).itineraries.single().legs
+
+        val station = ParentStation("1:U1", "Česká")
+        for (legs in listOf(planned, streamed)) {
+            assertEquals(listOf(station to null, null to null), legs.map { it.fromParentStation to it.toParentStation })
+        }
+    }
+
+    @Test
+    fun `stopDepartures carries the stop with its parent station and a station's without one`() = runBlocking<Unit> {
+        val row =
+            """{"serviceDay":1790546400,"serviceDate":"2026-09-28","scheduledDeparture":81000,"realtimeDeparture":81000,
+               "realtime":false,"realtimeState":"SCHEDULED","pickupType":"SCHEDULED","dropoffType":"SCHEDULED",
+               "stop":{"gtfsId":"1:U1Z1","platformCode":"1"},"trip":{"gtfsId":"1:T44","wheelchairAccessible":"POSSIBLE",
+               "bikesAllowed":"NO_INFORMATION","route":{"gtfsId":"1:L44","mode":"BUS"}}}"""
+        gateway.replies = mapOf(
+            "/routing/v1/departures" to json(
+                """{"stop":{"gtfsId":"1:U1Z1","name":"Česká","wheelchairBoarding":"POSSIBLE",
+                   "parentStation":{"gtfsId":"1:U1","name":"Česká"},"stoptimesWithoutPatterns":[$row]}}""",
+            ),
+        )
+
+        val stop = assertIs<SpiderResult.Success<StopDepartures>>(routing.stopDepartures("1:U1Z1")).data
+        val departures = assertIs<SpiderResult.Success<List<Departure>>>(routing.departures("1:U1Z1")).data
+
+        assertEquals("1:U1Z1" to "Česká", stop.gtfsId to stop.name)
+        assertEquals(WheelchairBoarding.POSSIBLE, stop.wheelchairBoarding)
+        assertEquals(ParentStation("1:U1", "Česká"), stop.parentStation)
+        assertEquals(listOf("1:T44"), stop.departures.map { it.tripGtfsId })
+        assertEquals(stop.departures, departures)
+        assertEquals(1, gateway.seen.map { it.body }.distinct().size)
+
+        gateway.replies = mapOf(
+            "/routing/v1/departures" to json(
+                """{"stop":{"gtfsId":"1:U1","name":"Česká","wheelchairBoarding":null,"parentStation":null,"stoptimesWithoutPatterns":[$row]}}""",
+            ),
+        )
+        val station = assertIs<SpiderResult.Success<StopDepartures>>(routing.stopDepartures("1:U1")).data
+        assertEquals("1:U1", station.gtfsId)
+        assertEquals(null, station.wheelchairBoarding)
+        assertEquals(null, station.parentStation)
+        assertEquals(listOf("1:U1Z1"), station.departures.map { it.stopGtfsId })
+    }
+
+    @Test
     fun `a preference out of range fails plan and planStream without a request`() = runBlocking<Unit> {
         val preferences = RoutePreferences(boardSlack = 2.hours)
 
@@ -764,6 +886,7 @@ class RoutingHttpTest {
         )
 
         assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.departures("1:NOPE")).error)
+        assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.stopDepartures("1:NOPE")).error)
         assertIs<SpiderError.NotFound>(assertIs<SpiderResult.Error>(routing.trip("1:NOPE", "2026-09-28")).error)
         assertEquals(listOf("""{"id":"1:NOPE","serviceDate":"2026-09-28"}"""), gateway.seen.filter { it.path == "/routing/v1/trip" }.map { it.body })
     }
@@ -786,7 +909,8 @@ class RoutingHttpTest {
                   {"serviceDay":1790546400,"scheduledArrival":88800,"scheduledDeparture":88800,"realtimeArrival":88800,
                    "realtimeDeparture":88800,"realtime":false,"realtimeState":"SCHEDULED","typicalDelay":45,
                    "stopPosition":3,"geometryIndex":2,"pickupType":"COORDINATE_WITH_DRIVER","dropoffType":"SCHEDULED",
-                   "stop":{"gtfsId":"1:U1","name":"Líšeň","lat":49.21,"lon":16.68,"wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101"}},
+                   "stop":{"gtfsId":"1:U1","name":"Líšeň","lat":49.21,"lon":16.68,"wheelchairBoarding":"POSSIBLE","platformCode":"2","zoneId":"101",
+                     "parentStation":{"gtfsId":"1:U","name":"Líšeň"}}},
                   {"serviceDay":1790546400,"scheduledArrival":89400,"scheduledDeparture":89400,"realtimeArrival":89400,
                    "realtimeDeparture":89400,"realtime":false,"realtimeState":"SCHEDULED","stopPosition":5,
                    "pickupType":null,"dropoffType":null,
@@ -818,6 +942,8 @@ class RoutingHttpTest {
         assertEquals(null, second.geometryIndex)
         assertEquals(PickupDropoffType.COORDINATE_WITH_DRIVER to PickupDropoffType.SCHEDULED, first.pickupType to first.dropoffType)
         assertEquals(null to null, second.pickupType to second.dropoffType)
+        assertEquals(ParentStation("1:U", "Líšeň"), first.parentStation)
+        assertEquals(null, second.parentStation)
     }
 
     @Test

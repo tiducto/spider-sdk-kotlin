@@ -820,7 +820,7 @@ final class eu.tiducto.spider.client/LatLon { // eu.tiducto.spider.client/LatLon
 }
 
 final class eu.tiducto.spider.client/Leg { // eu.tiducto.spider.client/Leg|null[0]
-    constructor <init>(eu.tiducto.spider.client/TransitMode, kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/RealtimeState, kotlin/String? = ..., kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/String? = ..., kotlin/String?, kotlin/String?, kotlin/String?, kotlin/Double, kotlin/Long, kotlin/String?, eu.tiducto.spider.client/BikesAllowed? = ..., kotlin/Double? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/LatLon> = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/TripVehicle? = ...) // eu.tiducto.spider.client/Leg.<init>|<init>(eu.tiducto.spider.client.TransitMode;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.Boolean;eu.tiducto.spider.client.RealtimeState;kotlin.String?;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Double;kotlin.Long;kotlin.String?;eu.tiducto.spider.client.BikesAllowed?;kotlin.Double?;eu.tiducto.spider.client.WheelchairBoarding?;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.LatLon>;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Boolean;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.TripVehicle?){}[0]
+    constructor <init>(eu.tiducto.spider.client/TransitMode, kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/RealtimeState, kotlin/String? = ..., kotlin/String, kotlin/String, kotlin/String? = ..., kotlin/String? = ..., kotlin/String?, kotlin/String?, kotlin/String?, kotlin/Double, kotlin/Long, kotlin/String?, eu.tiducto.spider.client/BikesAllowed? = ..., kotlin/Double? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/LatLon> = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/TripVehicle? = ..., eu.tiducto.spider.client/ParentStation? = ..., eu.tiducto.spider.client/ParentStation? = ...) // eu.tiducto.spider.client/Leg.<init>|<init>(eu.tiducto.spider.client.TransitMode;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.Boolean;eu.tiducto.spider.client.RealtimeState;kotlin.String?;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Double;kotlin.Long;kotlin.String?;eu.tiducto.spider.client.BikesAllowed?;kotlin.Double?;eu.tiducto.spider.client.WheelchairBoarding?;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.LatLon>;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Boolean;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.TripVehicle?;eu.tiducto.spider.client.ParentStation?;eu.tiducto.spider.client.ParentStation?){}[0]
 
     final val accessibilityScore // eu.tiducto.spider.client/Leg.accessibilityScore|{}accessibilityScore[0]
         final fun <get-accessibilityScore>(): kotlin/Double? // eu.tiducto.spider.client/Leg.accessibilityScore.<get-accessibilityScore>|<get-accessibilityScore>(){}[0]
@@ -842,6 +842,8 @@ final class eu.tiducto.spider.client/Leg { // eu.tiducto.spider.client/Leg|null[
         final fun <get-fromGtfsId>(): kotlin/String? // eu.tiducto.spider.client/Leg.fromGtfsId.<get-fromGtfsId>|<get-fromGtfsId>(){}[0]
     final val fromName // eu.tiducto.spider.client/Leg.fromName|{}fromName[0]
         final fun <get-fromName>(): kotlin/String // eu.tiducto.spider.client/Leg.fromName.<get-fromName>|<get-fromName>(){}[0]
+    final val fromParentStation // eu.tiducto.spider.client/Leg.fromParentStation|{}fromParentStation[0]
+        final fun <get-fromParentStation>(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/Leg.fromParentStation.<get-fromParentStation>|<get-fromParentStation>(){}[0]
     final val fromPlatformCode // eu.tiducto.spider.client/Leg.fromPlatformCode|{}fromPlatformCode[0]
         final fun <get-fromPlatformCode>(): kotlin/String? // eu.tiducto.spider.client/Leg.fromPlatformCode.<get-fromPlatformCode>|<get-fromPlatformCode>(){}[0]
     final val fromStopPosition // eu.tiducto.spider.client/Leg.fromStopPosition|{}fromStopPosition[0]
@@ -886,6 +888,8 @@ final class eu.tiducto.spider.client/Leg { // eu.tiducto.spider.client/Leg|null[
         final fun <get-toGtfsId>(): kotlin/String? // eu.tiducto.spider.client/Leg.toGtfsId.<get-toGtfsId>|<get-toGtfsId>(){}[0]
     final val toName // eu.tiducto.spider.client/Leg.toName|{}toName[0]
         final fun <get-toName>(): kotlin/String // eu.tiducto.spider.client/Leg.toName.<get-toName>|<get-toName>(){}[0]
+    final val toParentStation // eu.tiducto.spider.client/Leg.toParentStation|{}toParentStation[0]
+        final fun <get-toParentStation>(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/Leg.toParentStation.<get-toParentStation>|<get-toParentStation>(){}[0]
     final val toPlatformCode // eu.tiducto.spider.client/Leg.toPlatformCode|{}toPlatformCode[0]
         final fun <get-toPlatformCode>(): kotlin/String? // eu.tiducto.spider.client/Leg.toPlatformCode.<get-toPlatformCode>|<get-toPlatformCode>(){}[0]
     final val toStopPosition // eu.tiducto.spider.client/Leg.toStopPosition|{}toStopPosition[0]
@@ -935,12 +939,14 @@ final class eu.tiducto.spider.client/Leg { // eu.tiducto.spider.client/Leg|null[
     final fun component38(): eu.tiducto.spider.client/PickupDropoffType // eu.tiducto.spider.client/Leg.component38|component38(){}[0]
     final fun component39(): eu.tiducto.spider.client/TripVehicle? // eu.tiducto.spider.client/Leg.component39|component39(){}[0]
     final fun component4(): kotlin/String? // eu.tiducto.spider.client/Leg.component4|component4(){}[0]
+    final fun component40(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/Leg.component40|component40(){}[0]
+    final fun component41(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/Leg.component41|component41(){}[0]
     final fun component5(): kotlin/String? // eu.tiducto.spider.client/Leg.component5|component5(){}[0]
     final fun component6(): kotlin.time/Duration? // eu.tiducto.spider.client/Leg.component6|component6(){}[0]
     final fun component7(): kotlin.time/Duration? // eu.tiducto.spider.client/Leg.component7|component7(){}[0]
     final fun component8(): kotlin/Boolean // eu.tiducto.spider.client/Leg.component8|component8(){}[0]
     final fun component9(): eu.tiducto.spider.client/RealtimeState // eu.tiducto.spider.client/Leg.component9|component9(){}[0]
-    final fun copy(eu.tiducto.spider.client/TransitMode = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/RealtimeState = ..., kotlin/String? = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Double = ..., kotlin/Long = ..., kotlin/String? = ..., eu.tiducto.spider.client/BikesAllowed? = ..., kotlin/Double? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/LatLon> = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/TripVehicle? = ...): eu.tiducto.spider.client/Leg // eu.tiducto.spider.client/Leg.copy|copy(eu.tiducto.spider.client.TransitMode;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.Boolean;eu.tiducto.spider.client.RealtimeState;kotlin.String?;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Double;kotlin.Long;kotlin.String?;eu.tiducto.spider.client.BikesAllowed?;kotlin.Double?;eu.tiducto.spider.client.WheelchairBoarding?;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.LatLon>;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Boolean;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.TripVehicle?){}[0]
+    final fun copy(eu.tiducto.spider.client/TransitMode = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/RealtimeState = ..., kotlin/String? = ..., kotlin/String = ..., kotlin/String = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/Double = ..., kotlin/Long = ..., kotlin/String? = ..., eu.tiducto.spider.client/BikesAllowed? = ..., kotlin/Double? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/LatLon> = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Boolean = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/PickupDropoffType = ..., eu.tiducto.spider.client/TripVehicle? = ..., eu.tiducto.spider.client/ParentStation? = ..., eu.tiducto.spider.client/ParentStation? = ...): eu.tiducto.spider.client/Leg // eu.tiducto.spider.client/Leg.copy|copy(eu.tiducto.spider.client.TransitMode;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.Boolean;eu.tiducto.spider.client.RealtimeState;kotlin.String?;kotlin.String;kotlin.String;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.Double;kotlin.Long;kotlin.String?;eu.tiducto.spider.client.BikesAllowed?;kotlin.Double?;eu.tiducto.spider.client.WheelchairBoarding?;eu.tiducto.spider.client.WheelchairBoarding?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.LatLon>;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Boolean;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.PickupDropoffType;eu.tiducto.spider.client.TripVehicle?;eu.tiducto.spider.client.ParentStation?;eu.tiducto.spider.client.ParentStation?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/Leg.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/Leg.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // eu.tiducto.spider.client/Leg.toString|toString(){}[0]
@@ -1047,6 +1053,35 @@ final class eu.tiducto.spider.client/LoggingConfig { // eu.tiducto.spider.client
     final var level // eu.tiducto.spider.client/LoggingConfig.level|{}level[0]
         final fun <get-level>(): eu.tiducto.spider.client/SpiderLogLevel // eu.tiducto.spider.client/LoggingConfig.level.<get-level>|<get-level>(){}[0]
         final fun <set-level>(eu.tiducto.spider.client/SpiderLogLevel) // eu.tiducto.spider.client/LoggingConfig.level.<set-level>|<set-level>(eu.tiducto.spider.client.SpiderLogLevel){}[0]
+}
+
+final class eu.tiducto.spider.client/ParentStation { // eu.tiducto.spider.client/ParentStation|null[0]
+    constructor <init>(kotlin/String, kotlin/String) // eu.tiducto.spider.client/ParentStation.<init>|<init>(kotlin.String;kotlin.String){}[0]
+
+    final val gtfsId // eu.tiducto.spider.client/ParentStation.gtfsId|{}gtfsId[0]
+        final fun <get-gtfsId>(): kotlin/String // eu.tiducto.spider.client/ParentStation.gtfsId.<get-gtfsId>|<get-gtfsId>(){}[0]
+    final val name // eu.tiducto.spider.client/ParentStation.name|{}name[0]
+        final fun <get-name>(): kotlin/String // eu.tiducto.spider.client/ParentStation.name.<get-name>|<get-name>(){}[0]
+
+    final fun component1(): kotlin/String // eu.tiducto.spider.client/ParentStation.component1|component1(){}[0]
+    final fun component2(): kotlin/String // eu.tiducto.spider.client/ParentStation.component2|component2(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ...): eu.tiducto.spider.client/ParentStation // eu.tiducto.spider.client/ParentStation.copy|copy(kotlin.String;kotlin.String){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/ParentStation.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/ParentStation.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // eu.tiducto.spider.client/ParentStation.toString|toString(){}[0]
+
+    final object $serializer : kotlinx.serialization.internal/GeneratedSerializer<eu.tiducto.spider.client/ParentStation> { // eu.tiducto.spider.client/ParentStation.$serializer|null[0]
+        final val descriptor // eu.tiducto.spider.client/ParentStation.$serializer.descriptor|{}descriptor[0]
+            final fun <get-descriptor>(): kotlinx.serialization.descriptors/SerialDescriptor // eu.tiducto.spider.client/ParentStation.$serializer.descriptor.<get-descriptor>|<get-descriptor>(){}[0]
+
+        final fun childSerializers(): kotlin/Array<kotlinx.serialization/KSerializer<*>> // eu.tiducto.spider.client/ParentStation.$serializer.childSerializers|childSerializers(){}[0]
+        final fun deserialize(kotlinx.serialization.encoding/Decoder): eu.tiducto.spider.client/ParentStation // eu.tiducto.spider.client/ParentStation.$serializer.deserialize|deserialize(kotlinx.serialization.encoding.Decoder){}[0]
+        final fun serialize(kotlinx.serialization.encoding/Encoder, eu.tiducto.spider.client/ParentStation) // eu.tiducto.spider.client/ParentStation.$serializer.serialize|serialize(kotlinx.serialization.encoding.Encoder;eu.tiducto.spider.client.ParentStation){}[0]
+    }
+
+    final object Companion { // eu.tiducto.spider.client/ParentStation.Companion|null[0]
+        final fun serializer(): kotlinx.serialization/KSerializer<eu.tiducto.spider.client/ParentStation> // eu.tiducto.spider.client/ParentStation.Companion.serializer|serializer(){}[0]
+    }
 }
 
 final class eu.tiducto.spider.client/PlaceHit { // eu.tiducto.spider.client/PlaceHit|null[0]
@@ -1243,7 +1278,7 @@ final class eu.tiducto.spider.client/RoutePageInfo { // eu.tiducto.spider.client
 }
 
 final class eu.tiducto.spider.client/RoutePreferences { // eu.tiducto.spider.client/RoutePreferences|null[0]
-    constructor <init>(kotlin/Double? = ..., kotlin/Double? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin.time/Duration? = ..., kotlin/Double? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin.collections/Set<kotlin/String>? = ..., kotlin.collections/Set<kotlin/String>? = ...) // eu.tiducto.spider.client/RoutePreferences.<init>|<init>(kotlin.Double?;kotlin.Double?;kotlin.Int?;kotlin.Int?;kotlin.time.Duration?;kotlin.Double?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.collections.Set<kotlin.String>?;kotlin.collections.Set<kotlin.String>?){}[0]
+    constructor <init>(kotlin/Double? = ..., kotlin/Double? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin.time/Duration? = ..., kotlin/Double? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin.collections/Set<kotlin/String>? = ..., kotlin.collections/Set<kotlin/String>? = ..., kotlin.collections/Map<eu.tiducto.spider.client/TransitMode, kotlin/Double>? = ...) // eu.tiducto.spider.client/RoutePreferences.<init>|<init>(kotlin.Double?;kotlin.Double?;kotlin.Int?;kotlin.Int?;kotlin.time.Duration?;kotlin.Double?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.collections.Set<kotlin.String>?;kotlin.collections.Set<kotlin.String>?;kotlin.collections.Map<eu.tiducto.spider.client.TransitMode,kotlin.Double>?){}[0]
 
     final val alightSlack // eu.tiducto.spider.client/RoutePreferences.alightSlack|{}alightSlack[0]
         final fun <get-alightSlack>(): kotlin.time/Duration? // eu.tiducto.spider.client/RoutePreferences.alightSlack.<get-alightSlack>|<get-alightSlack>(){}[0]
@@ -1255,6 +1290,8 @@ final class eu.tiducto.spider.client/RoutePreferences { // eu.tiducto.spider.cli
         final fun <get-excludedAgencies>(): kotlin.collections/Set<kotlin/String>? // eu.tiducto.spider.client/RoutePreferences.excludedAgencies.<get-excludedAgencies>|<get-excludedAgencies>(){}[0]
     final val excludedRoutes // eu.tiducto.spider.client/RoutePreferences.excludedRoutes|{}excludedRoutes[0]
         final fun <get-excludedRoutes>(): kotlin.collections/Set<kotlin/String>? // eu.tiducto.spider.client/RoutePreferences.excludedRoutes.<get-excludedRoutes>|<get-excludedRoutes>(){}[0]
+    final val modeReluctance // eu.tiducto.spider.client/RoutePreferences.modeReluctance|{}modeReluctance[0]
+        final fun <get-modeReluctance>(): kotlin.collections/Map<eu.tiducto.spider.client/TransitMode, kotlin/Double>? // eu.tiducto.spider.client/RoutePreferences.modeReluctance.<get-modeReluctance>|<get-modeReluctance>(){}[0]
     final val transferCost // eu.tiducto.spider.client/RoutePreferences.transferCost|{}transferCost[0]
         final fun <get-transferCost>(): kotlin/Int? // eu.tiducto.spider.client/RoutePreferences.transferCost.<get-transferCost>|<get-transferCost>(){}[0]
     final val transferSlack // eu.tiducto.spider.client/RoutePreferences.transferSlack|{}transferSlack[0]
@@ -1268,6 +1305,7 @@ final class eu.tiducto.spider.client/RoutePreferences { // eu.tiducto.spider.cli
 
     final fun component1(): kotlin/Double? // eu.tiducto.spider.client/RoutePreferences.component1|component1(){}[0]
     final fun component10(): kotlin.collections/Set<kotlin/String>? // eu.tiducto.spider.client/RoutePreferences.component10|component10(){}[0]
+    final fun component11(): kotlin.collections/Map<eu.tiducto.spider.client/TransitMode, kotlin/Double>? // eu.tiducto.spider.client/RoutePreferences.component11|component11(){}[0]
     final fun component2(): kotlin/Double? // eu.tiducto.spider.client/RoutePreferences.component2|component2(){}[0]
     final fun component3(): kotlin/Int? // eu.tiducto.spider.client/RoutePreferences.component3|component3(){}[0]
     final fun component4(): kotlin/Int? // eu.tiducto.spider.client/RoutePreferences.component4|component4(){}[0]
@@ -1276,7 +1314,7 @@ final class eu.tiducto.spider.client/RoutePreferences { // eu.tiducto.spider.cli
     final fun component7(): kotlin.time/Duration? // eu.tiducto.spider.client/RoutePreferences.component7|component7(){}[0]
     final fun component8(): kotlin.time/Duration? // eu.tiducto.spider.client/RoutePreferences.component8|component8(){}[0]
     final fun component9(): kotlin.collections/Set<kotlin/String>? // eu.tiducto.spider.client/RoutePreferences.component9|component9(){}[0]
-    final fun copy(kotlin/Double? = ..., kotlin/Double? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin.time/Duration? = ..., kotlin/Double? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin.collections/Set<kotlin/String>? = ..., kotlin.collections/Set<kotlin/String>? = ...): eu.tiducto.spider.client/RoutePreferences // eu.tiducto.spider.client/RoutePreferences.copy|copy(kotlin.Double?;kotlin.Double?;kotlin.Int?;kotlin.Int?;kotlin.time.Duration?;kotlin.Double?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.collections.Set<kotlin.String>?;kotlin.collections.Set<kotlin.String>?){}[0]
+    final fun copy(kotlin/Double? = ..., kotlin/Double? = ..., kotlin/Int? = ..., kotlin/Int? = ..., kotlin.time/Duration? = ..., kotlin/Double? = ..., kotlin.time/Duration? = ..., kotlin.time/Duration? = ..., kotlin.collections/Set<kotlin/String>? = ..., kotlin.collections/Set<kotlin/String>? = ..., kotlin.collections/Map<eu.tiducto.spider.client/TransitMode, kotlin/Double>? = ...): eu.tiducto.spider.client/RoutePreferences // eu.tiducto.spider.client/RoutePreferences.copy|copy(kotlin.Double?;kotlin.Double?;kotlin.Int?;kotlin.Int?;kotlin.time.Duration?;kotlin.Double?;kotlin.time.Duration?;kotlin.time.Duration?;kotlin.collections.Set<kotlin.String>?;kotlin.collections.Set<kotlin.String>?;kotlin.collections.Map<eu.tiducto.spider.client.TransitMode,kotlin.Double>?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/RoutePreferences.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/RoutePreferences.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // eu.tiducto.spider.client/RoutePreferences.toString|toString(){}[0]
@@ -1410,6 +1448,7 @@ final class eu.tiducto.spider.client/SpiderRouting { // eu.tiducto.spider.client
     final suspend fun plan(eu.tiducto.spider.client/Location, eu.tiducto.spider.client/Location, eu.tiducto.spider.client/RouteTime = ..., kotlin.collections/List<eu.tiducto.spider.client/ViaLocation> = ..., kotlin.collections/Set<eu.tiducto.spider.client/TransitMode>? = ..., kotlin/Int? = ..., kotlin.time/Duration = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/Reliability? = ..., kotlin.collections/Set<eu.tiducto.spider.client/TransitMode>? = ..., eu.tiducto.spider.client/RoutePreferences? = ..., kotlin/Boolean = ..., kotlin/Int? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route> // eu.tiducto.spider.client/SpiderRouting.plan|plan(eu.tiducto.spider.client.Location;eu.tiducto.spider.client.Location;eu.tiducto.spider.client.RouteTime;kotlin.collections.List<eu.tiducto.spider.client.ViaLocation>;kotlin.collections.Set<eu.tiducto.spider.client.TransitMode>?;kotlin.Int?;kotlin.time.Duration;kotlin.Boolean;eu.tiducto.spider.client.Reliability?;kotlin.collections.Set<eu.tiducto.spider.client.TransitMode>?;eu.tiducto.spider.client.RoutePreferences?;kotlin.Boolean;kotlin.Int?){}[0]
     final suspend fun planNext(eu.tiducto.spider.client/Route, kotlin/Int? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route>? // eu.tiducto.spider.client/SpiderRouting.planNext|planNext(eu.tiducto.spider.client.Route;kotlin.Int?){}[0]
     final suspend fun planPrevious(eu.tiducto.spider.client/Route, kotlin/Int? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/Route>? // eu.tiducto.spider.client/SpiderRouting.planPrevious|planPrevious(eu.tiducto.spider.client.Route;kotlin.Int?){}[0]
+    final suspend fun stopDepartures(kotlin/String, kotlin/Int = ..., kotlin.time/Instant? = ..., kotlin.time/Duration = ..., eu.tiducto.spider.client/Reliability? = ..., kotlin.collections/Set<eu.tiducto.spider.client/TransitMode>? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/StopDepartures> // eu.tiducto.spider.client/SpiderRouting.stopDepartures|stopDepartures(kotlin.String;kotlin.Int;kotlin.time.Instant?;kotlin.time.Duration;eu.tiducto.spider.client.Reliability?;kotlin.collections.Set<eu.tiducto.spider.client.TransitMode>?){}[0]
     final suspend fun trip(kotlin/String, kotlin/String, eu.tiducto.spider.client/Reliability? = ..., kotlin/String? = ...): eu.tiducto.spider.client/SpiderResult<eu.tiducto.spider.client/TripDetails> // eu.tiducto.spider.client/SpiderRouting.trip|trip(kotlin.String;kotlin.String;eu.tiducto.spider.client.Reliability?;kotlin.String?){}[0]
 }
 
@@ -1454,6 +1493,31 @@ final class eu.tiducto.spider.client/Stop { // eu.tiducto.spider.client/Stop|nul
     final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/Stop.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/Stop.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // eu.tiducto.spider.client/Stop.toString|toString(){}[0]
+}
+
+final class eu.tiducto.spider.client/StopDepartures { // eu.tiducto.spider.client/StopDepartures|null[0]
+    constructor <init>(kotlin/String, kotlin/String, eu.tiducto.spider.client/WheelchairBoarding?, eu.tiducto.spider.client/ParentStation?, kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Departure>) // eu.tiducto.spider.client/StopDepartures.<init>|<init>(kotlin.String;kotlin.String;eu.tiducto.spider.client.WheelchairBoarding?;eu.tiducto.spider.client.ParentStation?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.Departure>){}[0]
+
+    final val departures // eu.tiducto.spider.client/StopDepartures.departures|{}departures[0]
+        final fun <get-departures>(): kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Departure> // eu.tiducto.spider.client/StopDepartures.departures.<get-departures>|<get-departures>(){}[0]
+    final val gtfsId // eu.tiducto.spider.client/StopDepartures.gtfsId|{}gtfsId[0]
+        final fun <get-gtfsId>(): kotlin/String // eu.tiducto.spider.client/StopDepartures.gtfsId.<get-gtfsId>|<get-gtfsId>(){}[0]
+    final val name // eu.tiducto.spider.client/StopDepartures.name|{}name[0]
+        final fun <get-name>(): kotlin/String // eu.tiducto.spider.client/StopDepartures.name.<get-name>|<get-name>(){}[0]
+    final val parentStation // eu.tiducto.spider.client/StopDepartures.parentStation|{}parentStation[0]
+        final fun <get-parentStation>(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/StopDepartures.parentStation.<get-parentStation>|<get-parentStation>(){}[0]
+    final val wheelchairBoarding // eu.tiducto.spider.client/StopDepartures.wheelchairBoarding|{}wheelchairBoarding[0]
+        final fun <get-wheelchairBoarding>(): eu.tiducto.spider.client/WheelchairBoarding? // eu.tiducto.spider.client/StopDepartures.wheelchairBoarding.<get-wheelchairBoarding>|<get-wheelchairBoarding>(){}[0]
+
+    final fun component1(): kotlin/String // eu.tiducto.spider.client/StopDepartures.component1|component1(){}[0]
+    final fun component2(): kotlin/String // eu.tiducto.spider.client/StopDepartures.component2|component2(){}[0]
+    final fun component3(): eu.tiducto.spider.client/WheelchairBoarding? // eu.tiducto.spider.client/StopDepartures.component3|component3(){}[0]
+    final fun component4(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/StopDepartures.component4|component4(){}[0]
+    final fun component5(): kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Departure> // eu.tiducto.spider.client/StopDepartures.component5|component5(){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., eu.tiducto.spider.client/ParentStation? = ..., kotlinx.collections.immutable/ImmutableList<eu.tiducto.spider.client/Departure> = ...): eu.tiducto.spider.client/StopDepartures // eu.tiducto.spider.client/StopDepartures.copy|copy(kotlin.String;kotlin.String;eu.tiducto.spider.client.WheelchairBoarding?;eu.tiducto.spider.client.ParentStation?;kotlinx.collections.immutable.ImmutableList<eu.tiducto.spider.client.Departure>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/StopDepartures.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/StopDepartures.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // eu.tiducto.spider.client/StopDepartures.toString|toString(){}[0]
 }
 
 final class eu.tiducto.spider.client/StopFilters { // eu.tiducto.spider.client/StopFilters|null[0]
@@ -1679,7 +1743,7 @@ final class eu.tiducto.spider.client/TripModification { // eu.tiducto.spider.cli
 }
 
 final class eu.tiducto.spider.client/TripStop { // eu.tiducto.spider.client/TripStop|null[0]
-    constructor <init>(kotlin/String, kotlin/String, kotlin/Double, kotlin/Double, kotlin.time/Instant, kotlin.time/Instant, kotlin.time/Instant, kotlin.time/Instant, kotlin/Boolean, eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType? = ..., eu.tiducto.spider.client/PickupDropoffType? = ...) // eu.tiducto.spider.client/TripStop.<init>|<init>(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.Boolean;eu.tiducto.spider.client.WheelchairBoarding?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType?;eu.tiducto.spider.client.PickupDropoffType?){}[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/Double, kotlin/Double, kotlin.time/Instant, kotlin.time/Instant, kotlin.time/Instant, kotlin.time/Instant, kotlin/Boolean, eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType? = ..., eu.tiducto.spider.client/PickupDropoffType? = ..., eu.tiducto.spider.client/ParentStation? = ...) // eu.tiducto.spider.client/TripStop.<init>|<init>(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.Boolean;eu.tiducto.spider.client.WheelchairBoarding?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType?;eu.tiducto.spider.client.PickupDropoffType?;eu.tiducto.spider.client.ParentStation?){}[0]
 
     final val dropoffType // eu.tiducto.spider.client/TripStop.dropoffType|{}dropoffType[0]
         final fun <get-dropoffType>(): eu.tiducto.spider.client/PickupDropoffType? // eu.tiducto.spider.client/TripStop.dropoffType.<get-dropoffType>|<get-dropoffType>(){}[0]
@@ -1695,6 +1759,8 @@ final class eu.tiducto.spider.client/TripStop { // eu.tiducto.spider.client/Trip
         final fun <get-lon>(): kotlin/Double // eu.tiducto.spider.client/TripStop.lon.<get-lon>|<get-lon>(){}[0]
     final val name // eu.tiducto.spider.client/TripStop.name|{}name[0]
         final fun <get-name>(): kotlin/String // eu.tiducto.spider.client/TripStop.name.<get-name>|<get-name>(){}[0]
+    final val parentStation // eu.tiducto.spider.client/TripStop.parentStation|{}parentStation[0]
+        final fun <get-parentStation>(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/TripStop.parentStation.<get-parentStation>|<get-parentStation>(){}[0]
     final val pickupType // eu.tiducto.spider.client/TripStop.pickupType|{}pickupType[0]
         final fun <get-pickupType>(): eu.tiducto.spider.client/PickupDropoffType? // eu.tiducto.spider.client/TripStop.pickupType.<get-pickupType>|<get-pickupType>(){}[0]
     final val platformCode // eu.tiducto.spider.client/TripStop.platformCode|{}platformCode[0]
@@ -1725,6 +1791,7 @@ final class eu.tiducto.spider.client/TripStop { // eu.tiducto.spider.client/Trip
     final fun component15(): kotlin/Int? // eu.tiducto.spider.client/TripStop.component15|component15(){}[0]
     final fun component16(): eu.tiducto.spider.client/PickupDropoffType? // eu.tiducto.spider.client/TripStop.component16|component16(){}[0]
     final fun component17(): eu.tiducto.spider.client/PickupDropoffType? // eu.tiducto.spider.client/TripStop.component17|component17(){}[0]
+    final fun component18(): eu.tiducto.spider.client/ParentStation? // eu.tiducto.spider.client/TripStop.component18|component18(){}[0]
     final fun component2(): kotlin/String // eu.tiducto.spider.client/TripStop.component2|component2(){}[0]
     final fun component3(): kotlin/Double // eu.tiducto.spider.client/TripStop.component3|component3(){}[0]
     final fun component4(): kotlin/Double // eu.tiducto.spider.client/TripStop.component4|component4(){}[0]
@@ -1733,7 +1800,7 @@ final class eu.tiducto.spider.client/TripStop { // eu.tiducto.spider.client/Trip
     final fun component7(): kotlin.time/Instant // eu.tiducto.spider.client/TripStop.component7|component7(){}[0]
     final fun component8(): kotlin.time/Instant // eu.tiducto.spider.client/TripStop.component8|component8(){}[0]
     final fun component9(): kotlin/Boolean // eu.tiducto.spider.client/TripStop.component9|component9(){}[0]
-    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType? = ..., eu.tiducto.spider.client/PickupDropoffType? = ...): eu.tiducto.spider.client/TripStop // eu.tiducto.spider.client/TripStop.copy|copy(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.Boolean;eu.tiducto.spider.client.WheelchairBoarding?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType?;eu.tiducto.spider.client.PickupDropoffType?){}[0]
+    final fun copy(kotlin/String = ..., kotlin/String = ..., kotlin/Double = ..., kotlin/Double = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ..., kotlin.time/Instant = ..., kotlin/Boolean = ..., eu.tiducto.spider.client/WheelchairBoarding? = ..., kotlin/String? = ..., kotlin/String? = ..., kotlin.time/Duration? = ..., kotlin/Int? = ..., kotlin/Int? = ..., eu.tiducto.spider.client/PickupDropoffType? = ..., eu.tiducto.spider.client/PickupDropoffType? = ..., eu.tiducto.spider.client/ParentStation? = ...): eu.tiducto.spider.client/TripStop // eu.tiducto.spider.client/TripStop.copy|copy(kotlin.String;kotlin.String;kotlin.Double;kotlin.Double;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.time.Instant;kotlin.Boolean;eu.tiducto.spider.client.WheelchairBoarding?;kotlin.String?;kotlin.String?;kotlin.time.Duration?;kotlin.Int?;kotlin.Int?;eu.tiducto.spider.client.PickupDropoffType?;eu.tiducto.spider.client.PickupDropoffType?;eu.tiducto.spider.client.ParentStation?){}[0]
     final fun equals(kotlin/Any?): kotlin/Boolean // eu.tiducto.spider.client/TripStop.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // eu.tiducto.spider.client/TripStop.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // eu.tiducto.spider.client/TripStop.toString|toString(){}[0]
