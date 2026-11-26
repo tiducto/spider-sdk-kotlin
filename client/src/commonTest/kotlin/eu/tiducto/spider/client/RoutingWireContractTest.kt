@@ -17,7 +17,10 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -251,6 +254,144 @@ class RoutingWireContractTest {
                 TripRequest(id = "1:T", serviceDate = "2026-10-07", startTime = "25:10:00"),
             ),
         )
+    }
+
+    @Test
+    fun `no preferences and empty preferences send exactly the body without them`() {
+        val bare = request.copy(maxTransfers = 1, wheelchairAccessible = true)
+        val expected = encode(bare.toPlanTripRequest(before = null, after = null))
+
+        for (preferences in listOf(null, RoutePreferences(), RoutePreferences(excludedRoutes = emptySet(), excludedAgencies = emptySet()))) {
+            assertEquals(expected, encode(bare.copy(preferences = preferences).toPlanTripRequest(before = null, after = null)), "$preferences")
+        }
+        assertNull(request.copy(preferences = RoutePreferences()).toPreferencesInput())
+    }
+
+    @Test
+    fun `every preference lands at its contract path beside maximumTransfers and wheelchair`() {
+        val preferred = request.copy(
+            maxTransfers = 2,
+            wheelchairAccessible = true,
+            preferences = RoutePreferences(
+                walkSpeed = 1.2,
+                walkReluctance = 4.5,
+                boardCost = 600,
+                transferCost = 300,
+                transferSlack = 2.minutes,
+                waitReluctance = 0.5,
+                boardSlack = 30.seconds,
+                alightSlack = 1.hours,
+                excludedRoutes = setOf("1:L4", "1:L9"),
+                excludedAgencies = setOf("1:DPMB"),
+            ),
+        )
+
+        val expected = json.parseToJsonElement(
+            """
+            {
+              "street": { "walk": { "speed": 1.2, "reluctance": 4.5, "boardCost": 600 } },
+              "transit": {
+                "transfer": { "cost": 300, "slack": "PT2M", "maximumTransfers": 3 },
+                "board": { "waitReluctance": 0.5, "slack": "PT30S" },
+                "alight": { "slack": "PT1H" },
+                "filters": [ { "exclude": [ { "routes": ["1:L4", "1:L9"] }, { "agencies": ["1:DPMB"] } ] } ]
+              },
+              "accessibility": { "wheelchair": { "enabled": true } }
+            }
+            """.trimIndent(),
+        )
+        assertEquals(expected, encode(preferred.toPlanTripRequest(before = null, after = null))["preferences"])
+        assertEquals(
+            expected,
+            json.encodeToJsonElement(
+                PlanStreamRequest.serializer(),
+                preferred.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null),
+            ).jsonObject["preferences"],
+        )
+    }
+
+    @Test
+    fun `a single preference sends only its own branch`() {
+        fun preferencesOf(preferences: RoutePreferences) =
+            encode(request.copy(preferences = preferences).toPlanTripRequest(before = null, after = null))["preferences"]
+
+        assertEquals(
+            json.parseToJsonElement("""{ "transit": { "transfer": { "slack": "PT0S" } } }"""),
+            preferencesOf(RoutePreferences(transferSlack = Duration.ZERO)),
+        )
+        assertEquals(
+            json.parseToJsonElement("""{ "street": { "walk": { "speed": 0.1 } } }"""),
+            preferencesOf(RoutePreferences(walkSpeed = 0.1)),
+        )
+        assertEquals(
+            json.parseToJsonElement("""{ "transit": { "filters": [ { "exclude": [ { "agencies": ["1:A"] } ] } ] } }"""),
+            preferencesOf(RoutePreferences(excludedRoutes = emptySet(), excludedAgencies = setOf("1:A"))),
+        )
+    }
+
+    @Test
+    fun `a preference out of its contract range is rejected with its path before any body is built`() {
+        val outOfRange = listOf(
+            RoutePreferences(walkSpeed = 0.09) to "preferences.street.walk.speed",
+            RoutePreferences(walkSpeed = Double.POSITIVE_INFINITY) to "preferences.street.walk.speed",
+            RoutePreferences(walkReluctance = 100_001.0) to "preferences.street.walk.reluctance",
+            RoutePreferences(boardCost = -1) to "preferences.street.walk.boardCost",
+            RoutePreferences(transferCost = 1_000_001) to "preferences.transit.transfer.cost",
+            RoutePreferences(transferSlack = (-1).seconds) to "preferences.transit.transfer.slack",
+            RoutePreferences(waitReluctance = 0.0) to "preferences.transit.board.waitReluctance",
+            RoutePreferences(boardSlack = 61.minutes) to "preferences.transit.board.slack",
+            RoutePreferences(alightSlack = 1.hours + 1.seconds) to "preferences.transit.alight.slack",
+        )
+
+        for ((preferences, field) in outOfRange) {
+            val planned = request.copy(preferences = preferences)
+            val plan = assertFailsWith<SpiderTransportException.BadRequest> { planned.toPlanTripRequest(before = null, after = null) }
+            val stream = assertFailsWith<SpiderTransportException.BadRequest> {
+                planned.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null)
+            }
+            for (error in listOf(plan, stream)) {
+                assertEquals(field, error.field, "$preferences")
+                assertEquals("$field is out of range", error.message)
+            }
+        }
+    }
+
+    @Test
+    fun `transitOnly sends modes transitOnly beside the mode filters and nothing when false`() {
+        fun modesOf(planned: PlanRequest) = listOf(
+            encode(planned.toPlanTripRequest(before = null, after = null))["modes"],
+            json.encodeToJsonElement(
+                PlanStreamRequest.serializer(),
+                planned.toPlanStreamRequest(targetResults = 5, maxWindow = 120.minutes, before = null, after = null),
+            ).jsonObject["modes"],
+        )
+
+        val only = json.parseToJsonElement("""{ "transitOnly": true }""")
+        assertEquals(listOf(only, only), modesOf(request.copy(transitOnly = true)))
+        val withExclusion = json.parseToJsonElement("""{ "transitOnly": true, "transit": { "exclude": ["TRAM"] } }""")
+        assertEquals(
+            listOf(withExclusion, withExclusion),
+            modesOf(request.copy(transitOnly = true, excludedTransitModes = setOf(TransitMode.TRAM))),
+        )
+        assertEquals(listOf(null, null), modesOf(request.copy(transitOnly = false)))
+        assertEquals(
+            encode(request.toPlanTripRequest(before = null, after = null)),
+            encode(request.copy(transitOnly = false).toPlanTripRequest(before = null, after = null)),
+        )
+    }
+
+    @Test
+    fun `numberOfItineraries is first on the first page and after a cursor and last before one`() {
+        val sized = request.copy(numberOfItineraries = 3)
+        fun countsOf(body: PlanTripRequest) = encode(body).let { it["first"] to it["last"] }
+        val three = json.parseToJsonElement("3")
+
+        assertEquals(three to null, countsOf(sized.toPlanTripRequest(before = null, after = null)))
+        assertEquals(three to null, countsOf(sized.toPlanTripRequest(before = null, after = "c-next")))
+        assertEquals(null to three, countsOf(sized.toPlanTripRequest(before = "c-prev", after = null)))
+        for ((before, after) in listOf(null to null, null to "c-next", "c-prev" to null)) {
+            assertEquals(null to null, countsOf(request.toPlanTripRequest(before = before, after = after)))
+        }
     }
 
     @Test

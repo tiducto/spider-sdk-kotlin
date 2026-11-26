@@ -2,6 +2,8 @@ package eu.tiducto.spider.client
 
 import eu.tiducto.spider.client.util.decodePolyline
 import eu.tiducto.spider.contract.routing.AccessibilityPreferencesInput
+import eu.tiducto.spider.contract.routing.AlightPreferencesInput
+import eu.tiducto.spider.contract.routing.BoardPreferencesInput
 import eu.tiducto.spider.contract.routing.DeparturesRequest
 import eu.tiducto.spider.contract.routing.DeparturesResponse
 import eu.tiducto.spider.contract.routing.EstimatedDelaysResponse
@@ -19,6 +21,7 @@ import eu.tiducto.spider.contract.routing.PlanStopLocationInput
 import eu.tiducto.spider.contract.routing.PlanStreamChunkEvent
 import eu.tiducto.spider.contract.routing.PlanStreamPageInfoEvent
 import eu.tiducto.spider.contract.routing.PlanStreamRequest
+import eu.tiducto.spider.contract.routing.PlanStreetPreferencesInput
 import eu.tiducto.spider.contract.routing.PlanTransitModePreferenceInput
 import eu.tiducto.spider.contract.routing.PlanTransitModesInput
 import eu.tiducto.spider.contract.routing.PlanTripRequest
@@ -28,11 +31,14 @@ import eu.tiducto.spider.contract.routing.PlanVisitViaLocationInput
 import eu.tiducto.spider.contract.routing.Reliability as WireReliability
 import eu.tiducto.spider.contract.routing.RoutingError as WireRoutingError
 import eu.tiducto.spider.contract.routing.TransferPreferencesInput
+import eu.tiducto.spider.contract.routing.TransitFilterInput
+import eu.tiducto.spider.contract.routing.TransitFilterSelectInput
 import eu.tiducto.spider.contract.routing.TransitMode as WireTransitMode
 import eu.tiducto.spider.contract.routing.TransitPreferencesInput
 import eu.tiducto.spider.contract.routing.TripRequest
 import eu.tiducto.spider.contract.routing.TripResponse
 import eu.tiducto.spider.contract.routing.TripVehicle as WireTripVehicle
+import eu.tiducto.spider.contract.routing.WalkPreferencesInput
 import eu.tiducto.spider.contract.routing.WheelchairPreferencesInput
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.sse.SSE
@@ -512,6 +518,8 @@ internal fun PlanRequest.toPlanTripRequest(before: String?, after: String?): Pla
         via = toViaInputs(),
         modes = toModesInput(),
         preferences = toPreferencesInput(),
+        first = numberOfItineraries.takeIf { before == null },
+        last = numberOfItineraries.takeIf { before != null },
         before = before,
         after = after,
         reliability = reliability?.toWire(),
@@ -564,8 +572,9 @@ internal fun PlanRequest.toModesInput(): PlanModesInput? {
     val exclude = excludedTransitModes.toWireTransitModes()
     // The API refuses both lists in one request; refuse it here, before the request, with the API's own field.
     if (transit != null && exclude != null) throw SpiderTransportException.BadRequest(MODES_TRANSIT, "$MODES_TRANSIT is invalid")
-    if (transit == null && exclude == null) return null
-    return PlanModesInput(transit = PlanTransitModesInput(transit = transit, exclude = exclude))
+    val transitModes = if (transit == null && exclude == null) null else PlanTransitModesInput(transit = transit, exclude = exclude)
+    if (transitModes == null && !transitOnly) return null
+    return PlanModesInput(transitOnly = transitOnly.takeIf { it }, transit = transitModes)
 }
 
 private const val MODES_TRANSIT = "modes.transit"
@@ -575,20 +584,65 @@ private fun Set<TransitMode>?.toWireTransitModes(): List<WireTransitMode>? =
     this?.mapNotNull { it.toWireTransitMode() }?.takeIf { it.isNotEmpty() }
 
 internal fun PlanRequest.toPreferencesInput(): PlanPreferencesInput? {
+    preferences?.requireInRange()
     // The router indexes legs with leg 0 = the initial access (walk, or nothing), so its wire
     // `maximumTransfers` counts boardings = transfers + 1 (wire 0 = walk-only, not exposed here).
     // `maxTransfers` is a transfer count, so map it to boardings: 0 transfers = 1 boarding (direct).
-    val transit = maxTransfers?.let {
-        TransitPreferencesInput(transfer = TransferPreferencesInput(maximumTransfers = it + 1))
-    }
+    val transfer = TransferPreferencesInput(
+        cost = preferences?.transferCost,
+        slack = preferences?.transferSlack?.toIsoString(),
+        maximumTransfers = maxTransfers?.let { it + 1 },
+    ).takeUnless { it == TransferPreferencesInput() }
+    val board = BoardPreferencesInput(
+        waitReluctance = preferences?.waitReluctance,
+        slack = preferences?.boardSlack?.toIsoString(),
+    ).takeUnless { it == BoardPreferencesInput() }
+    val alight = preferences?.alightSlack?.let { AlightPreferencesInput(slack = it.toIsoString()) }
+    val filters = preferences?.toFilterInputs()
+    val transit = TransitPreferencesInput(transfer = transfer, board = board, alight = alight, filters = filters)
+        .takeUnless { it == TransitPreferencesInput() }
+    val walk = WalkPreferencesInput(
+        speed = preferences?.walkSpeed,
+        reluctance = preferences?.walkReluctance,
+        boardCost = preferences?.boardCost,
+    ).takeUnless { it == WalkPreferencesInput() }
     val accessibility = if (wheelchairAccessible) {
         AccessibilityPreferencesInput(wheelchair = WheelchairPreferencesInput(enabled = true))
     } else {
         null
     }
-    return if (transit == null && accessibility == null) null
-    else PlanPreferencesInput(transit = transit, accessibility = accessibility)
+    val street = walk?.let { PlanStreetPreferencesInput(walk = it) }
+    return PlanPreferencesInput(street = street, transit = transit, accessibility = accessibility)
+        .takeUnless { it == PlanPreferencesInput() }
 }
+
+// One filter excluding the routes and the agencies; an empty selector is no exclusion, and the API refuses one.
+private fun RoutePreferences.toFilterInputs(): List<TransitFilterInput>? {
+    val selectors = listOfNotNull(
+        excludedRoutes?.takeIf { it.isNotEmpty() }?.let { TransitFilterSelectInput(routes = it.toList()) },
+        excludedAgencies?.takeIf { it.isNotEmpty() }?.let { TransitFilterSelectInput(agencies = it.toList()) },
+    )
+    return if (selectors.isEmpty()) null else listOf(TransitFilterInput(exclude = selectors))
+}
+
+// The contract's fixed bounds, refused before the request with the API's own field, as the API answers them.
+private fun RoutePreferences.requireInRange() {
+    walkSpeed?.let { requireInRange("$WALK.speed", it.isFinite() && it >= MIN_MULTIPLIER) }
+    walkReluctance?.let { requireInRange("$WALK.reluctance", it in MIN_MULTIPLIER..MAX_MULTIPLIER) }
+    boardCost?.let { requireInRange("$WALK.boardCost", it in 0..MAX_COST) }
+    transferCost?.let { requireInRange("$TRANSIT.transfer.cost", it in 0..MAX_COST) }
+    transferSlack?.let { requireInRange("$TRANSIT.transfer.slack", it in Duration.ZERO..MAX_SLACK) }
+    waitReluctance?.let { requireInRange("$TRANSIT.board.waitReluctance", it in MIN_MULTIPLIER..MAX_MULTIPLIER) }
+    boardSlack?.let { requireInRange("$TRANSIT.board.slack", it in Duration.ZERO..MAX_SLACK) }
+    alightSlack?.let { requireInRange("$TRANSIT.alight.slack", it in Duration.ZERO..MAX_SLACK) }
+}
+
+private const val WALK = "preferences.street.walk"
+private const val TRANSIT = "preferences.transit"
+private const val MIN_MULTIPLIER = 0.1
+private const val MAX_MULTIPLIER = 100_000.0
+private const val MAX_COST = 1_000_000
+private val MAX_SLACK = 1.hours
 
 private fun Reliability.toWire(): WireReliability = when (this) {
     Reliability.STANDARD -> WireReliability.STANDARD

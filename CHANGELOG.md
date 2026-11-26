@@ -6,6 +6,29 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 ## [Unreleased]
 
+### Added
+
+- `RoutePreferences` and `preferences: RoutePreferences? = null` on `plan`, `planStream`, `planStreamNext` and
+  `planStreamPrevious`, kept on `PlanRequest` so `planNext` / `planPrevious` resend it: the contract's routing
+  preferences the SDK didn't expose. `walkSpeed`, `walkReluctance` and `boardCost` are sent under
+  `preferences.street.walk`, `transferCost` and `transferSlack` under `preferences.transit.transfer` (beside
+  `maximumTransfers` from `maxTransfers`), `waitReluctance` and `boardSlack` under `preferences.transit.board`,
+  `alightSlack` under `preferences.transit.alight`, and `excludedRoutes` / `excludedAgencies` (feed-prefixed ids) as
+  one `preferences.transit.filters` exclusion. Slacks are `Duration`s, sent as ISO-8601.
+- Each member left null keeps the environment's default, and null or empty exclusions exclude nothing, so
+  `RoutePreferences()` sends the same body as no preferences. A value outside the contract's fixed range (a walking
+  speed under 0.1, a multiplier outside 0.1 to 100000, a cost outside 0 to 1000000, a slack outside zero to 1 hour)
+  returns `BadRequest` for its contract path, such as `preferences.transit.board.slack`, without a request.
+- It comes last with a null default, so existing callers compile unchanged.
+- `transitOnly: Boolean = false` on `plan`, `planStream`, `planStreamNext` and `planStreamPrevious`, kept on
+  `PlanRequest` so `planNext` / `planPrevious` resend it: true leaves out every itinerary without a transit leg, such
+  as walking the whole way. Sent as `modes.transitOnly` only when true. The contract's `directOnly` stays unexposed.
+- `plan(…, numberOfItineraries: Int? = null)`: the most itineraries the page holds, from 1 up to the environment's
+  itinerary limit, rejected and never clamped by the API; null means the limit. Kept on `PlanRequest`, and
+  `planNext(prev, numberOfItineraries = prev.request.numberOfItineraries)` / `planPrevious(…)` take it too, so a
+  page keeps its size unless the caller changes it. Sent as `first` on the first page and after a cursor, as `last`
+  before one. `planStream` sizes itself by `targetResults` and doesn't take it.
+
 ### Removed
 
 - The `iosX64` and `macosX64` targets (Intel Macs and the iOS simulator on them), which Kotlin deprecates and
