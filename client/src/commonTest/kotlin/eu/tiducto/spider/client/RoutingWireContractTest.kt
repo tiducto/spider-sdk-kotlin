@@ -278,7 +278,7 @@ class RoutingWireContractTest {
                 boardCost = 600,
                 transferCost = 300,
                 transferSlack = 2.minutes,
-                waitReluctance = 0.5,
+                waitReluctance = 1.5,
                 boardSlack = 30.seconds,
                 alightSlack = 1.hours,
                 excludedRoutes = setOf("1:L4", "1:L9"),
@@ -292,7 +292,7 @@ class RoutingWireContractTest {
               "street": { "walk": { "speed": 1.2, "reluctance": 4.5, "boardCost": 600 } },
               "transit": {
                 "transfer": { "cost": 300, "slack": "PT2M", "maximumTransfers": 3 },
-                "board": { "waitReluctance": 0.5, "slack": "PT30S" },
+                "board": { "waitReluctance": 1.5, "slack": "PT30S" },
                 "alight": { "slack": "PT1H" },
                 "filters": [ { "exclude": [ { "routes": ["1:L4", "1:L9"] }, { "agencies": ["1:DPMB"] } ] } ]
               },
@@ -320,8 +320,8 @@ class RoutingWireContractTest {
             preferencesOf(RoutePreferences(transferSlack = Duration.ZERO)),
         )
         assertEquals(
-            json.parseToJsonElement("""{ "street": { "walk": { "speed": 0.1 } } }"""),
-            preferencesOf(RoutePreferences(walkSpeed = 0.1)),
+            json.parseToJsonElement("""{ "street": { "walk": { "speed": 0.3 } } }"""),
+            preferencesOf(RoutePreferences(walkSpeed = 0.3)),
         )
         assertEquals(
             json.parseToJsonElement("""{ "transit": { "filters": [ { "exclude": [ { "agencies": ["1:A"] } ] } ] } }"""),
@@ -332,13 +332,18 @@ class RoutingWireContractTest {
     @Test
     fun `a preference out of its contract range is rejected with its path before any body is built`() {
         val outOfRange = listOf(
-            RoutePreferences(walkSpeed = 0.09) to "preferences.street.walk.speed",
+            RoutePreferences(walkSpeed = 0.29) to "preferences.street.walk.speed",
+            RoutePreferences(walkSpeed = 5.01) to "preferences.street.walk.speed",
             RoutePreferences(walkSpeed = Double.POSITIVE_INFINITY) to "preferences.street.walk.speed",
-            RoutePreferences(walkReluctance = 100_001.0) to "preferences.street.walk.reluctance",
+            RoutePreferences(walkSpeed = Double.NaN) to "preferences.street.walk.speed",
+            RoutePreferences(walkReluctance = 100.01) to "preferences.street.walk.reluctance",
+            RoutePreferences(walkReluctance = 0.99) to "preferences.street.walk.reluctance",
             RoutePreferences(boardCost = -1) to "preferences.street.walk.boardCost",
-            RoutePreferences(transferCost = 1_000_001) to "preferences.transit.transfer.cost",
+            RoutePreferences(boardCost = 86_401) to "preferences.street.walk.boardCost",
+            RoutePreferences(transferCost = 86_401) to "preferences.transit.transfer.cost",
             RoutePreferences(transferSlack = (-1).seconds) to "preferences.transit.transfer.slack",
-            RoutePreferences(waitReluctance = 0.0) to "preferences.transit.board.waitReluctance",
+            RoutePreferences(waitReluctance = 0.99) to "preferences.transit.board.waitReluctance",
+            RoutePreferences(waitReluctance = 100.01) to "preferences.transit.board.waitReluctance",
             RoutePreferences(boardSlack = 61.minutes) to "preferences.transit.board.slack",
             RoutePreferences(alightSlack = 1.hours + 1.seconds) to "preferences.transit.alight.slack",
         )
@@ -353,6 +358,12 @@ class RoutingWireContractTest {
                 assertEquals(field, error.field, "$preferences")
                 assertEquals("$field is out of range", error.message)
             }
+        }
+        for (preferences in listOf(
+            RoutePreferences(walkSpeed = 0.3, walkReluctance = 1.0, boardCost = 0, transferCost = 0, waitReluctance = 1.0),
+            RoutePreferences(walkSpeed = 5.0, walkReluctance = 100.0, boardCost = 86_400, transferCost = 86_400, waitReluctance = 100.0),
+        )) {
+            request.copy(preferences = preferences).toPlanTripRequest(before = null, after = null)
         }
     }
 
@@ -494,12 +505,12 @@ class RoutingWireContractTest {
     fun `mode reluctance is sent as costs beside exclude in TransitMode order`() {
         val planned = request.copy(
             excludedTransitModes = setOf(TransitMode.RAIL),
-            preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TROLLEYBUS to 0.9, TransitMode.BUS to 1.5, TransitMode.RAIL to 2.5)),
+            preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TROLLEYBUS to 1.2, TransitMode.BUS to 1.5, TransitMode.RAIL to 2.5)),
         )
 
         val expected = json.parseToJsonElement(
             """{ "transit": { "exclude": ["RAIL"], "costs": [
-              { "mode": "BUS", "reluctance": 1.5 }, { "mode": "TROLLEYBUS", "reluctance": 0.9 }, { "mode": "RAIL", "reluctance": 2.5 }
+              { "mode": "BUS", "reluctance": 1.5 }, { "mode": "TROLLEYBUS", "reluctance": 1.2 }, { "mode": "RAIL", "reluctance": 2.5 }
             ] } }""",
         )
         assertEquals(listOf(expected, expected), modesOf(planned))
@@ -509,11 +520,11 @@ class RoutingWireContractTest {
     fun `mode reluctance alone is sent as costs without the street and unknown modes`() {
         val planned = request.copy(
             preferences = RoutePreferences(
-                modeReluctance = mapOf(TransitMode.TRAM to 0.5, TransitMode.WALK to 3.0, TransitMode.UNKNOWN to 2.0),
+                modeReluctance = mapOf(TransitMode.TRAM to 1.5, TransitMode.WALK to 3.0, TransitMode.UNKNOWN to 2.0),
             ),
         )
 
-        val expected = json.parseToJsonElement("""{ "transit": { "costs": [ { "mode": "TRAM", "reluctance": 0.5 } ] } }""")
+        val expected = json.parseToJsonElement("""{ "transit": { "costs": [ { "mode": "TRAM", "reluctance": 1.5 } ] } }""")
         assertEquals(listOf(expected, expected), modesOf(planned))
         assertNull(encode(planned.toPlanTripRequest(before = null, after = null))["preferences"])
     }
@@ -522,11 +533,11 @@ class RoutingWireContractTest {
     fun `mode reluctance folds into an allow-list and drops the modes it does not allow`() {
         val planned = request.copy(
             allowedTransitModes = setOf(TransitMode.BUS, TransitMode.TRAM),
-            preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 0.9, TransitMode.RAIL to 5.0)),
+            preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to 1.2, TransitMode.RAIL to 5.0)),
         )
 
         val expected = json.parseToJsonElement(
-            """{ "transit": { "transit": [ { "mode": "BUS" }, { "mode": "TRAM", "cost": { "reluctance": 0.9 } } ] } }""",
+            """{ "transit": { "transit": [ { "mode": "BUS" }, { "mode": "TRAM", "cost": { "reluctance": 1.2 } } ] } }""",
         )
         assertEquals(listOf(expected, expected), modesOf(planned))
     }
@@ -551,7 +562,7 @@ class RoutingWireContractTest {
 
     @Test
     fun `a mode reluctance out of range is rejected with its path before any body is built`() {
-        val outOfRange = listOf(0.09, 100_001.0, 0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)
+        val outOfRange = listOf(0.99, 100.01, 0.0, -1.0, Double.NaN, Double.POSITIVE_INFINITY)
         val allowed = setOf(TransitMode.BUS)
         for (value in outOfRange) {
             for ((planned, field) in listOf(
@@ -572,7 +583,7 @@ class RoutingWireContractTest {
                 }
             }
         }
-        for (value in listOf(0.1, 100_000.0)) {
+        for (value in listOf(1.0, 100.0)) {
             request.copy(preferences = RoutePreferences(modeReluctance = mapOf(TransitMode.TRAM to value)))
                 .toPlanTripRequest(before = null, after = null)
         }

@@ -664,7 +664,7 @@ private fun RoutePreferences.toFilterInputs(): List<TransitFilterInput>? {
 
 // The contract's fixed bounds, refused before the request with the API's own field, as the API answers them.
 private fun RoutePreferences.requireInRange() {
-    walkSpeed?.let { requireInRange("$WALK.speed", it.isFinite() && it >= MIN_MULTIPLIER) }
+    walkSpeed?.let { requireInRange("$WALK.speed", it in MIN_WALK_SPEED..MAX_WALK_SPEED) }
     walkReluctance?.let { requireInRange("$WALK.reluctance", it in MIN_MULTIPLIER..MAX_MULTIPLIER) }
     boardCost?.let { requireInRange("$WALK.boardCost", it in 0..MAX_COST) }
     transferCost?.let { requireInRange("$TRANSIT.transfer.cost", it in 0..MAX_COST) }
@@ -676,9 +676,11 @@ private fun RoutePreferences.requireInRange() {
 
 private const val WALK = "preferences.street.walk"
 private const val TRANSIT = "preferences.transit"
-private const val MIN_MULTIPLIER = 0.1
-private const val MAX_MULTIPLIER = 100_000.0
-private const val MAX_COST = 1_000_000
+private const val MIN_MULTIPLIER = 1.0
+private const val MAX_MULTIPLIER = 100.0
+private const val MIN_WALK_SPEED = 0.3
+private const val MAX_WALK_SPEED = 5.0
+private const val MAX_COST = 86_400
 private val MAX_SLACK = 1.hours
 
 private fun Reliability.toWire(): WireReliability = when (this) {

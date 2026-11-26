@@ -6,6 +6,13 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 ## [Unreleased]
 
+### Changed
+
+- `RoutePreferences` checks the narrower ranges of contract 1.13, which the API already enforces: a walking speed
+  outside 0.3 to 5, a walk, wait or mode reluctance outside 1 to 100, and a board or transfer cost outside 0 to 86400
+  return `BadRequest` for their contract path without a request. A reluctance of 1 rides the mode as any other, and
+  only above 1 avoids it, so a value under 1 that favoured a mode is now refused.
+
 ## [1.12.0] - Unreleased
 
 Targets Spider API contract 1.12.
