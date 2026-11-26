@@ -75,8 +75,8 @@ class SpiderRouting(
         if (!prev.pageInfo.hasPreviousPage) null
         else page(prev.request.copy(numberOfItineraries = numberOfItineraries), before = prev.pageInfo.startCursor)
 
-    // Cursor paging only — no page-size count. Each page is one search window, holding at most the
-    // environment's result count; `before`/`after` walk the windows.
+    // Each page is one search window, holding at most numberOfItineraries (null: the environment's result
+    // count); `before`/`after` walk the windows.
     private suspend fun page(
         request: PlanRequest,
         before: String? = null,
