@@ -6,6 +6,8 @@ the `major.minor` mirror the contract version and the trailing number is the SDK
 
 ## [Unreleased]
 
+## [1.12.0] - Unreleased
+
 Targets Spider API contract 1.12.
 
 ### Added
